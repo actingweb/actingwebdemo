@@ -21,7 +21,7 @@ class config():
         self.logLevel = logging.INFO #Change to WARN for production, DEBUG for debugging, and INFO for normal testing
 
         self.oauth = {
-            'client_id': "",
+            'client_id': "",  # An empty client_id turns off oauth capabilities
             'client_secret': "",
             'redirect_uri': "",
             'scope': "",

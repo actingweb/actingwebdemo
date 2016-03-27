@@ -3,7 +3,6 @@
 from actingweb import actor
 from actingweb import auth
 from actingweb import config
-from spark import sparks
 
 import logging
 

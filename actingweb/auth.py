@@ -51,6 +51,12 @@ class oauth():
         # Hack to get access to GAE default logger
         logging.getLogger().handlers[0].setLevel(self.config.logLevel)
 
+    def enabled(self):
+        if len(self.config.oauth['client_id']) == 0:
+            return False
+        else:
+            return True
+
     def setToken(self, token):
         if token:
             self.token=token
@@ -188,11 +194,12 @@ class auth():
             self.redirect = self.config.root+self.actor.id+'/oauth'
         if not self.actor.id:
             self.actor = None
-            return None
 
     def checkCookieAuth(self, appreq, path):
         if not self.actor:
             return False
+        if len(self.config.oauth['client_id']) == 0:  # Test for other auth here and only return true if no auth is available
+            return True
         if self.token:
             now = time.time()
             auth=appreq.request.cookies.get(self.cookie)

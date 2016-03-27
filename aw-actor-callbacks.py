@@ -6,7 +6,6 @@ import logging
 from actingweb import actor
 from actingweb import auth
 from actingweb import config
-from spark import sparks
 
 import webapp2
 import on_aw_callbacks

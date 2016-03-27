@@ -5,7 +5,6 @@ import wsgiref.handlers
 from actingweb import actor
 from actingweb import auth
 from actingweb import config
-from spark import sparks
 
 import webapp2
 from google.appengine.ext import deferred

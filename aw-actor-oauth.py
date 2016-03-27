@@ -17,6 +17,9 @@ class MainPage(webapp2.RequestHandler):
             return
         now = time.time()
         oauth=auth.oauth()
+        if not oauth.enabled():
+            self.response.set_status(403, "OAuth not enabled")
+            return
         # Handle callback from oauth granter
         if self.request.get('code'):
             code=self.request.get('code')

@@ -5,7 +5,6 @@ import wsgiref.handlers
 from actingweb import actor
 from actingweb import auth
 from actingweb import config
-from spark import sparks
 
 import webapp2
 import logging
@@ -28,7 +27,7 @@ class MainPage(webapp2.RequestHandler):
         return
     check = auth.auth(id, redirect=Config.root+myself.id+'/oauth')
     if not check:
-        self.response.set_status(404, "Not found")
+        self.response.set_status(404, "Not able to authenticate")
         return
     if not check.checkCookieAuth(self, '/www/'+path):
         return
