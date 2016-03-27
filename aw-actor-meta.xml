@@ -1,0 +1,14 @@
+<<?xml version="1.0" encoding="utf-8"?>
+<meta>
+  <actingweb>
+    <version>{{ aw_version }}</version>
+    <supported>{{ aw_supported }}</supported>
+    <formats>{{ aw_formats }}</formats>
+  </actingweb>
+  <type>{{ type }}</type>
+  <version>{{ version }}</version>
+  <desc>{{ desc }}</desc>
+  <trustee>{{ trustee }}</trustee>
+  <info>{{ info }}</info>
+  <wadl>{{ wadl }}</wadl>
+</meta>
