@@ -9,6 +9,7 @@ from actingweb import config
 import webapp2
 from google.appengine.ext import deferred
 
+
 def on_aw_delete_actor(myself):
     # THIS METHOD IS CALLED WHEN AN ACTOR IS REQUESTED TO BE DELETED.
     # THE BELOW IS SAMPLE CODE

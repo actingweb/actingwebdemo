@@ -17,13 +17,15 @@ __all__ = [
     'on_get_callbacks',
 ]
 
+
 def on_get_callbacks(myself, req, name):
     # THE BELOW IS SAMPLE CODE
     #oauth=auth.oauth(token = myself.getProperty('oauth_token').value)
-    #if name == 'something':
+    # if name == 'something':
     #    return
     # END OF SAMPLE CODE
     return
+
 
 def on_post_callbacks(myself, req, name):
     # THE BELOW IS SAMPLE CODE
@@ -31,12 +33,12 @@ def on_post_callbacks(myself, req, name):
     #oauth=auth.oauth(token = myself.getProperty('oauth_token').value)
     #logging.debug("Callback body: "+req.request.body.decode('utf-8', 'ignore'))
     # non-json POSTs to be handled first
-    #if name == 'somethingelse':
+    # if name == 'somethingelse':
     #    return True
-    #Handle json POSTs below
+    # Handle json POSTs below
     #body = json.loads(req.request.body.decode('utf-8', 'ignore'))
     #data = body['data']
-    #if name == 'somethingmore':
+    # if name == 'somethingmore':
     #    callback_id = req.request.get('id')
     #    req.response.set_status(204)
     #    return True

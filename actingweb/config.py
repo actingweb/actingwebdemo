@@ -2,8 +2,11 @@ __all__ = [
     'config',
 ]
 
-import uuid, binascii, os
+import uuid
+import binascii
+import os
 import logging
+
 
 class config():
 
@@ -18,7 +21,7 @@ class config():
         self.aw_version = "0.9"
         self.aw_supported = ""
         self.aw_formats = ""
-        self.logLevel = logging.INFO #Change to WARN for production, DEBUG for debugging, and INFO for normal testing
+        self.logLevel = logging.INFO  # Change to WARN for production, DEBUG for debugging, and INFO for normal testing
 
         self.oauth = {
             'client_id': "",  # An empty client_id turns off oauth capabilities
@@ -32,5 +35,5 @@ class config():
     def newUUID(self, seed):
         return uuid.uuid5(uuid.NAMESPACE_URL, seed).get_hex()
 
-    def newToken(self, length = 40):
-        return binascii.hexlify(os.urandom(int(length//2)))
+    def newToken(self, length=40):
+        return binascii.hexlify(os.urandom(int(length // 2)))
