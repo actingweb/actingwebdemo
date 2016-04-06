@@ -12,6 +12,6 @@ __all__ = [
 ]
 
 
-def check_on_oauth_success(myself, oauth, result):
+def check_on_oauth_success(myself, oauth):
     # THIS METHOD IS CALLED WHEN AN OAUTH AUTHORIZATION HAS BEEN SUCCESSFULLY MADE
     return True

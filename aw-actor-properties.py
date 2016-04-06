@@ -18,9 +18,6 @@ class MainPage(webapp2.RequestHandler):
             self.response.set_status(404, 'Actor not found')
             return
         check = auth.auth(id)
-        if not check:
-            self.response.set_status(404, "Not found")
-            return
         if not check.checkCookieAuth(self, '/properties'):
             return
 

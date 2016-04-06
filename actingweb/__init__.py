@@ -1,1 +1,1 @@
-__all__ = ["actor", "auth", "property", "trust", "config"]
+__all__ = ["actor", "oauth", "auth", "property", "trust", "config"]

@@ -22,6 +22,8 @@ class config():
         self.aw_supported = ""
         self.aw_formats = ""
         self.logLevel = logging.INFO  # Change to WARN for production, DEBUG for debugging, and INFO for normal testing
+        # Hack to get access to GAE default logger
+        logging.getLogger().handlers[0].setLevel(self.logLevel)
 
         self.oauth = {
             'client_id': "",  # An empty client_id turns off oauth capabilities
@@ -29,7 +31,10 @@ class config():
             'redirect_uri': "",
             'scope': "",
             'auth_uri': "",
-            'token_uri': "h",
+            'token_uri': "",
+            'response_type': "code",
+            'grant_type': "authorization_code",
+            'refresh_type': "refresh_token",
         }
 
     def newUUID(self, seed):

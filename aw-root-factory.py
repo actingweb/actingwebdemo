@@ -31,7 +31,7 @@ class MainPage(webapp2.RequestHandler):
         myself.create(self.request.url, self.request.get('creator'),
                       self.request.get('passphrase'), self.request.get('trustee'))
         self.response.headers.add_header("Location", Config.root + myself.id)
-        self.redirect(Config.root + myself.id)
+        self.response.set_status(201, 'Created')
 
 application = webapp2.WSGIApplication([
     ('/', MainPage)

@@ -13,13 +13,18 @@ import on_aw_delete
 class MainPage(webapp2.RequestHandler):
 
     def get(self, id):
+        check = auth.auth(id)
+        Config = config.config()
         if self.request.get('_method') == 'DELETE':
+            if not check.checkCookieAuth(self, Config.root + '?_method=DELETE'):
+                return
             self.delete(id)
             return
-        Config = config.config()
         myself = actor.actor(id)
         if not myself.id:
             self.response.set_status(404, "Actor not found")
+            return
+        if not check.checkCookieAuth(self, '/'):
             return
         self.redirect(Config.root + myself.id + '/www')
 
@@ -29,10 +34,7 @@ class MainPage(webapp2.RequestHandler):
         if not myself.id:
             self.response.set_status(404, "Actor not found")
             return
-        check = auth.auth(id, redirect=Config.root + myself.id + '/oauth?_method=DELETE')
-        if not check:
-            self.response.set_status(404, "Not found")
-            return
+        check = auth.auth(id)
         if not check.checkCookieAuth(self, Config.root):
             return
         on_aw_delete.on_aw_delete_actor(myself)
