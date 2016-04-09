@@ -7,6 +7,7 @@ from actingweb import config
 from actingweb.db import db
 
 import webapp2
+import json
 
 import os
 from google.appengine.ext.webapp import template
@@ -49,10 +50,10 @@ class MainPage(webapp2.RequestHandler):
             self.set(id, path, self.request.get('value'))
             return
         if not path:
-            template_values = {
+            values = {
                 'type': Config.type,
                 'version': Config.version,
-                'desc': Config.desc + myself.id,
+                'desc': Config.desc,
                 'info': Config.info,
                 'wadl': Config.wadl,
                 'trustee': myself.trustee,
@@ -60,8 +61,10 @@ class MainPage(webapp2.RequestHandler):
                 'aw_supported': Config.aw_supported,
                 'aw_formats': Config.aw_formats,
             }
-            path = os.path.join(os.path.dirname(__file__), 'aw-actor-meta.xml')
-            self.response.write(template.render(path, template_values).encode('utf-8'))
+            out = json.dumps(values)
+            self.response.write(out)
+            self.response.headers["Content-Type"] = "application/json"
+            return
 
         elif path == 'type':
             self.response.write(Config.type)

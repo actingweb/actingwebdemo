@@ -8,6 +8,7 @@ from actingweb import config
 
 import webapp2
 import on_aw_delete
+import json
 
 
 class MainPage(webapp2.RequestHandler):
@@ -26,7 +27,16 @@ class MainPage(webapp2.RequestHandler):
             return
         if not check.checkCookieAuth(self, '/'):
             return
-        self.redirect(Config.root + myself.id + '/www')
+        pair = {
+            'id': myself.id,
+            'creator': myself.creator,
+            'passphrase': myself.passphrase,
+            'trustee': myself.trustee,
+        }
+        out = json.dumps(pair)
+        self.response.write(out)
+        self.response.headers["Content-Type"] = "application/json"
+        self.response.set_status(200)
 
     def delete(self, id):
         Config = config.config()

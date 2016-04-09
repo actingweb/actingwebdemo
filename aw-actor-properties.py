@@ -56,7 +56,8 @@ class MainPage(webapp2.RequestHandler):
     def put(self, id, name):
         myself = actor.actor(id)
         if myself.id:
-            myself.setProperty(name, self.request.body())
+            value = self.request.body.decode('utf-8', 'ignore')
+            myself.setProperty(name, value)
             self.response.set_status(204)
         else:
             self.response.set_status(404, 'Actor not found')
@@ -67,16 +68,22 @@ class MainPage(webapp2.RequestHandler):
         if not myself.id:
             self.response.set_status(404, 'Actor not found')
             return
-        if self.request.get('property'):
-            myself.setProperty(self.request.get('property'), self.request.get('value'))
+        if len(name) > 0:
+            self.response.set_status(405)
+        pair = dict()
+        if len(self.request.arguments()) > 0:
+            for name in self.request.arguments():
+                pair[name] = self.request.get(name)
+                myself.setProperty(name, self.request.get(name))
         else:
-            # if this was a post to root properties, allow a set of values encode in the POST body
-            if len(name) == 0:
-                for name, value in self.params.items():
-                    myself.setProperty(name, value)
-            else:
-                self.response.set_status(500)
-        self.response.set_status(204)
+            params = json.loads(self.request.body.decode('utf-8', 'ignore'))
+            for key in params:
+                pair[key] = params[key]
+                myself.setProperty(key, str(params[key]))
+        out = json.dumps(pair)
+        self.response.write(out)
+        self.response.headers["Content-Type"] = "application/json"
+        self.response.set_status(201, 'Created')
 
     def delete(self, id, name):
         myself = actor.actor(id)

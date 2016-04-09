@@ -35,10 +35,14 @@ class actor():
         else:
             self.passphrase = Config.newToken()
         self.id = Config.newUUID(seed)
+        if len(trustee) > 0:
+            self.trustee = trustee
+        else:
+            self.trustee = ""
         actor = db.Actor(creator=self.creator,
                          passphrase=self.passphrase,
                          id=self.id,
-                         trustee=trustee)
+                         trustee=self.trustee)
         actor.put()
 
     def delete(self):

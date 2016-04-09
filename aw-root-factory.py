@@ -8,6 +8,7 @@ import webapp2
 
 import os
 from google.appengine.ext.webapp import template
+import json
 
 
 class MainPage(webapp2.RequestHandler):
@@ -28,9 +29,29 @@ class MainPage(webapp2.RequestHandler):
     def post(self):
         myself = actor.actor()
         Config = config.config()
-        myself.create(self.request.url, self.request.get('creator'),
-                      self.request.get('passphrase'), self.request.get('trustee'))
+        creator = self.request.get('creator')
+        passphrase = self.request.get('passphrase')
+        trustee = self.request.get('trustee')
+        if len(creator) == 0 and len(passphrase) == 0 and len(trustee) == 0:
+            params = json.loads(self.request.body.decode('utf-8', 'ignore'))
+            if 'creator' in params:
+                creator = params['creator']
+            if 'passphrase' in params:
+                passphrase = params['passphrase']
+            if 'trustee' in params:
+                trustee = params['trustee']
+        myself.create(url=self.request.url, creator=creator,
+                      passphrase=passphrase, trustee=trustee)
         self.response.headers.add_header("Location", Config.root + myself.id)
+        pair = {
+            'id': myself.id,
+            'creator': myself.creator,
+            'passphrase': myself.passphrase,
+            'trustee': myself.trustee,
+        }
+        out = json.dumps(pair)
+        self.response.write(out)
+        self.response.headers["Content-Type"] = "application/json"
         self.response.set_status(201, 'Created')
 
 application = webapp2.WSGIApplication([
