@@ -27,8 +27,8 @@ class MainPage(webapp2.RequestHandler):
         if not myself.id:
             self.response.set_status(404, "Actor not found")
             return
-        check = auth.auth(id)
-        if not check.checkCookieAuth(self, '/www/' + path):
+        check = auth.auth(id, type='basic')
+        if not check.checkAuth(self, '/www/' + path):
             return
 
         if not path or path == '':
