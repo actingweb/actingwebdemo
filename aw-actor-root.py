@@ -7,17 +7,17 @@ from actingweb import auth
 from actingweb import config
 
 import webapp2
-import on_aw_delete
+from on_aw import on_aw_delete
 import json
 
 
 class MainPage(webapp2.RequestHandler):
 
     def get(self, id):
-        check = auth.auth(id)
+        check = auth.auth(id, type='basic')
         Config = config.config()
         if self.request.get('_method') == 'DELETE':
-            if not check.checkCookieAuth(self, Config.root + '?_method=DELETE'):
+            if not check.checkAuth(self, Config.root + '?_method=DELETE'):
                 return
             self.delete(id)
             return
@@ -25,7 +25,7 @@ class MainPage(webapp2.RequestHandler):
         if not myself.id:
             self.response.set_status(404, "Actor not found")
             return
-        if not check.checkCookieAuth(self, '/'):
+        if not check.checkAuth(self, '/'):
             return
         pair = {
             'id': myself.id,
@@ -44,8 +44,8 @@ class MainPage(webapp2.RequestHandler):
         if not myself.id:
             self.response.set_status(404, "Actor not found")
             return
-        check = auth.auth(id)
-        if not check.checkCookieAuth(self, Config.root):
+        check = auth.auth(id, type='basic')
+        if not check.checkAuth(self, Config.root):
             return
         on_aw_delete.on_aw_delete_actor(myself)
         myself.delete()

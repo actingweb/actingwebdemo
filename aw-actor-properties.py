@@ -17,8 +17,8 @@ class MainPage(webapp2.RequestHandler):
         if not myself.id:
             self.response.set_status(404, 'Actor not found')
             return
-        check = auth.auth(id)
-        if not check.checkCookieAuth(self, '/properties'):
+        check = auth.auth(id, type='basic')
+        if not check.checkAuth(self, '/properties'):
             return
 
         # if name is not set, this request URI was the properties root
@@ -56,6 +56,9 @@ class MainPage(webapp2.RequestHandler):
     def put(self, id, name):
         myself = actor.actor(id)
         if myself.id:
+            check = auth.auth(id, type='basic')
+            if not check.checkAuth(self, '/properties'):
+                return
             value = self.request.body.decode('utf-8', 'ignore')
             myself.setProperty(name, value)
             self.response.set_status(204)
@@ -67,6 +70,9 @@ class MainPage(webapp2.RequestHandler):
         myself = actor.actor(id)
         if not myself.id:
             self.response.set_status(404, 'Actor not found')
+            return
+        check = auth.auth(id, type='basic')
+        if not check.checkAuth(self, '/properties'):
             return
         if len(name) > 0:
             self.response.set_status(405)
@@ -89,6 +95,9 @@ class MainPage(webapp2.RequestHandler):
         myself = actor.actor(id)
         if not myself.id:
             self.response.set_status(404, 'Actor not found')
+            return
+        check = auth.auth(id, type='basic')
+        if not check.checkAuth(self, '/properties'):
             return
         myself.deleteProperty(name)
         self.response.set_status(204)

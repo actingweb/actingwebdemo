@@ -12,7 +12,7 @@ import logging
 import os
 from google.appengine.ext.webapp import template
 
-import on_aw_www_paths
+from on_aw import on_aw_www_paths
 
 
 class MainPage(webapp2.RequestHandler):
@@ -38,7 +38,8 @@ class MainPage(webapp2.RequestHandler):
                 'creator': myself.creator,
                 'trustee': myself.trustee,
             }
-            template_path = os.path.join(os.path.dirname(__file__), 'aw-actor-www-root.html')
+            template_path = os.path.join(os.path.dirname(
+                __file__), 'templates/aw-actor-www-root.html')
             self.response.write(template.render(template_path, template_values).encode('utf-8'))
             return
 
@@ -46,7 +47,8 @@ class MainPage(webapp2.RequestHandler):
             template_values = {
                 'id': myself.id,
             }
-            template_path = os.path.join(os.path.dirname(__file__), 'aw-actor-www-init.html')
+            template_path = os.path.join(os.path.dirname(
+                __file__), 'templates/aw-actor-www-init.html')
             self.response.write(template.render(template_path, template_values).encode('utf-8'))
             return
         if path == 'properties':
@@ -55,7 +57,8 @@ class MainPage(webapp2.RequestHandler):
                 'id': myself.id,
                 'properties': properties,
             }
-            template_path = os.path.join(os.path.dirname(__file__), 'aw-actor-www-properties.html')
+            template_path = os.path.join(os.path.dirname(
+                __file__), 'templates/aw-actor-www-properties.html')
             self.response.write(template.render(template_path, template_values).encode('utf-8'))
             return
         if path == 'property':
@@ -74,7 +77,8 @@ class MainPage(webapp2.RequestHandler):
                     'value': 'Not set',
                     'qual': 'no',
                 }
-            template_path = os.path.join(os.path.dirname(__file__), 'aw-actor-www-property.html')
+            template_path = os.path.join(os.path.dirname(
+                __file__), 'templates/aw-actor-www-property.html')
             self.response.write(template.render(template_path, template_values).encode('utf-8'))
             return
         output = on_aw_www_paths.on_www_paths(path, check.oauth, myself)

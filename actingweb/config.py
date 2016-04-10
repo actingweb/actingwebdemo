@@ -25,6 +25,7 @@ class config():
         # Hack to get access to GAE default logger
         logging.getLogger().handlers[0].setLevel(self.logLevel)
 
+        self.auth_realm = "actingwebdemo.appspot.com"
         self.oauth = {
             'client_id': "",  # An empty client_id turns off oauth capabilities
             'client_secret': "",

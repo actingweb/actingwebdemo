@@ -8,7 +8,7 @@ from actingweb import auth
 from actingweb import config
 
 import webapp2
-import on_aw_callbacks
+from on_aw import on_aw_callbacks
 
 
 class MainPage(webapp2.RequestHandler):

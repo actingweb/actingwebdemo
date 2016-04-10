@@ -4,7 +4,7 @@ import logging
 from actingweb import actor
 from actingweb import auth
 from actingweb import config
-import on_aw_oauth
+from on_aw import on_aw_oauth
 
 
 class MainPage(webapp2.RequestHandler):

@@ -5,6 +5,7 @@ import time
 
 import config
 import oauth
+import base64
 
 __all__ = [
     'auth',
@@ -13,12 +14,13 @@ __all__ = [
 
 class auth():
 
-    def __init__(self, id, type='oauth'):
+    def __init__(self, id, type='basic'):
         self.actor = actor.actor(id)
         self.token = None
         self.cookie_redirect = None
         self.cookie = None
         self.type = type
+        self.oauth = None
         Config = config.config()
         if not self.actor.id:
             self.actor = None
@@ -39,8 +41,10 @@ class auth():
                     self.cookie_redirect = None
                 self.redirect = Config.root + self.actor.id + '/oauth'
             else:
-                self.oauth = None
                 self.type = 'none'
+        elif self.type == 'basic':
+            self.token = self.actor.passphrase
+            self.realm = Config.auth_realm
 
     def processOAuthAccept(self, result):
         if not result:
@@ -120,3 +124,32 @@ class auth():
         appreq.redirect(str(self.cookie_redirect))
         self.actor.deleteProperty('cookie_redirect')
         return True
+
+    def checkBasicAuth(self, appreq, path):
+        if self.type != 'basic':
+            return False
+        if not self.token:
+            logging.warn("Trying to do basic auth when no passphrase value can be found.")
+            return False
+        if not 'Authorization' in appreq.request.headers:
+            appreq.response.headers['WWW-Authenticate'] = 'Basic realm="' + self.realm + '"'
+            appreq.response.set_status(401)
+            appreq.response.out.write("Authorization required")
+            return False
+        else:
+            auth = appreq.request.headers['Authorization']
+            (username, password) = base64.b64decode(auth.split(' ')[1]).split(':')
+            if username != self.actor.creator:
+                appreq.response.set_status(403)
+                return False
+            if password != self.actor.passphrase:
+                appreq.response.set_status(403)
+                return False
+            return True
+
+    def checkAuth(self, appreq, path):
+        if self.type == 'oauth':
+            return self.checkCookieAuth(appreq, path)
+        if self.type == 'basic':
+            return self.checkBasicAuth(appreq, path)
+        return False
