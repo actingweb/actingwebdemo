@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 from actingweb import actor
-from actingweb import auth
+from actingweb import oauth
 from actingweb import config
 from google.appengine.ext import deferred
 
@@ -20,7 +20,7 @@ __all__ = [
 
 def on_get_callbacks(myself, req, name):
     # THE BELOW IS SAMPLE CODE
-    #oauth=auth.oauth(token = myself.getProperty('oauth_token').value)
+    #my_oauth=oauth.oauth(token = myself.getProperty('oauth_token').value)
     # if name == 'something':
     #    return
     # END OF SAMPLE CODE
@@ -30,7 +30,7 @@ def on_get_callbacks(myself, req, name):
 def on_post_callbacks(myself, req, name):
     # THE BELOW IS SAMPLE CODE
     #Config = config.config()
-    #oauth=auth.oauth(token = myself.getProperty('oauth_token').value)
+    #my_oauth=oauth.oauth(token = myself.getProperty('oauth_token').value)
     #logging.debug("Callback body: "+req.request.body.decode('utf-8', 'ignore'))
     # non-json POSTs to be handled first
     # if name == 'somethingelse':

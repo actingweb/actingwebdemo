@@ -12,6 +12,7 @@ class config():
 
     def __init__(self):
         self.ui = True
+        self.www_auth = "basic"
         self.root = ""
         self.type = "urn:actingweb:actingweb.org:gae-demo"
         self.desc = "GAE Demo actor"

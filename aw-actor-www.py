@@ -27,7 +27,7 @@ class MainPage(webapp2.RequestHandler):
         if not myself.id:
             self.response.set_status(404, "Actor not found")
             return
-        check = auth.auth(id, type='basic')
+        check = auth.auth(id, type=Config.www_auth)
         if not check.checkAuth(self, '/www/' + path):
             return
 
@@ -81,7 +81,7 @@ class MainPage(webapp2.RequestHandler):
                 __file__), 'templates/aw-actor-www-property.html')
             self.response.write(template.render(template_path, template_values).encode('utf-8'))
             return
-        output = on_aw_www_paths.on_www_paths(path, check.oauth, myself)
+        output = on_aw_www_paths.on_www_paths(path, check, myself)
         if output:
             self.response.write(output)
         else:

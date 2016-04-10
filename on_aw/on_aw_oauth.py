@@ -4,7 +4,7 @@ import logging
 import time
 from google.appengine.ext import deferred
 from actingweb import actor
-from actingweb import auth
+from actingweb import oauth
 from actingweb import config
 
 __all__ = [
@@ -12,6 +12,6 @@ __all__ = [
 ]
 
 
-def check_on_oauth_success(myself, oauth):
+def check_on_oauth_success(myself):
     # THIS METHOD IS CALLED WHEN AN OAUTH AUTHORIZATION HAS BEEN SUCCESSFULLY MADE
     return True
