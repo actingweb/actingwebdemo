@@ -37,6 +37,7 @@ class MainPage(webapp2.RequestHandler):
                 'id': id,
                 'creator': myself.creator,
                 'trustee': myself.trustee,
+                'passphrase': myself.passphrase,
             }
             template_path = os.path.join(os.path.dirname(
                 __file__), 'templates/aw-actor-www-root.html')
@@ -81,7 +82,7 @@ class MainPage(webapp2.RequestHandler):
                 __file__), 'templates/aw-actor-www-property.html')
             self.response.write(template.render(template_path, template_values).encode('utf-8'))
             return
-        output = on_aw_www_paths.on_www_paths(path, check, myself)
+        output = on_aw_www_paths.on_www_paths(myself, path)
         if output:
             self.response.write(output)
         else:

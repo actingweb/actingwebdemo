@@ -43,6 +43,10 @@ class MainPage(webapp2.RequestHandler):
         myself.create(url=self.request.url, creator=creator,
                       passphrase=passphrase, trustee=trustee)
         self.response.headers.add_header("Location", Config.root + myself.id)
+        post_args = len(self.request.arguments())
+        if Config.www_auth == 'oauth' and post_args > 0:
+            self.redirect(Config.root + myself.id + '/www')
+            return
         pair = {
             'id': myself.id,
             'creator': myself.creator,
