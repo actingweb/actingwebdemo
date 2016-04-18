@@ -18,36 +18,11 @@ Config = config.config()
 
 class MainPage(webapp2.RequestHandler):
 
-    def set(self, id, path, value):
-        myself = actor.actor(id)
-
-        # NOTE!!! Temporarily, just as a test, PUT request changes the global values of Config
-        # THIS SHOULD NOT HAPPEN
-        # Values should change per actor
-        # However, this behavior is only useful for a generic proxy implementation.
-        # I have skipped the full implementation (requires a new db object with actor id as key)
-        if not path:
-            self.response.set_status(404)
-        elif path == 'type':
-            Config.type = value
-        elif path == 'version':
-            Config.version = value
-        elif path == 'desc':
-            Config.desc = value
-        elif path == 'trustee':
-            myself.setTrustee(value)
-        elif path == 'info':
-            Config.info = value
-        elif path == 'wadl':
-            Config.wadl = value
-        else:
-            self.response.set_status(404)
-
     def get(self, id, path):
         myself = actor.actor(id)
 
         if self.request.get('_method') == 'PUT':
-            self.set(id, path, self.request.get('value'))
+            self.set(id, path, self.request.get('value').decode('utf-8'))
             return
         if not path:
             values = {
@@ -55,41 +30,37 @@ class MainPage(webapp2.RequestHandler):
                 'version': Config.version,
                 'desc': Config.desc,
                 'info': Config.info,
-                'wadl': Config.wadl,
                 'trustee': myself.trustee,
                 'aw_version': Config.aw_version,
                 'aw_supported': Config.aw_supported,
                 'aw_formats': Config.aw_formats,
             }
             out = json.dumps(values)
-            self.response.write(out)
+            self.response.write(out.encode('utf-8'))
             self.response.headers["Content-Type"] = "application/json"
             return
 
         elif path == 'type':
-            self.response.write(Config.type)
+            out = Config.type
         elif path == 'version':
-            self.response.write(Config.version)
+            out = Config.version
         elif path == 'desc':
-            self.response.write(Config.desc + myself.id)
+            out = Config.desc + myself.id
         elif path == 'trustee':
-            self.response.write(myself.trustee)
+            out = myself.trustee
         elif path == 'info':
-            self.response.write(Config.info)
+            out = Config.info
         elif path == 'wadl':
-            self.response.write(Config.wadl)
+            out = Config.wadl
         elif path == 'actingweb/version':
-            self.response.write(Config.aw_version)
+            out = Config.aw_version
         elif path == 'actingweb/supported':
-            self.response.write(Config.aw_supported)
+            out = Config.aw_supported
         elif path == 'actingweb/formats':
-            self.response.write(Config.aw_formats)
+            out = Config.aw_formats
         else:
             self.response.set_status(404)
-
-
-def put(self, id, path):
-    self.set(id, path, self.request.body())
+        self.response.write(out.encode('utf-8'))
 
 application = webapp2.WSGIApplication([
     (r'/(.*)/meta/?(.*)', MainPage),
