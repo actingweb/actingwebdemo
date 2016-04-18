@@ -34,7 +34,7 @@ class MainPage(webapp2.RequestHandler):
             'trustee': myself.trustee,
         }
         out = json.dumps(pair)
-        self.response.write(out)
+        self.response.write(out.encode('utf-8'))
         self.response.headers["Content-Type"] = "application/json"
         self.response.set_status(200)
 

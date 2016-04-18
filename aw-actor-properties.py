@@ -35,7 +35,7 @@ class MainPage(webapp2.RequestHandler):
             return
         lookup = myself.getProperty(name)
         if lookup.value:
-            self.response.write(lookup.value)
+            self.response.write(lookup.value.encode('utf-8'))
             return
         self.response.set_status(404, "Property not found")
         return
@@ -47,9 +47,13 @@ class MainPage(webapp2.RequestHandler):
             return
         pair = dict()
         for property in properties:
-            pair[property.name] = property.value
+            try:
+                js = json.loads(property.value)
+                pair[property.name] = js
+            except ValueError:
+                pair[property.name] = property.value
         out = json.dumps(pair)
-        self.response.write(out)
+        self.response.write(out.encode('utf-8'))
         self.response.headers["Content-Type"] = "application/json"
         return
 
@@ -85,9 +89,13 @@ class MainPage(webapp2.RequestHandler):
             params = json.loads(self.request.body.decode('utf-8', 'ignore'))
             for key in params:
                 pair[key] = params[key]
-                myself.setProperty(key, str(params[key]))
+                if isinstance(params[key], dict):
+                    text = json.dumps(params[key])
+                else:
+                    text = params[key]
+                myself.setProperty(key, text)
         out = json.dumps(pair)
-        self.response.write(out)
+        self.response.write(out.encode('utf-8'))
         self.response.headers["Content-Type"] = "application/json"
         self.response.set_status(201, 'Created')
 

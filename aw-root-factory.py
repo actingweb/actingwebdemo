@@ -29,22 +29,30 @@ class MainPage(webapp2.RequestHandler):
     def post(self):
         myself = actor.actor()
         Config = config.config()
-        creator = self.request.get('creator')
-        passphrase = self.request.get('passphrase')
-        trustee = self.request.get('trustee')
-        if len(creator) == 0 and len(passphrase) == 0 and len(trustee) == 0:
+        try:
             params = json.loads(self.request.body.decode('utf-8', 'ignore'))
+            is_json = True
             if 'creator' in params:
                 creator = params['creator']
+            else:
+                creator = ''
             if 'passphrase' in params:
                 passphrase = params['passphrase']
+            else:
+                passphrase = ''
             if 'trustee' in params:
                 trustee = params['trustee']
+            else:
+                trustee = ''
+        except ValueError:
+            is_json = False
+            creator = self.request.get('creator')
+            passphrase = self.request.get('passphrase')
+            trustee = self.request.get('trustee')
         myself.create(url=self.request.url, creator=creator,
                       passphrase=passphrase, trustee=trustee)
         self.response.headers.add_header("Location", Config.root + myself.id)
-        post_args = len(self.request.arguments())
-        if Config.www_auth == 'oauth' and post_args > 0:
+        if Config.www_auth == 'oauth' and not is_json:
             self.redirect(Config.root + myself.id + '/www')
             return
         pair = {
@@ -53,6 +61,10 @@ class MainPage(webapp2.RequestHandler):
             'passphrase': myself.passphrase,
             'trustee': myself.trustee,
         }
+        if Config.ui and not is_json:
+            path = os.path.join(os.path.dirname(__file__), 'templates/aw-root-created.html')
+            self.response.write(template.render(path, pair).encode('utf-8'))
+            return
         out = json.dumps(pair)
         self.response.write(out)
         self.response.headers["Content-Type"] = "application/json"
