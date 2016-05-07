@@ -16,20 +16,21 @@ class config():
         # when actor is created
         self.www_auth = "basic"
         # URI for this app's actor factory with slash at end
-        self.root = "https://actingwebdemo.appspot.com/"
+        self.root = "https://actingwebdemo-dev.appspot.com/"
         self.type = "urn:actingweb:actingweb.org:gae-demo"  # The type of this actor
         # A human-readable description for this specific actor
         self.desc = "GAE Demo actor: "
         self.version = "1.0"                                # A version number for this app
         self.info = "http://actingweb.org/"                 # Where can more info be found
         self.aw_version = "0.9"                             # This app follows the actingweb specification specified
-        self.aw_supported = ""                              # This app supports the following options
+        # This app supports the following options
+        self.aw_supported = "www,oauth,callbacks"
         self.aw_formats = "json"                            # These are the supported formats
         self.logLevel = logging.INFO  # Change to WARN for production, DEBUG for debugging, and INFO for normal testing
         # Hack to get access to GAE default logger
         logging.getLogger().handlers[0].setLevel(self.logLevel)
 
-        self.auth_realm = "actingwebdemo.appspot.com"
+        self.auth_realm = "actingwebdemo-dev.appspot.com"
         self.oauth = {
             'client_id': "",        # An empty client_id turns off oauth capabilities
             'client_secret': "",
