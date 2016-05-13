@@ -25,9 +25,12 @@ class Trust(ndb.Model):
     id = ndb.StringProperty(required=True)
     peerid = ndb.StringProperty(required=True)
     baseuri = ndb.StringProperty(required=True)
+    type = ndb.StringProperty(required=True)
+    relationship = ndb.StringProperty(required=True)
     secret = ndb.StringProperty(required=True)
     desc = ndb.TextProperty()
     notify = ndb.BooleanProperty()
+    active = ndb.BooleanProperty()
 
 
 class Subscription(ndb.Model):
