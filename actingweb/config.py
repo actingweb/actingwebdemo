@@ -25,7 +25,10 @@ class config():
         self.aw_version = "0.9"                             # This app follows the actingweb specification specified
         # This app supports the following options
         self.aw_supported = "www,oauth,callbacks"
+        self.raml = ""                                      # URL to a RAML definition if available
         self.aw_formats = "json"                            # These are the supported formats
+        self.default_relationship = "friend"                # New relationships are default created as "friend"
+        self.auto_accept_default_relationship = True        # Always accept the default relationship
         self.logLevel = logging.INFO  # Change to WARN for production, DEBUG for debugging, and INFO for normal testing
         # Hack to get access to GAE default logger
         logging.getLogger().handlers[0].setLevel(self.logLevel)

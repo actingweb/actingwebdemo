@@ -33,6 +33,10 @@ handlers:
   script: aw-actor-meta.application
   secure: always
 
+- url: /(.*?)/trust/?(.*)
+  script: aw-actor-trust.application
+  secure: always
+
 - url: /(.*?)/oauth/?(.*)
   script: aw-actor-oauth.application
   secure: always

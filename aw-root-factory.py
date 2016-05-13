@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 #
 from actingweb import actor
-from actingweb.db import db
 from actingweb import config
 
 import webapp2
