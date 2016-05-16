@@ -32,9 +32,10 @@ class rootHandler(webapp2.RequestHandler):
         if not relationships:
             self.response.set_status(404, 'Not found')
             return
+        pairs = []
         for rel in relationships:
-            # HERE!!! Need to implement an index to get multiple pairs as a result
-            pair = {
+            pairs.append({
+                'baseuri': rel.baseuri,
                 'id': myself.id,
                 'peerid': rel.peerid,
                 'relationship': rel.relationship,
@@ -43,8 +44,8 @@ class rootHandler(webapp2.RequestHandler):
                 'type': rel.type,
                 'desc': rel.desc,
                 'secret': rel.secret,
-            }
-        out = json.dumps(pair)
+            })
+        out = json.dumps(pairs)
         self.response.write(out)
         self.response.headers["Content-Type"] = "application/json"
         self.response.set_status(200, 'Ok')
@@ -57,6 +58,7 @@ class rootHandler(webapp2.RequestHandler):
         Config = config.config()
         secret = ''
         desc = ''
+        relationship = Config.default_relationship
         type = ''
         try:
             params = json.loads(self.request.body.decode('utf-8', 'ignore'))
@@ -83,13 +85,14 @@ class rootHandler(webapp2.RequestHandler):
             self.response.set_status(400, 'Missing peer URL')
 
         new_trust = myself.createTrust(
-            url=url, secret=secret, desc=desc, rel=relationship, type=type)
+            url=url, secret=secret, desc=desc, relationship=relationship, type=type)
         if not new_trust:
             self.response.set_status(500, 'Unable to create trust relationship')
             return
         self.response.headers.add_header(
-            "Location", str(Config.root + 'trust/' + new_trust.relationship + new_trust.peerid))
+            "Location", str(Config.root + myself.id + '/trust/' + new_trust.relationship + '/' + new_trust.peerid))
         pair = {
+            'baseuri': new_trust.baseuri,
             'id': myself.id,
             'peerid': new_trust.peerid,
             'relationship': new_trust.relationship,
@@ -159,11 +162,15 @@ class relationshipHandler(webapp2.RequestHandler):
             self.response.set_status(403, 'Forbidden')
             return
         new_trust = trust.trust(myself.id, peerid)
+        if new_trust.trust:
+            self.response.set_status(403, 'Forbidden')
+            return
         new_trust.create(baseuri=baseuri, secret=secret, type=type,
                          relationship=relationship, active=True, notify=notify, desc=desc)
         self.response.headers.add_header(
-            "Location", str(Config.root + 'trust/' + new_trust.relationship + "/" + new_trust.peerid))
+            "Location", str(Config.root + myself.id + '/trust/' + new_trust.relationship + "/" + new_trust.peerid))
         pair = {
+            'baseuri': new_trust.baseuri,
             'id': myself.id,
             'peerid': new_trust.peerid,
             'relationship': new_trust.relationship,
@@ -199,6 +206,7 @@ class trustHandler(webapp2.RequestHandler):
             self.response.set_status(404, 'Not found')
             return
         pair = {
+            'baseuri': my_trust.baseuri,
             'id': myself.id,
             'peerid': my_trust.peerid,
             'relationship': my_trust.relationship,
@@ -259,10 +267,17 @@ class trustHandler(webapp2.RequestHandler):
             return
         Config = config.config()
         my_trust = trust.trust(myself.id, peerid)
-        if not my_trust or my_trust.relationship.lower() != relationship.lower():
+        if not my_trust.trust or my_trust.relationship.lower() != relationship.lower():
             self.response.set_status(404, 'Not found')
             return
-        my_trust.delete()
+        isPeer = self.request.get('peer')
+        if isPeer.lower() == "true":
+            deleted = myself.deleteTrust(peerid, deletePeer=False)
+        else:
+            deleted = myself.deleteTrust(peerid, deletePeer=True)
+        if not deleted:
+            self.response.set_status(500, 'Not able to delete relationship with peer.')
+            return
         self.response.set_status(204, 'Ok')
 
 

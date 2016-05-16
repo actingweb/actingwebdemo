@@ -36,7 +36,7 @@ class trust():
             return False
         self.trust.key.delete()
 
-    def modify(self, baseuri='', secret='', desc='', active=False, notify=False):
+    def modify(self, baseuri='', secret='', desc='', active=None, notify=None):
         if not self.trust:
             return False
         if len(baseuri) > 0:
@@ -48,8 +48,10 @@ class trust():
         if len(desc) > 0:
             self.desc = desc
             self.trust.desc = desc
-        self.trust.active = active
-        self.trust.notify = notify
+        if active is not None:
+            self.trust.active = active
+        if notify is not None:
+            self.trust.notify = notify
         self.trust.put()
         return True
 
@@ -89,7 +91,6 @@ class trust():
                                   notify=self.notify,
                                   desc=self.desc)
         self.trust.put()
-        return True
 
     def __init__(self, id, peerid):
         self.last_response_code = 0

@@ -2,6 +2,8 @@ from db import db
 import datetime
 import property
 import urllib
+from google.appengine.api import urlfetch
+import json
 import config
 import trust
 
@@ -10,13 +12,19 @@ __all__ = [
 ]
 
 
-def getPeerInfo(self, url):
-    response = urlfetch.fetch(url=url + 'meta',
+def getPeerInfo(url):
+    response = urlfetch.fetch(url=url + '/meta',
                               method=urlfetch.GET
                               )
-    self.last_response_code = response.status_code
-    self.last_response_message = response.content
-    return json.loads(response.content)
+    try:
+        res = {
+            "last_response_code": response.status_code,
+            "last_response_message": response.content,
+            "data": json.loads(response.content),
+        }
+    except ValueError:
+        res["last_response_code"] = 500
+    return res
 
 
 class actor():
@@ -114,24 +122,25 @@ class actor():
             result.put()
 
     # Returns False or new trust object if successful
-    def createTrust(self, url, secret=None, desc='', rel='', type=''):
+    def createTrust(self, url, secret=None, desc='', relationship='', type=''):
         if len(url) == 0:
             return False
         if not secret:
             return False
         Config = config.config()
 
-        peer = getPeerInfo(url)
-        if self.last_response_code < 200 or self.last_response_code >= 300:
+        res = getPeerInfo(url)
+        if res["last_response_code"] < 200 or res["last_response_code"] >= 300:
             return False
-        if not peer.id or not peer.type or len(peer.type) == 0:
+        peer = res["data"]
+        if not peer["id"] or not peer["type"] or len(peer["type"]) == 0:
             logging.info("Received invalid peer info when trying to establish trust: " + url)
             return False
         if len(type) > 0:
-            if type.lower() != peer.type.lower():
+            if type.lower() != peer["type"].lower():
                 return False
-        if not rel or len(rel) == 0:
-            rel = Config.default_relationship
+        if not relationship or len(relationship) == 0:
+            relationship = Config.default_relationship
         params = {
             'baseuri': Config.root + self.id,
             'id': self.id,
@@ -140,8 +149,9 @@ class actor():
             'desc': desc,
             'notify': 'false',
         }
-        url = url + '/trust/' + rel
-        response = urlfetch.fetch(url=url,
+        requrl = url + '/trust/' + relationship
+        data = json.dumps(params)
+        response = urlfetch.fetch(url=requrl,
                                   method=urlfetch.POST,
                                   payload=data,
                                   headers={'Content-Type': 'application/json', }
@@ -150,13 +160,32 @@ class actor():
         self.last_response_message = response.content
 
         if self.last_response_code == 201 or self.last_response_code == 202:
-            new_trust = trust.trust(id, peer.id)
+            new_trust = trust.trust(self.id, peer["id"])
             # Don't implement notify for now...
             new_trust.create(baseuri=url, secret=secret, type=type,
-                             rel=rel, active=True, notify=False, desc=desc)
+                             relationship=relationship, active=True, notify=False, desc=desc)
             return new_trust
         else:
             return False
+
+    def deleteTrust(self, peerid=None, deletePeer=False):
+        if not peerid:
+            return False
+        rels = self.getTrustRelationships(peerid=peerid)
+        for rel in rels:
+            if deletePeer:
+                url = rel.baseuri + '/trust/' + rel.relationship + '/' + self.id + '?peer=true'
+                headers = {}
+                if rel.secret:
+                    headers = {'Authorization': 'Bearer ' + rel.secret,
+                               }
+                response = urlfetch.fetch(url=url,
+                                          method=urlfetch.DELETE,
+                                          headers=headers)
+                if (response.status_code < 200 or response.status_code > 299) and response.status_code != 404:
+                    return False
+            rel.key.delete()
+        return True
 
     def __init__(self, id=''):
         self.get(id)
