@@ -31,6 +31,8 @@ class Trust(ndb.Model):
     desc = ndb.TextProperty()
     notify = ndb.BooleanProperty()
     active = ndb.BooleanProperty()
+    verified = ndb.BooleanProperty()
+    verificationToken = ndb.StringProperty()
 
 
 class Subscription(ndb.Model):

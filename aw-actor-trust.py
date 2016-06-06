@@ -3,6 +3,7 @@
 from actingweb import actor
 from actingweb import config
 from actingweb import trust
+from actingweb import auth
 
 import webapp2
 
@@ -10,6 +11,21 @@ import os
 from google.appengine.ext.webapp import template
 import json
 
+
+# /trust handlers
+#
+# GET /trust with query parameters (relationship, type, and peerid) to retrieve trust relationships (auth: only creator and admins allowed)
+# POST /trust with json body to initiate a trust relationship between this
+#   actor and another (reciprocal relationship) (auth: only creator and admins allowed)
+# POST /trust/{relationship} with json body to create new trust
+#   relationship (see config.py for default relationship and auto-accept, no
+#   auth required)
+# GET /trust/{relationship}}/{actorid} to get details on a specific relationship (auth: creator, admin, or peer secret)
+# PUT /trust/{relationship}}/{actorid} with a json body to change details on a relationship (baseuri, secret, desc) (auth: creator,
+#   admin, or peer secret)
+# DELETE /trust/{relationship}}/{actorid} to delete a relationship (with
+#   ?peer=true if the delete is from the peer) (auth: creator, admin, or
+#   peer secret)
 
 # Handling requests to trust/
 class rootHandler(webapp2.RequestHandler):
@@ -19,6 +35,18 @@ class rootHandler(webapp2.RequestHandler):
             self.post()
             return
         myself = actor.actor(id)
+        if not myself.id:
+            self.response.set_status(404, "Actor not found")
+            return
+        check = auth.auth(id)
+        if not check.checkAuth(self, '/trust/'):
+            self.response.set_status(403, "Forbidden")
+            return
+        # Only allow creator and admin relationships
+        if not check.creator:
+            if not check.trust or check.trust.relationship != "admin":
+                self.response.set_status(403, "Forbidden")
+                return
         Config = config.config()
         relationship = ''
         type = ''
@@ -41,6 +69,7 @@ class rootHandler(webapp2.RequestHandler):
                 'relationship': rel.relationship,
                 'active': rel.active,
                 'notify': rel.notify,
+                'verified': rel.verified,
                 'type': rel.type,
                 'desc': rel.desc,
                 'secret': rel.secret,
@@ -55,6 +84,15 @@ class rootHandler(webapp2.RequestHandler):
         if not myself.id:
             self.response.set_status(404, "Actor not found")
             return
+        check = auth.auth(id)
+        if not check.checkAuth(self, '/trust/'):
+            self.response.set_status(403, "Forbidden")
+            return
+        # Only allow creator and admin relationships
+        if not check.creator:
+            if not check.trust or check.trust.relationship != "admin":
+                self.response.set_status(403, "Forbidden")
+                return
         Config = config.config()
         secret = ''
         desc = ''
@@ -84,10 +122,10 @@ class rootHandler(webapp2.RequestHandler):
         if len(url) == 0:
             self.response.set_status(400, 'Missing peer URL')
 
-        new_trust = myself.createTrust(
+        new_trust = myself.createReciprocalTrust(
             url=url, secret=secret, desc=desc, relationship=relationship, type=type)
         if not new_trust:
-            self.response.set_status(500, 'Unable to create trust relationship')
+            self.response.set_status(408, 'Unable to create trust relationship')
             return
         self.response.headers.add_header(
             "Location", str(Config.root + myself.id + '/trust/' + new_trust.relationship + '/' + new_trust.peerid))
@@ -98,6 +136,7 @@ class rootHandler(webapp2.RequestHandler):
             'relationship': new_trust.relationship,
             'active': new_trust.active,
             'notify': new_trust.notify,
+            'verified': new_trust.verified,
             'type': new_trust.type,
             'desc': new_trust.desc,
             'secret': new_trust.secret,
@@ -149,6 +188,10 @@ class relationshipHandler(webapp2.RequestHandler):
             if 'notify' in params:
                 if str(params['notify']).lower() == 'true':
                     notify = True
+            if 'verify' in params:
+                verificationToken = params['verify']
+            else:
+                verificationToken = None
         except ValueError:
             self.response.set_status(400, 'No json content')
             return
@@ -161,12 +204,12 @@ class relationshipHandler(webapp2.RequestHandler):
             # Do further validation
             self.response.set_status(403, 'Forbidden')
             return
-        new_trust = trust.trust(myself.id, peerid)
-        if new_trust.trust:
+        # Notify is not yet implemented, so set active True and notify to False
+        new_trust = myself.createVerifiedTrust(baseuri=baseuri, peerid=peerid, active=True, secret=secret,
+                                               verificationToken=verificationToken, type=type, relationship=relationship, notify=False, desc=desc)
+        if not new_trust:
             self.response.set_status(403, 'Forbidden')
             return
-        new_trust.create(baseuri=baseuri, secret=secret, type=type,
-                         relationship=relationship, active=True, notify=notify, desc=desc)
         self.response.headers.add_header(
             "Location", str(Config.root + myself.id + '/trust/' + new_trust.relationship + "/" + new_trust.peerid))
         pair = {
@@ -176,6 +219,7 @@ class relationshipHandler(webapp2.RequestHandler):
             'relationship': new_trust.relationship,
             'active': new_trust.active,
             'notify': new_trust.notify,
+            'verified': new_trust.verified,
             'type': new_trust.type,
             'desc': new_trust.desc,
             'secret': new_trust.secret,
@@ -200,11 +244,30 @@ class trustHandler(webapp2.RequestHandler):
         if not myself.id:
             self.response.set_status(404, "Actor not found")
             return
+        check = auth.auth(id)
+        if not check.checkAuth(self, '/trust/' + relationship):
+            self.response.set_status(403, "Forbidden")
+            return
+        if not check.creator:
+            if not check.trust:
+                self.response.set_status(403, "Forbidden")
+                return
+            if check.trust.relationship != "admin" and check.trust.peerid != peerid:
+                self.response.set_status(403, "Forbidden")
+                return
         Config = config.config()
-        my_trust = trust.trust(myself.id, peerid)
-        if not my_trust.trust or my_trust.relationship.lower() != relationship.lower():
+        relationships = myself.getTrustRelationships(
+            relationship=relationship, peerid=peerid)
+        if not relationships:
             self.response.set_status(404, 'Not found')
             return
+        my_trust = relationships[0]
+        # If the peer did a GET to verify
+        if check.trust and check.trust.peerid == peerid and not my_trust.verified:
+            my_trust.modify(verified=True)
+            verificationToken = my_trust.verificationToken
+        else:
+            verificationToken = ''
         pair = {
             'baseuri': my_trust.baseuri,
             'id': myself.id,
@@ -212,6 +275,8 @@ class trustHandler(webapp2.RequestHandler):
             'relationship': my_trust.relationship,
             'active': my_trust.active,
             'notify': my_trust.notify,
+            'verified': my_trust.verified,
+            'verificationToken': verificationToken,
             'type': my_trust.type,
             'desc': my_trust.desc,
             'secret': my_trust.secret,
@@ -226,11 +291,24 @@ class trustHandler(webapp2.RequestHandler):
         if not myself.id:
             self.response.set_status(404, "Actor not found")
             return
+        check = auth.auth(id)
+        if not check.checkAuth(self, '/trust/' + relationship):
+            self.response.set_status(403, "Forbidden")
+            return
+        if not check.creator:
+            if not check.trust:
+                self.response.set_status(403, "Forbidden")
+                return
+            if check.trust.relationship != "admin" and check.trust.peerid != peerid:
+                self.response.set_status(403, "Forbidden")
+                return
         Config = config.config()
-        my_trust = trust.trust(myself.id, peerid)
-        if not my_trust or my_trust.relationship.lower() != relationship.lower():
+        relationships = myself.getTrustRelationships(
+            relationship=relationship, peerid=peerid)
+        if not relationships:
             self.response.set_status(404, 'Not found')
             return
+        my_trust = relationships[0]
         try:
             change = False
             params = json.loads(self.request.body.decode('utf-8', 'ignore'))
@@ -265,18 +343,39 @@ class trustHandler(webapp2.RequestHandler):
         if not myself.id:
             self.response.set_status(404, "Actor not found")
             return
+        check = auth.auth(id)
+        if not check.checkAuth(self, '/trust/' + relationship):
+            self.response.set_status(403, "Forbidden")
+            return
+        if not check.creator:
+            if not check.trust:
+                self.response.set_status(403, "Forbidden")
+                return
+            if check.trust.relationship != "admin" and check.trust.peerid != peerid:
+                self.response.set_status(403, "Forbidden")
+                return
+        isPeer = False
+        if check.trust and check.trust.peerid == peerid:
+            isPeer = True
+        else:
+            # Use of GET param peer=true is a way of forcing no deletion of a peer
+            # relationship even when requestor is not a peer (primarily for testing purposes)
+            peerGet = self.request.get('peer').lower()
+            if peerGet.lower() == "true":
+                isPeer = True
         Config = config.config()
-        my_trust = trust.trust(myself.id, peerid)
-        if not my_trust.trust or my_trust.relationship.lower() != relationship.lower():
+        relationships = myself.getTrustRelationships(
+            relationship=relationship, peerid=peerid)
+        if not relationships:
             self.response.set_status(404, 'Not found')
             return
-        isPeer = self.request.get('peer')
-        if isPeer.lower() == "true":
-            deleted = myself.deleteTrust(peerid, deletePeer=False)
+        my_trust = relationships[0]
+        if isPeer:
+            deleted = myself.deleteReciprocalTrust(peerid, deletePeer=False)
         else:
-            deleted = myself.deleteTrust(peerid, deletePeer=True)
+            deleted = myself.deleteReciprocalTrust(peerid, deletePeer=True)
         if not deleted:
-            self.response.set_status(500, 'Not able to delete relationship with peer.')
+            self.response.set_status(502, 'Not able to delete relationship with peer.')
             return
         self.response.set_status(204, 'Ok')
 

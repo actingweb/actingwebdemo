@@ -70,7 +70,7 @@ class actor():
             prop.key.delete()
         relationships = self.getTrustRelationships()
         for rel in relationships:
-            rel.key.delete()
+            rel.trust.key.delete()
         result = db.Actor.query(db.Actor.id == self.id).get()
         if result:
             result.key.delete()
@@ -113,7 +113,10 @@ class actor():
                 db.Trust.id == self.id and db.Trust.type == type).fetch(1000)
         else:
             relationships = db.Trust.query(db.Trust.id == self.id).fetch(1000)
-        return relationships
+        rels = []
+        for rel in relationships:
+            rels.append(trust.trust(self.id, rel.peerid))
+        return rels
 
     def setTrustee(self, trustee):
         actor_query = db.Actor.query(db.Actor.id == self.id).get()
@@ -122,7 +125,7 @@ class actor():
             result.put()
 
     # Returns False or new trust object if successful
-    def createTrust(self, url, secret=None, desc='', relationship='', type=''):
+    def createReciprocalTrust(self, url, secret=None, desc='', relationship='', type=''):
         if len(url) == 0:
             return False
         if not secret:
@@ -138,9 +141,16 @@ class actor():
             return False
         if len(type) > 0:
             if type.lower() != peer["type"].lower():
+                logging.info("Peer is of the wrong actingweb type: " + peer["type"])
                 return False
         if not relationship or len(relationship) == 0:
             relationship = Config.default_relationship
+        # Create trust, so that peer can do a verify on the relationship (using
+        # verificationToken) when we request the relationship
+        new_trust = trust.trust(self.id, peer["id"])
+        # Don't implement notify for now...
+        new_trust.create(baseuri=url, secret=secret, type=type,
+                         relationship=relationship, active=False, notify=False, verified=False, desc=desc)
         params = {
             'baseuri': Config.root + self.id,
             'id': self.id,
@@ -148,6 +158,7 @@ class actor():
             'secret': secret,
             'desc': desc,
             'notify': 'false',
+            'verify': new_trust.verificationToken,
         }
         requrl = url + '/trust/' + relationship
         data = json.dumps(params)
@@ -160,21 +171,56 @@ class actor():
         self.last_response_message = response.content
 
         if self.last_response_code == 201 or self.last_response_code == 202:
-            new_trust = trust.trust(self.id, peer["id"])
-            # Don't implement notify for now...
-            new_trust.create(baseuri=url, secret=secret, type=type,
-                             relationship=relationship, active=True, notify=False, desc=desc)
-            return new_trust
+            # Relead the trust to check if verification was done
+            mod_trust = trust.trust(self.id, peer["id"])
+            if not mod_trust.trust:
+                logging.error("Couldn't find trust relationship after peer POST and verification")
+                return False
+            if mod_trust.verified:
+                mod_trust.modify(active=True)
+            return mod_trust
         else:
+            new_trust.delete()
             return False
 
-    def deleteTrust(self, peerid=None, deletePeer=False):
+    def createVerifiedTrust(self, baseuri='', peerid=None, active=False, secret=None, verificationToken=None, type=None, relationship=None, notify=False, desc=''):
+        if not peerid or len(baseuri) == 0 or not relationship:
+            return False
+        requrl = baseuri + '/trust/' + relationship + '/' + self.id
+        headers = {}
+        if secret:
+            headers = {'Authorization': 'Bearer ' + secret,
+                       }
+        try:
+            response = urlfetch.fetch(url=requrl,
+                                      method=urlfetch.GET,
+                                      headers=headers)
+            self.last_response_code = response.status_code
+            self.last_response_message = response.content
+            try:
+                data = json.loads(response.content)
+                if data["verificationToken"] == verificationToken:
+                    verified = True
+                else:
+                    verified = False
+            except ValueError:
+                verified = False
+        except:
+            verified = False
+        new_trust = trust.trust(self.id, peerid)
+        if not new_trust.create(baseuri=baseuri, secret=secret, type=type, active=active,
+                                relationship=relationship, verified=verified, desc=desc):
+            return False
+        else:
+            return new_trust
+
+    def deleteReciprocalTrust(self, peerid=None, deletePeer=False):
         if not peerid:
             return False
         rels = self.getTrustRelationships(peerid=peerid)
         for rel in rels:
             if deletePeer:
-                url = rel.baseuri + '/trust/' + rel.relationship + '/' + self.id + '?peer=true'
+                url = rel.baseuri + '/trust/' + rel.relationship + '/' + self.id
                 headers = {}
                 if rel.secret:
                     headers = {'Authorization': 'Bearer ' + rel.secret,
@@ -184,7 +230,7 @@ class actor():
                                           headers=headers)
                 if (response.status_code < 200 or response.status_code > 299) and response.status_code != 404:
                     return False
-            rel.key.delete()
+            rel.trust.key.delete()
         return True
 
     def __init__(self, id=''):

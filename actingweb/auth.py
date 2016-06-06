@@ -1,5 +1,6 @@
 import urllib
 import actor
+import trust
 import logging
 import time
 
@@ -21,6 +22,8 @@ class auth():
         self.cookie = None
         self.type = type
         self.oauth = None
+        self.trust = None
+        self.creator = False
         Config = config.config()
         if not self.actor.id:
             self.actor = None
@@ -138,6 +141,10 @@ class auth():
             return False
         else:
             auth = appreq.request.headers['Authorization']
+            (basic, token) = auth.split(' ')
+            if basic.lower() != "basic":
+                appreq.response.set_status(403)
+                return False
             (username, password) = base64.b64decode(auth.split(' ')[1]).split(':')
             if username != self.actor.creator:
                 appreq.response.set_status(403)
@@ -145,9 +152,29 @@ class auth():
             if password != self.actor.passphrase:
                 appreq.response.set_status(403)
                 return False
+            self.creator = True
             return True
 
+    def checkTokenAuth(self, appreq, path):
+        if not 'Authorization' in appreq.request.headers:
+            return None
+        else:
+            auth = appreq.request.headers['Authorization']
+            (bearer, token) = auth.split(' ')
+            if bearer.lower() != "bearer":
+                return None
+            new_trust = trust.trust(id=self.actor.id, token=token)
+            if new_trust.trust:
+                return new_trust
+            else:
+                return None
+
     def checkAuth(self, appreq, path):
+        trust = self.checkTokenAuth(appreq, path)
+        if trust:
+            self.trust = trust
+            self.token = trust.secret
+            return True
         if self.type == 'oauth':
             return self.checkCookieAuth(appreq, path)
         if self.type == 'basic':
