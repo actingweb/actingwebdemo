@@ -76,10 +76,11 @@ class oauth():
             headers = {'Content-Type': 'application/json'}
         try:
             response = urlfetch.fetch(url=url, payload=data, method=urlfetch.POST, headers=headers)
+            self.last_response_code = response.status_code
+            self.last_response_message = response.content
         except:
             logging.warn("Spark POST failed")
-        self.last_response_code = response.status_code
-        self.last_response_message = response.content
+            return False
         if response.status_code == 204:
             return True
         if response.status_code != 200:
@@ -102,10 +103,11 @@ class oauth():
                                       headers={'Content-Type': 'application/json',
                                                'Authorization': 'Bearer ' + self.token}
                                       )
+            self.last_response_code = response.status_code
+            self.last_response_message = response.content
         except:
             logging.warn("Spark GET failed")
-        self.last_response_code = response.status_code
-        self.last_response_message = response.content
+            return False
         if response.status_code < 200 or response.status_code > 299:
             logging.info('Error when sending GET request to Oauth: ' +
                          str(response.status_code) + response.content)
@@ -131,10 +133,10 @@ class oauth():
                                       headers={'Content-Type': 'application/json',
                                                'Authorization': 'Bearer ' + self.token}
                                       )
+            self.last_response_code = response.status_code
+            self.last_response_message = response.content
         except:
             logging.warn("Spark DELETE failed.")
-        self.last_response_code = response.status_code
-        self.last_response_message = response.content
         if response.status_code < 200 and response.status_code > 299:
             logging.info('Error when sending DELETE request to Oauth: ' +
                          str(response.status_code) + response.content)
