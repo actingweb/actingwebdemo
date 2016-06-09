@@ -74,7 +74,10 @@ class oauth():
                        }
         else:
             headers = {'Content-Type': 'application/json'}
-        response = urlfetch.fetch(url=url, payload=data, method=urlfetch.POST, headers=headers)
+        try:
+            response = urlfetch.fetch(url=url, payload=data, method=urlfetch.POST, headers=headers)
+        except:
+            logging.warn("Spark POST failed")
         self.last_response_code = response.status_code
         self.last_response_message = response.content
         if response.status_code == 204:
@@ -93,11 +96,14 @@ class oauth():
             url = url + '?' + urllib.urlencode(params)
         logging.info('Oauth GET request: ' + url)
         urlfetch.set_default_fetch_deadline(60)
-        response = urlfetch.fetch(url=url,
-                                  method=urlfetch.GET,
-                                  headers={'Content-Type': 'application/json',
-                                           'Authorization': 'Bearer ' + self.token}
-                                  )
+        try:
+            response = urlfetch.fetch(url=url,
+                                      method=urlfetch.GET,
+                                      headers={'Content-Type': 'application/json',
+                                               'Authorization': 'Bearer ' + self.token}
+                                      )
+        except:
+            logging.warn("Spark GET failed")
         self.last_response_code = response.status_code
         self.last_response_message = response.content
         if response.status_code < 200 or response.status_code > 299:
@@ -119,11 +125,14 @@ class oauth():
         if not self.token:
             return None
         logging.info('Oauth DELETE request: ' + url)
-        response = urlfetch.fetch(url=url,
-                                  method=urlfetch.DELETE,
-                                  headers={'Content-Type': 'application/json',
-                                           'Authorization': 'Bearer ' + self.token}
-                                  )
+        try:
+            response = urlfetch.fetch(url=url,
+                                      method=urlfetch.DELETE,
+                                      headers={'Content-Type': 'application/json',
+                                               'Authorization': 'Bearer ' + self.token}
+                                      )
+        except:
+            logging.warn("Spark DELETE failed.")
         self.last_response_code = response.status_code
         self.last_response_message = response.content
         if response.status_code < 200 and response.status_code > 299:
