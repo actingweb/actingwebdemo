@@ -113,6 +113,9 @@ class oauth():
                          str(response.status_code) + response.content)
             return False
         links = PaginationLinks(response)
+        self.next = None
+        self.first = None
+        self.prev = None
         for link in links:
             logging.debug('Links:' + link['rel'] + ':' + link['url'])
             if link['rel'] == 'next':
