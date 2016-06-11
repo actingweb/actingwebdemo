@@ -30,7 +30,7 @@ class Trust(ndb.Model):
     secret = ndb.StringProperty(required=True)
     desc = ndb.TextProperty()
     notify = ndb.BooleanProperty()
-    active = ndb.BooleanProperty()
+    approved = ndb.BooleanProperty()
     verified = ndb.BooleanProperty()
     verificationToken = ndb.StringProperty()
 

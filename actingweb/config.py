@@ -27,8 +27,11 @@ class config():
         self.aw_supported = "www,oauth,callbacks"
         self.raml = ""                                      # URL to a RAML definition if available
         self.aw_formats = "json"                            # These are the supported formats
-        self.default_relationship = "friend"                # New relationships are default created as "friend"
-        self.auto_accept_default_relationship = True        # Always accept the default relationship
+        # New relationships are default created as "friend" if not specified
+        self.default_relationship = "friend"
+        # Always accept the default relationship without approval. Change this if
+        # all relationships need explicite approval
+        self.auto_accept_default_relationship = True
         self.logLevel = logging.INFO  # Change to WARN for production, DEBUG for debugging, and INFO for normal testing
         # Hack to get access to GAE default logger
         logging.getLogger().handlers[0].setLevel(self.logLevel)

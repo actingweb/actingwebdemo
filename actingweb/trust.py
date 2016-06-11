@@ -22,14 +22,14 @@ class trust():
             self.peerid = result.peerid
             self.type = result.type
             self.relationship = result.relationship
-            self.active = result.active
+            self.approved = result.approved
             self.verified = result.verified
             self.verificationToken = result.verificationToken
         else:
             self.id = id
             self.peerid = peerid
             self.trust = None
-            self.active = False
+            self.approved = False
             self.verified = False
 
     def getByToken(self, token):
@@ -44,14 +44,14 @@ class trust():
             self.peerid = result.peerid
             self.type = result.type
             self.relationship = result.relationship
-            self.active = result.active
+            self.approved = result.approved
             self.verified = result.verified
             self.verificationToken = result.verificationToken
         else:
             self.id = id
             self.peerid = None
             self.trust = None
-            self.active = False
+            self.approved = False
             self.verified = False
 
     def delete(self):
@@ -61,7 +61,7 @@ class trust():
             return False
         self.trust.key.delete()
 
-    def modify(self, baseuri='', secret='', desc='', active=None, notify=None, verified=None, verificationToken=None):
+    def modify(self, baseuri='', secret='', desc='', approved=None, notify=None, verified=None, verificationToken=None):
         if not self.trust:
             return False
         if len(baseuri) > 0:
@@ -73,9 +73,9 @@ class trust():
         if len(desc) > 0:
             self.desc = desc
             self.trust.desc = desc
-        if active is not None:
-            self.active = active
-            self.trust.active = active
+        if approved is not None:
+            self.approved = approved
+            self.trust.approved = approved
         if notify is not None:
             self.notify = notify
             self.trust.notify = notify
@@ -88,7 +88,7 @@ class trust():
         self.trust.put()
         return True
 
-    def create(self, baseuri='', type='', relationship='', secret='', active=False, notify=False, verified=False, verificationToken='', desc=''):
+    def create(self, baseuri='', type='', relationship='', secret='', approved=False, notify=False, verified=False, verificationToken='', desc=''):
         self.baseuri = baseuri
         self.type = type
         Config = config.config()
@@ -104,7 +104,7 @@ class trust():
                 return False
             self.secret = secret
         self.notify = notify
-        self.active = active
+        self.approved = approved
         self.verified = verified
         if not verificationToken or len(verificationToken) == 0:
             self.verificationToken = Config.newToken()
@@ -116,7 +116,7 @@ class trust():
             self.trust.type = self.type
             self.trust.relationship = self.relationship
             self.trust.secret = self.secret
-            self.trust.active = self.active
+            self.trust.approved = self.approved
             self.trust.notify = self.notify
             self.trust.verified = self.verified
             self.trust.verificationToken = self.verificationToken
@@ -128,7 +128,7 @@ class trust():
                                   type=self.type,
                                   relationship=self.relationship,
                                   secret=self.secret,
-                                  active=self.active,
+                                  approved=self.approved,
                                   notify=self.notify,
                                   verified=self.verified,
                                   verificationToken=self.verificationToken,

@@ -67,7 +67,7 @@ class rootHandler(webapp2.RequestHandler):
                 'id': myself.id,
                 'peerid': rel.peerid,
                 'relationship': rel.relationship,
-                'active': rel.active,
+                'approved': rel.approved,
                 'notify': rel.notify,
                 'verified': rel.verified,
                 'type': rel.type,
@@ -134,7 +134,7 @@ class rootHandler(webapp2.RequestHandler):
             'id': myself.id,
             'peerid': new_trust.peerid,
             'relationship': new_trust.relationship,
-            'active': new_trust.active,
+            'approved': new_trust.approved,
             'notify': new_trust.notify,
             'verified': new_trust.verified,
             'type': new_trust.type,
@@ -204,8 +204,12 @@ class relationshipHandler(webapp2.RequestHandler):
             # Do further validation
             self.response.set_status(403, 'Forbidden')
             return
-        # Notify is not yet implemented, so set active True and notify to False
-        new_trust = myself.createVerifiedTrust(baseuri=baseuri, peerid=peerid, active=True, secret=secret,
+        if Config.auto_accept_default_relationship and Config.default_relationship == relationship:
+            approved = True
+        else:
+            approved = False
+        # Notify is not yet implemented, so set notify to False
+        new_trust = myself.createVerifiedTrust(baseuri=baseuri, peerid=peerid, approved=approved, secret=secret,
                                                verificationToken=verificationToken, type=type, relationship=relationship, notify=False, desc=desc)
         if not new_trust:
             self.response.set_status(403, 'Forbidden')
@@ -217,7 +221,7 @@ class relationshipHandler(webapp2.RequestHandler):
             'id': myself.id,
             'peerid': new_trust.peerid,
             'relationship': new_trust.relationship,
-            'active': new_trust.active,
+            'approved': new_trust.approved,
             'notify': new_trust.notify,
             'verified': new_trust.verified,
             'type': new_trust.type,
@@ -227,7 +231,10 @@ class relationshipHandler(webapp2.RequestHandler):
         out = json.dumps(pair)
         self.response.write(out)
         self.response.headers["Content-Type"] = "application/json"
-        self.response.set_status(201, 'Created')
+        if approved:
+            self.response.set_status(201, 'Created')
+        else:
+            self.response.set_status(202, 'Accepted')
 
 
 # Handling requests to specific relationships, e.g. /trust/friend/12f2ae53bd
@@ -273,7 +280,7 @@ class trustHandler(webapp2.RequestHandler):
             'id': myself.id,
             'peerid': my_trust.peerid,
             'relationship': my_trust.relationship,
-            'active': my_trust.active,
+            'approved': my_trust.approved,
             'notify': my_trust.notify,
             'verified': my_trust.verified,
             'verificationToken': verificationToken,

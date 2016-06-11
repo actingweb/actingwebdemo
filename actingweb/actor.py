@@ -150,7 +150,7 @@ class actor():
         new_trust = trust.trust(self.id, peer["id"])
         # Don't implement notify for now...
         new_trust.create(baseuri=url, secret=secret, type=type,
-                         relationship=relationship, active=False, notify=False, verified=False, desc=desc)
+                         relationship=relationship, approved=False, notify=False, verified=False, desc=desc)
         params = {
             'baseuri': Config.root + self.id,
             'id': self.id,
@@ -177,13 +177,13 @@ class actor():
                 logging.error("Couldn't find trust relationship after peer POST and verification")
                 return False
             if mod_trust.verified:
-                mod_trust.modify(active=True)
+                mod_trust.modify(approved=True)
             return mod_trust
         else:
             new_trust.delete()
             return False
 
-    def createVerifiedTrust(self, baseuri='', peerid=None, active=False, secret=None, verificationToken=None, type=None, relationship=None, notify=False, desc=''):
+    def createVerifiedTrust(self, baseuri='', peerid=None, approved=False, secret=None, verificationToken=None, type=None, relationship=None, notify=False, desc=''):
         if not peerid or len(baseuri) == 0 or not relationship:
             return False
         requrl = baseuri + '/trust/' + relationship + '/' + self.id
@@ -208,7 +208,7 @@ class actor():
         except:
             verified = False
         new_trust = trust.trust(self.id, peerid)
-        if not new_trust.create(baseuri=baseuri, secret=secret, type=type, active=active,
+        if not new_trust.create(baseuri=baseuri, secret=secret, type=type, approved=approved,
                                 relationship=relationship, verified=verified, desc=desc):
             return False
         else:
