@@ -21,6 +21,7 @@ import json
 #   relationship (see config.py for default relationship and auto-accept, no
 #   auth required)
 # GET /trust/{relationship}}/{actorid} to get details on a specific relationship (auth: creator, admin, or peer secret)
+# POST /trust/{relationship}}/{actorid} to send information to a peer about changes in the relationship
 # PUT /trust/{relationship}}/{actorid} with a json body to change details on a relationship (baseuri, secret, desc) (auth: creator,
 #   admin, or peer secret)
 # DELETE /trust/{relationship}}/{actorid} to delete a relationship (with
@@ -68,7 +69,7 @@ class rootHandler(webapp2.RequestHandler):
                 'peerid': rel.peerid,
                 'relationship': rel.relationship,
                 'approved': rel.approved,
-                'notify': rel.notify,
+                'peer_approved': rel.peer_approved,
                 'verified': rel.verified,
                 'type': rel.type,
                 'desc': rel.desc,
@@ -135,7 +136,7 @@ class rootHandler(webapp2.RequestHandler):
             'peerid': new_trust.peerid,
             'relationship': new_trust.relationship,
             'approved': new_trust.approved,
-            'notify': new_trust.notify,
+            'peer_approved': new_trust.peer_approved,
             'verified': new_trust.verified,
             'type': new_trust.type,
             'desc': new_trust.desc,
@@ -184,10 +185,6 @@ class relationshipHandler(webapp2.RequestHandler):
                 desc = params['desc']
             else:
                 desc = ''
-            notify = False
-            if 'notify' in params:
-                if str(params['notify']).lower() == 'true':
-                    notify = True
             if 'verify' in params:
                 verificationToken = params['verify']
             else:
@@ -199,18 +196,13 @@ class relationshipHandler(webapp2.RequestHandler):
         if len(baseuri) == 0 or len(peerid) == 0 or len(type) == 0:
             self.response.set_status(400, 'Missing mandatory attributes')
             return
-
-        if relationship.lower() != Config.default_relationship.lower() or not Config.auto_accept_default_relationship:
-            # Do further validation
-            self.response.set_status(403, 'Forbidden')
-            return
         if Config.auto_accept_default_relationship and Config.default_relationship == relationship:
             approved = True
         else:
             approved = False
-        # Notify is not yet implemented, so set notify to False
+        # Since we received a request for a relationship, assume that peer has approved
         new_trust = myself.createVerifiedTrust(baseuri=baseuri, peerid=peerid, approved=approved, secret=secret,
-                                               verificationToken=verificationToken, type=type, relationship=relationship, notify=False, desc=desc)
+                                               verificationToken=verificationToken, type=type, peer_approved=True, relationship=relationship, desc=desc)
         if not new_trust:
             self.response.set_status(403, 'Forbidden')
             return
@@ -222,7 +214,7 @@ class relationshipHandler(webapp2.RequestHandler):
             'peerid': new_trust.peerid,
             'relationship': new_trust.relationship,
             'approved': new_trust.approved,
-            'notify': new_trust.notify,
+            'peer_approved': new_trust.peer_approved,
             'verified': new_trust.verified,
             'type': new_trust.type,
             'desc': new_trust.desc,
@@ -281,7 +273,7 @@ class trustHandler(webapp2.RequestHandler):
             'peerid': my_trust.peerid,
             'relationship': my_trust.relationship,
             'approved': my_trust.approved,
-            'notify': my_trust.notify,
+            'peer_approved': my_trust.peer_approved,
             'verified': my_trust.verified,
             'verificationToken': verificationToken,
             'type': my_trust.type,
@@ -291,7 +283,42 @@ class trustHandler(webapp2.RequestHandler):
         out = json.dumps(pair)
         self.response.write(out)
         self.response.headers["Content-Type"] = "application/json"
-        self.response.set_status(200, 'Ok')
+        if my_trust.approved:
+            self.response.set_status(200, 'Ok')
+        else:
+            self.response.set_status(202, 'Accepted')
+
+    def post(self, id, relationship, peerid):
+        myself = actor.actor(id)
+        if not myself.id:
+            self.response.set_status(404, "Actor not found")
+            return
+        check = auth.auth(id)
+        if not check.checkAuth(self, '/trust/' + relationship):
+            self.response.set_status(403, "Forbidden")
+            return
+        if not check.creator:
+            if not check.trust:
+                self.response.set_status(403, "Forbidden")
+                return
+            if check.trust.relationship != "admin" and check.trust.peerid != peerid:
+                self.response.set_status(403, "Forbidden")
+                return
+        Config = config.config()
+        try:
+            params = json.loads(self.request.body.decode('utf-8', 'ignore'))
+            if 'approved' in params:
+                if params['approved'].lower() == "true":
+                    approved = True
+            else:
+                approved = None
+        except ValueError:
+            self.response.set_status(400, 'No json content')
+            return
+        if myself.modifyTrust(relationship=relationship, peerid=peerid, peer_approved=approved):
+            self.response.set_status(204, 'Ok')
+        else:
+            self.response.set_status(405, 'Not modified')
 
     def put(self, id, relationship, peerid):
         myself = actor.actor(id)
@@ -310,37 +337,29 @@ class trustHandler(webapp2.RequestHandler):
                 self.response.set_status(403, "Forbidden")
                 return
         Config = config.config()
-        relationships = myself.getTrustRelationships(
-            relationship=relationship, peerid=peerid)
-        if not relationships:
-            self.response.set_status(404, 'Not found')
-            return
-        my_trust = relationships[0]
         try:
-            change = False
             params = json.loads(self.request.body.decode('utf-8', 'ignore'))
             if 'baseuri' in params:
-                change = True
                 baseuri = params['baseuri']
             else:
                 baseuri = ''
             if 'secret' in params:
-                change = True
                 secret = params['secret']
             else:
                 secret = ''
             if 'desc' in params:
-                change = True
                 desc = params['desc']
             else:
                 desc = ''
+            if 'approved' in params:
+                if params['approved'].lower() == "true":
+                    approved = True
+            else:
+                approved = None
         except ValueError:
             self.response.set_status(400, 'No json content')
             return
-        if not change:
-            self.response.set_status(405, 'Not modified')
-            return
-        if my_trust.modify(baseuri=baseuri, secret=secret, desc=desc):
+        if myself.modifyTrust(relationship=relationship, peerid=peerid, baseuri=baseuri, secret=secret, approved=approved, desc=desc):
             self.response.set_status(204, 'Ok')
         else:
             self.response.set_status(405, 'Not modified')

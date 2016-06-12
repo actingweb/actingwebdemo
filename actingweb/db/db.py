@@ -29,8 +29,8 @@ class Trust(ndb.Model):
     relationship = ndb.StringProperty(required=True)
     secret = ndb.StringProperty(required=True)
     desc = ndb.TextProperty()
-    notify = ndb.BooleanProperty()
     approved = ndb.BooleanProperty()
+    peer_approved = ndb.BooleanProperty()
     verified = ndb.BooleanProperty()
     verificationToken = ndb.StringProperty()
 

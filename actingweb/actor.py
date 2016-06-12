@@ -92,6 +92,12 @@ class actor():
         properties = db.Property.query(db.Property.id == self.id).fetch(1000)
         return properties
 
+    def setTrustee(self, trustee):
+        actor_query = db.Actor.query(db.Actor.id == self.id).get()
+        if result:
+            result.trustee = trustee
+            result.put()
+
     def getTrustRelationships(self, relationship='', peerid='', type=''):
         if len(relationship) > 0 and len(peerid) > 0 and len(type) > 0:
             relationships = db.Trust.query(
@@ -118,13 +124,16 @@ class actor():
             rels.append(trust.trust(self.id, rel.peerid))
         return rels
 
-    def setTrustee(self, trustee):
-        actor_query = db.Actor.query(db.Actor.id == self.id).get()
-        if result:
-            result.trustee = trustee
-            result.put()
+    def modifyTrust(self, relationship=None, peerid=None, baseuri='', secret='', desc='', approved=None, verified=None, verificationToken=None, peer_approved=None):
+        if not relationship or not peerid:
+            return False
+        relationships = self.getTrustRelationships(
+            relationship=relationship, peerid=peerid)
+        if not relationships:
+            return False
+        return relationships[0].modify(baseuri=baseuri, secret=secret, desc=desc, approved=approved, verified=verified, verificationToken=verificationToken, peer_approved=peer_approved)
 
-    # Returns False or new trust object if successful
+        # Returns False or new trust object if successful
     def createReciprocalTrust(self, url, secret=None, desc='', relationship='', type=''):
         if len(url) == 0:
             return False
@@ -148,16 +157,16 @@ class actor():
         # Create trust, so that peer can do a verify on the relationship (using
         # verificationToken) when we request the relationship
         new_trust = trust.trust(self.id, peer["id"])
-        # Don't implement notify for now...
+        # Since we are initiating the relationship, we implicitly approve it
+        # It is not verified until the peer has verified us
         new_trust.create(baseuri=url, secret=secret, type=type,
-                         relationship=relationship, approved=False, notify=False, verified=False, desc=desc)
+                         relationship=relationship, approved=True, verified=False, desc=desc)
         params = {
             'baseuri': Config.root + self.id,
             'id': self.id,
             'type': Config.type,
             'secret': secret,
             'desc': desc,
-            'notify': 'false',
             'verify': new_trust.verificationToken,
         }
         requrl = url + '/trust/' + relationship
@@ -176,14 +185,12 @@ class actor():
             if not mod_trust.trust:
                 logging.error("Couldn't find trust relationship after peer POST and verification")
                 return False
-            if mod_trust.verified:
-                mod_trust.modify(approved=True)
             return mod_trust
         else:
             new_trust.delete()
             return False
 
-    def createVerifiedTrust(self, baseuri='', peerid=None, approved=False, secret=None, verificationToken=None, type=None, relationship=None, notify=False, desc=''):
+    def createVerifiedTrust(self, baseuri='', peerid=None, approved=False, secret=None, verificationToken=None, type=None, peer_approved=None, relationship=None, desc=''):
         if not peerid or len(baseuri) == 0 or not relationship:
             return False
         requrl = baseuri + '/trust/' + relationship + '/' + self.id
@@ -208,7 +215,7 @@ class actor():
         except:
             verified = False
         new_trust = trust.trust(self.id, peerid)
-        if not new_trust.create(baseuri=baseuri, secret=secret, type=type, approved=approved,
+        if not new_trust.create(baseuri=baseuri, secret=secret, type=type, approved=approved, peer_approved=peer_approved,
                                 relationship=relationship, verified=verified, desc=desc):
             return False
         else:
