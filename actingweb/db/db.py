@@ -12,7 +12,6 @@ class Actor(ndb.Model):
     id = ndb.StringProperty(required=True)
     creator = ndb.StringProperty()
     passphrase = ndb.StringProperty()
-    trustee = ndb.StringProperty()
 
 
 class Property(ndb.Model):

@@ -18,17 +18,12 @@ from on_aw import on_aw_www_paths
 class MainPage(webapp2.RequestHandler):
 
     def get(self, id, path):
-
-        Config = config.config()
+        (Config, myself, check) = auth.init_actingweb(appreq=self,
+                                                      id=id, path='www', subpath=path)
+        if not myself or not check:
+            return
         if not Config.ui:
             self.response.set_status(404, "Web interface is not enabled")
-            return
-        myself = actor.actor(id)
-        if not myself.id:
-            self.response.set_status(404, "Actor not found")
-            return
-        check = auth.auth(id, type=Config.www_auth)
-        if not check.checkAuth(self, '/www/' + path):
             return
 
         if not path or path == '':
@@ -36,7 +31,6 @@ class MainPage(webapp2.RequestHandler):
                 'url': self.request.url,
                 'id': id,
                 'creator': myself.creator,
-                'trustee': myself.trustee,
                 'passphrase': myself.passphrase,
             }
             template_path = os.path.join(os.path.dirname(
@@ -80,6 +74,33 @@ class MainPage(webapp2.RequestHandler):
                 }
             template_path = os.path.join(os.path.dirname(
                 __file__), 'templates/aw-actor-www-property.html')
+            self.response.write(template.render(template_path, template_values).encode('utf-8'))
+            return
+        if path == 'trust':
+            relationships = myself.getTrustRelationships()
+            if not relationships:
+                self.response.set_status(404, 'Not found')
+                return
+            trusts = []
+            for t in relationships:
+                trusts.append({
+                    "peerid": t.peerid,
+                    "relationship": t.relationship,
+                    "type": t.type,
+                    "approved": t.approved,
+                    "approveuri": Config.root + myself.id + '/trust/' + t.relationship + '/' + t.peerid,
+                    "peer_approved": t.peer_approved,
+                    "baseuri": t.baseuri,
+                    "desc": t.desc,
+                    "verified": t.verified,
+                }
+                )
+            template_values = {
+                'id': myself.id,
+                'trusts': trusts,
+            }
+            template_path = os.path.join(os.path.dirname(
+                __file__), 'templates/aw-actor-www-trust.html')
             self.response.write(template.render(template_path, template_values).encode('utf-8'))
             return
         output = on_aw_www_paths.on_www_paths(myself, path)

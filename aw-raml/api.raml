@@ -26,11 +26,6 @@ types:
         required: false
         description: If supplied, this will be the creator's secret (password). Auto-generated and returned in the body if not present.
         example: mysecret
-      trustee:
-        type: string
-        required: false
-        example: https://somewhere.com/trustees/abdefs23
-        description: The root URL for an actor that acts as a trustee (i.e. approver of trust relationships) for this actor.
 /:
   displayName: Actor factory
   description: Root of all actors and the resource used for creation of new actors.
@@ -40,12 +35,10 @@ types:
         properties:
           creator: string
           passphrase?: string
-          trustee?: string
       application/x-www-form-urlencoded:
         properties:
           creator: string
           passphrase?: string
-          trustee?: string
     responses:
       201:
         description: A new actor has been created.

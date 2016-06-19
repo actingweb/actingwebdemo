@@ -14,24 +14,17 @@ import json
 class MainPage(webapp2.RequestHandler):
 
     def get(self, id):
-        check = auth.auth(id, type='basic')
-        Config = config.config()
         if self.request.get('_method') == 'DELETE':
-            if not check.checkAuth(self, Config.root + '?_method=DELETE'):
-                return
             self.delete(id)
             return
-        myself = actor.actor(id)
-        if not myself.id:
-            self.response.set_status(404, "Actor not found")
-            return
-        if not check.checkAuth(self, '/'):
+        (Config, myself, check) = auth.init_actingweb(appreq=self,
+                                                      id=id, path='', subpath='')
+        if not myself or not check:
             return
         pair = {
             'id': myself.id,
             'creator': myself.creator,
             'passphrase': myself.passphrase,
-            'trustee': myself.trustee,
         }
         out = json.dumps(pair)
         self.response.write(out.encode('utf-8'))
@@ -39,13 +32,9 @@ class MainPage(webapp2.RequestHandler):
         self.response.set_status(200)
 
     def delete(self, id):
-        Config = config.config()
-        myself = actor.actor(id)
-        if not myself.id:
-            self.response.set_status(404, "Actor not found")
-            return
-        check = auth.auth(id, type='basic')
-        if not check.checkAuth(self, Config.root):
+        (Config, myself, check) = auth.init_actingweb(appreq=self,
+                                                      id=id, path='', subpath='')
+        if not myself or not check:
             return
         on_aw_delete.on_aw_delete_actor(myself)
         myself.delete()

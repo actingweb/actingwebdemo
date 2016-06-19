@@ -13,17 +13,19 @@ __all__ = [
 
 
 def getPeerInfo(url):
-    response = urlfetch.fetch(url=url + '/meta',
-                              method=urlfetch.GET
-                              )
     try:
+        response = urlfetch.fetch(url=url + '/meta',
+                                  method=urlfetch.GET
+                                  )
         res = {
             "last_response_code": response.status_code,
             "last_response_message": response.content,
             "data": json.loads(response.content),
         }
-    except ValueError:
-        res["last_response_code"] = 500
+    except:
+        res = {
+            "last_response_code": 500,
+        }
     return res
 
 
@@ -35,11 +37,12 @@ class actor():
             self.id = id
             self.creator = result.creator
             self.passphrase = result.passphrase
-            self.trustee = result.trustee
         else:
             self.id = None
+            self.creator = None
+            self.passphrase = None
 
-    def create(self, url, creator, passphrase, trustee):
+    def create(self, url, creator, passphrase):
         seed = url
         now = datetime.datetime.now()
         seed += now.strftime("%Y%m%dT%H%M%S")
@@ -54,14 +57,9 @@ class actor():
         else:
             self.passphrase = Config.newToken()
         self.id = Config.newUUID(seed)
-        if len(trustee) > 0:
-            self.trustee = trustee
-        else:
-            self.trustee = ""
         actor = db.Actor(creator=self.creator,
                          passphrase=self.passphrase,
-                         id=self.id,
-                         trustee=self.trustee)
+                         id=self.id)
         actor.put()
 
     def delete(self):
@@ -92,12 +90,6 @@ class actor():
         properties = db.Property.query(db.Property.id == self.id).fetch(1000)
         return properties
 
-    def setTrustee(self, trustee):
-        actor_query = db.Actor.query(db.Actor.id == self.id).get()
-        if result:
-            result.trustee = trustee
-            result.put()
-
     def getTrustRelationships(self, relationship='', peerid='', type=''):
         if len(relationship) > 0 and len(peerid) > 0 and len(type) > 0:
             relationships = db.Trust.query(
@@ -124,13 +116,39 @@ class actor():
             rels.append(trust.trust(self.id, rel.peerid))
         return rels
 
-    def modifyTrust(self, relationship=None, peerid=None, baseuri='', secret='', desc='', approved=None, verified=None, verificationToken=None, peer_approved=None):
+    def modifyTrustAndNotify(self, relationship=None, peerid=None, baseuri='', secret='', desc='', approved=None, verified=None, verificationToken=None, peer_approved=None):
         if not relationship or not peerid:
             return False
         relationships = self.getTrustRelationships(
             relationship=relationship, peerid=peerid)
         if not relationships:
             return False
+        trust = relationships[0]
+        # If we change approval status, send the changed status to our peer
+        if approved == True and trust.approved == False:
+            params = {
+                'approved': True,
+            }
+            requrl = trust.baseuri + '/trust/' + relationship + '/' + self.id
+            if trust.secret:
+                headers = {'Authorization': 'Bearer ' + trust.secret,
+                           'Content-Type': 'application/json',
+                           }
+            data = json.dumps(params)
+            # Note the POST here instead of PUT. POST is used to used to notify about
+            # state change in the relationship (i.e. not change the object as PUT
+            # would do)
+            try:
+                response = urlfetch.fetch(url=requrl,
+                                          method=urlfetch.POST,
+                                          payload=data,
+                                          headers=headers
+                                          )
+                self.last_response_code = response.status_code
+                self.last_response_message = response.content
+            except:
+                self.last_response_code = 500
+
         return relationships[0].modify(baseuri=baseuri, secret=secret, desc=desc, approved=approved, verified=verified, verificationToken=verificationToken, peer_approved=peer_approved)
 
         # Returns False or new trust object if successful
@@ -142,7 +160,7 @@ class actor():
         Config = config.config()
 
         res = getPeerInfo(url)
-        if res["last_response_code"] < 200 or res["last_response_code"] >= 300:
+        if not res or res["last_response_code"] < 200 or res["last_response_code"] >= 300:
             return False
         peer = res["data"]
         if not peer["id"] or not peer["type"] or len(peer["type"]) == 0:
@@ -185,6 +203,11 @@ class actor():
             if not mod_trust.trust:
                 logging.error("Couldn't find trust relationship after peer POST and verification")
                 return False
+            if self.last_response_code == 201:
+                # Already approved by peer (probably auto-approved)
+                # Do it direct on the trust (and not self.modifyTrustAndNotify) to avoid a callback
+                # to the peer
+                mod_trust.modify(peer_approved=True)
             return mod_trust
         else:
             new_trust.delete()
@@ -222,9 +245,12 @@ class actor():
             return new_trust
 
     def deleteReciprocalTrust(self, peerid=None, deletePeer=False):
+        failedOnce = False  # For multiple relationships, this will be True if at least one deletion at peer failed
+        successOnce = False  # True if at least one relationship was deleted at peer
         if not peerid:
-            return False
-        rels = self.getTrustRelationships(peerid=peerid)
+            rels = self.getTrustRelationships()
+        else:
+            rels = self.getTrustRelationships(peerid=peerid)
         for rel in rels:
             if deletePeer:
                 url = rel.baseuri + '/trust/' + rel.relationship + '/' + self.id
@@ -236,8 +262,13 @@ class actor():
                                           method=urlfetch.DELETE,
                                           headers=headers)
                 if (response.status_code < 200 or response.status_code > 299) and response.status_code != 404:
-                    return False
+                    failedOnce = True
+                    continue
+                else:
+                    successOnce = True
             rel.trust.key.delete()
+        if deletePeer and (not successOnce or failedOnce):
+            return False
         return True
 
     def __init__(self, id=''):

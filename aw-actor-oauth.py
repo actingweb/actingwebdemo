@@ -10,12 +10,10 @@ from on_aw import on_aw_oauth
 class MainPage(webapp2.RequestHandler):
 
     def get(self, id, path):
-        myself = actor.actor(id)
-        Config = config.config()
-        if not myself.id:
-            self.response.set_status(404, "Actor Not Found")
+        (Config, myself, my_auth) = auth.init_actingweb(appreq=self,
+                                                        id=id, path='oauth', subpath=path)
+        if not myself or not check:
             return
-        my_auth = auth.auth(id=myself.id, type='oauth')
         if my_auth.type != 'oauth':
             self.response.set_status(403, "OAuth not enabled")
             return

@@ -33,18 +33,14 @@ class rootHandler(webapp2.RequestHandler):
 
     def get(self, id):
         if self.request.get('_method') == 'POST':
-            self.post()
+            self.post(id)
             return
-        myself = actor.actor(id)
-        if not myself.id:
-            self.response.set_status(404, "Actor not found")
-            return
-        check = auth.auth(id)
-        if not check.checkAuth(self, '/trust/'):
-            self.response.set_status(403, "Forbidden")
+        (Config, myself, check) = auth.init_actingweb(appreq=self,
+                                                      id=id, path='trust')
+        if not myself or not check:
             return
         # Only allow creator and admin relationships
-        if not check.creator:
+        if check.acl["relationship"] != "creator":
             if not check.trust or check.trust.relationship != "admin":
                 self.response.set_status(403, "Forbidden")
                 return
@@ -81,20 +77,15 @@ class rootHandler(webapp2.RequestHandler):
         self.response.set_status(200, 'Ok')
 
     def post(self, id):
-        myself = actor.actor(id)
-        if not myself.id:
-            self.response.set_status(404, "Actor not found")
-            return
-        check = auth.auth(id)
-        if not check.checkAuth(self, '/trust/'):
-            self.response.set_status(403, "Forbidden")
+        (Config, myself, check) = auth.init_actingweb(appreq=self,
+                                                      id=id, path='trust')
+        if not myself or not check:
             return
         # Only allow creator and admin relationships
-        if not check.creator:
+        if check.acl["relationship"] != "creator":
             if not check.trust or check.trust.relationship != "admin":
                 self.response.set_status(403, "Forbidden")
                 return
-        Config = config.config()
         secret = ''
         desc = ''
         relationship = Config.default_relationship
@@ -153,16 +144,16 @@ class relationshipHandler(webapp2.RequestHandler):
 
     def get(self, id, relationship):
         if self.request.get('_method') == 'POST':
-            self.post()
+            self.post(id, relationship)
             return
         self.response.set_status(404, "Not found")
 
     def post(self, id, relationship):
-        myself = actor.actor(id)
-        if not myself.id:
-            self.response.set_status(404, "Actor not found")
+        (Config, myself, check) = auth.init_actingweb(appreq=self,
+                                                      id=id, path='trust', subpath=relationship, enforce_auth=False)
+        # We allow access here without authentication
+        if not myself:
             return
-        Config = config.config()
         try:
             params = json.loads(self.request.body.decode('utf-8', 'ignore'))
             if 'baseuri' in params:
@@ -234,20 +225,16 @@ class trustHandler(webapp2.RequestHandler):
 
     def get(self, id, relationship, peerid):
         if self.request.get('_method') == 'PUT':
-            self.put()
+            self.put(id, relationship, peerid)
             return
         if self.request.get('_method') == 'DELETE':
-            self.delete()
+            self.delete(id, relationship, peerid)
             return
-        myself = actor.actor(id)
-        if not myself.id:
-            self.response.set_status(404, "Actor not found")
+        (Config, myself, check) = auth.init_actingweb(appreq=self,
+                                                      id=id, path='trust', subpath=relationship)
+        if not myself or not check:
             return
-        check = auth.auth(id)
-        if not check.checkAuth(self, '/trust/' + relationship):
-            self.response.set_status(403, "Forbidden")
-            return
-        if not check.creator:
+        if check.acl["relationship"] != "creator":
             if not check.trust:
                 self.response.set_status(403, "Forbidden")
                 return
@@ -289,15 +276,11 @@ class trustHandler(webapp2.RequestHandler):
             self.response.set_status(202, 'Accepted')
 
     def post(self, id, relationship, peerid):
-        myself = actor.actor(id)
-        if not myself.id:
-            self.response.set_status(404, "Actor not found")
+        (Config, myself, check) = auth.init_actingweb(appreq=self,
+                                                      id=id, path='trust', subpath=relationship)
+        if not myself or not check:
             return
-        check = auth.auth(id)
-        if not check.checkAuth(self, '/trust/' + relationship):
-            self.response.set_status(403, "Forbidden")
-            return
-        if not check.creator:
+        if check.acl["relationship"] != "creator":
             if not check.trust:
                 self.response.set_status(403, "Forbidden")
                 return
@@ -307,29 +290,24 @@ class trustHandler(webapp2.RequestHandler):
         Config = config.config()
         try:
             params = json.loads(self.request.body.decode('utf-8', 'ignore'))
+            peer_approved = None
             if 'approved' in params:
-                if params['approved'].lower() == "true":
-                    approved = True
-            else:
-                approved = None
+                if params['approved'] and params['approved'] == True:
+                    peer_approved = True
         except ValueError:
             self.response.set_status(400, 'No json content')
             return
-        if myself.modifyTrust(relationship=relationship, peerid=peerid, peer_approved=approved):
+        if myself.modifyTrustAndNotify(relationship=relationship, peerid=peerid, peer_approved=peer_approved):
             self.response.set_status(204, 'Ok')
         else:
             self.response.set_status(405, 'Not modified')
 
     def put(self, id, relationship, peerid):
-        myself = actor.actor(id)
-        if not myself.id:
-            self.response.set_status(404, "Actor not found")
+        (Config, myself, check) = auth.init_actingweb(appreq=self,
+                                                      id=id, path='trust', subpath=relationship)
+        if not myself or not check:
             return
-        check = auth.auth(id)
-        if not check.checkAuth(self, '/trust/' + relationship):
-            self.response.set_status(403, "Forbidden")
-            return
-        if not check.creator:
+        if check.acl["relationship"] != "creator":
             if not check.trust:
                 self.response.set_status(403, "Forbidden")
                 return
@@ -357,23 +335,37 @@ class trustHandler(webapp2.RequestHandler):
             else:
                 approved = None
         except ValueError:
-            self.response.set_status(400, 'No json content')
-            return
-        if myself.modifyTrust(relationship=relationship, peerid=peerid, baseuri=baseuri, secret=secret, approved=approved, desc=desc):
+            if not self.request.get('_method') or self.request.get('_method') != "PUT":
+                self.response.set_status(400, 'No json content')
+                return
+            if self.request.get('approved') and len(self.request.get('approved')) > 0:
+                if self.request.get('approved').lower() == "true":
+                    approved = True
+                else:
+                    approved = None
+            if self.request.get('baseuri') and len(self.request.get('baseuri')) > 0:
+                baseuri = self.request.get('baseuri')
+            else:
+                baseuri = ''
+            if self.request.get('desc') and len(self.request.get('desc')) > 0:
+                desc = self.request.get('desc')
+            else:
+                desc = ''
+            if self.request.get('secret') and len(self.request.get('secret')) > 0:
+                secret = self.request.get('secret')
+            else:
+                secret = ''
+        if myself.modifyTrustAndNotify(relationship=relationship, peerid=peerid, baseuri=baseuri, secret=secret, approved=approved, desc=desc):
             self.response.set_status(204, 'Ok')
         else:
             self.response.set_status(405, 'Not modified')
 
     def delete(self, id, relationship, peerid):
-        myself = actor.actor(id)
-        if not myself.id:
-            self.response.set_status(404, "Actor not found")
+        (Config, myself, check) = auth.init_actingweb(appreq=self,
+                                                      id=id, path='trust', subpath=relationship)
+        if not myself or not check:
             return
-        check = auth.auth(id)
-        if not check.checkAuth(self, '/trust/' + relationship):
-            self.response.set_status(403, "Forbidden")
-            return
-        if not check.creator:
+        if check.acl["relationship"] != "creator":
             if not check.trust:
                 self.response.set_status(403, "Forbidden")
                 return
@@ -397,9 +389,9 @@ class trustHandler(webapp2.RequestHandler):
             return
         my_trust = relationships[0]
         if isPeer:
-            deleted = myself.deleteReciprocalTrust(peerid, deletePeer=False)
+            deleted = myself.deleteReciprocalTrust(peerid=peerid, deletePeer=False)
         else:
-            deleted = myself.deleteReciprocalTrust(peerid, deletePeer=True)
+            deleted = myself.deleteReciprocalTrust(peerid=peerid, deletePeer=True)
         if not deleted:
             self.response.set_status(502, 'Not able to delete relationship with peer.')
             return

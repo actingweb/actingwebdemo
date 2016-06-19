@@ -3,6 +3,7 @@
 import cgi
 import wsgiref.handlers
 from actingweb import actor
+from actingweb import auth
 from actingweb import config
 from actingweb.db import db
 
@@ -19,10 +20,9 @@ Config = config.config()
 class MainPage(webapp2.RequestHandler):
 
     def get(self, id, path):
-        myself = actor.actor(id)
-
-        if self.request.get('_method') == 'PUT':
-            self.set(id, path, self.request.get('value').decode('utf-8'))
+        (Config, myself, check) = auth.init_actingweb(appreq=self,
+                                                      id=id, path='meta', subpath=path, enforce_auth=False)
+        if not myself:
             return
         if not path:
             values = {
@@ -31,7 +31,6 @@ class MainPage(webapp2.RequestHandler):
                 'version': Config.version,
                 'desc': Config.desc,
                 'info': Config.info,
-                'trustee': myself.trustee,
                 'raml': Config.raml,
                 'aw_version': Config.aw_version,
                 'aw_supported': Config.aw_supported,
@@ -52,8 +51,6 @@ class MainPage(webapp2.RequestHandler):
             out = Config.desc + myself.id
         elif path == 'info':
             out = Config.info
-        elif path == 'trustee':
-            out = myself.trustee
         elif path == 'raml':
             out = Config.raml
         elif path == 'actingweb/version':
