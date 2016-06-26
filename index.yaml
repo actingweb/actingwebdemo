@@ -1,1 +1,9 @@
 indexes:
+
+- kind: Trust
+  properties:
+  - name: secret
+  - name: peerid
+  - name: relationship
+  - name: type
+  

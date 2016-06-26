@@ -12,7 +12,6 @@ class Actor(ndb.Model):
     id = ndb.StringProperty(required=True)
     creator = ndb.StringProperty()
     passphrase = ndb.StringProperty()
-    trustee = ndb.StringProperty()
 
 
 class Property(ndb.Model):
@@ -25,9 +24,14 @@ class Trust(ndb.Model):
     id = ndb.StringProperty(required=True)
     peerid = ndb.StringProperty(required=True)
     baseuri = ndb.StringProperty(required=True)
+    type = ndb.StringProperty(required=True)
+    relationship = ndb.StringProperty(required=True)
     secret = ndb.StringProperty(required=True)
     desc = ndb.TextProperty()
-    notify = ndb.BooleanProperty()
+    approved = ndb.BooleanProperty()
+    peer_approved = ndb.BooleanProperty()
+    verified = ndb.BooleanProperty()
+    verificationToken = ndb.StringProperty()
 
 
 class Subscription(ndb.Model):

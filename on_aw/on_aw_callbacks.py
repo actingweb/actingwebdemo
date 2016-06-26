@@ -19,15 +19,17 @@ __all__ = [
 
 
 def on_get_callbacks(myself, req, name):
+    # return True if callback has been processed
     # THE BELOW IS SAMPLE CODE
     #my_oauth=oauth.oauth(token = myself.getProperty('oauth_token').value)
     # if name == 'something':
     #    return
     # END OF SAMPLE CODE
-    return
+    return False
 
 
 def on_post_callbacks(myself, req, name):
+    # return True if callback has been processed
     # THE BELOW IS SAMPLE CODE
     #Config = config.config()
     #my_oauth=oauth.oauth(token = myself.getProperty('oauth_token').value)
@@ -44,4 +46,4 @@ def on_post_callbacks(myself, req, name):
     #    return True
     #req.response.set_status(403, "Callback not found.")
     # END OF SAMPLE CODE
-    return True
+    return False

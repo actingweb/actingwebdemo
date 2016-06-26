@@ -59,24 +59,43 @@ class oauth():
         if token:
             self.token = token
 
-    def postRequest(self, url, params=None, cleartoken=False):
+    def postRequest(self, url, params=None, cleartoken=False, urlencode=False):
         if cleartoken:
             self.token = None
         if params:
-            data = json.dumps(params)
-            logging.info('Oauth POST request with JSON payload: ' + url + '?' + data)
+            if urlencode:
+                data = urllib.urlencode(params)
+                logging.info('Oauth POST request with urlencoded payload: ' + url + ' ' + data)
+            else:
+                data = json.dumps(params)
+                logging.info('Oauth POST request with JSON payload: ' + url + ' ' + data)
         else:
             data = None
             logging.info('Oauth POST request: ' + url)
-        if self.token:
-            headers = {'Content-Type': 'application/json',
-                       'Authorization': 'Bearer ' + self.token,
-                       }
+        if urlencode:
+            if self.token:
+                headers = {'Content-Type': 'application/x-www-form-urlencoded',
+                           'Authorization': 'Bearer ' + self.token,
+                           }
+            else:
+                headers = {'Content-Type': 'application/x-www-form-urlencoded',
+                           }
         else:
-            headers = {'Content-Type': 'application/json'}
-        response = urlfetch.fetch(url=url, payload=data, method=urlfetch.POST, headers=headers)
-        self.last_response_code = response.status_code
-        self.last_response_message = response.content
+            if self.token:
+                headers = {'Content-Type': 'application/json',
+                           'Authorization': 'Bearer ' + self.token,
+                           }
+            else:
+                headers = {'Content-Type': 'application/json'}
+        try:
+            urlfetch.set_default_fetch_deadline(20)
+            response = urlfetch.fetch(url=url, payload=data, method=urlfetch.POST, headers=headers)
+            self.last_response_code = response.status_code
+            self.last_response_message = response.content
+        except:
+            logging.warn("Spark POST failed with exception")
+            raise
+            return False
         if response.status_code == 204:
             return True
         if response.status_code != 200:
@@ -93,18 +112,26 @@ class oauth():
             url = url + '?' + urllib.urlencode(params)
         logging.info('Oauth GET request: ' + url)
         urlfetch.set_default_fetch_deadline(60)
-        response = urlfetch.fetch(url=url,
-                                  method=urlfetch.GET,
-                                  headers={'Content-Type': 'application/json',
-                                           'Authorization': 'Bearer ' + self.token}
-                                  )
-        self.last_response_code = response.status_code
-        self.last_response_message = response.content
+        try:
+            response = urlfetch.fetch(url=url,
+                                      method=urlfetch.GET,
+                                      headers={'Content-Type': 'application/json',
+                                               'Authorization': 'Bearer ' + self.token}
+                                      )
+            self.last_response_code = response.status_code
+            self.last_response_message = response.content
+        except:
+            logging.warn("Spark GET failed with exception")
+            raise
+            return False
         if response.status_code < 200 or response.status_code > 299:
             logging.info('Error when sending GET request to Oauth: ' +
                          str(response.status_code) + response.content)
             return False
         links = PaginationLinks(response)
+        self.next = None
+        self.first = None
+        self.prev = None
         for link in links:
             logging.debug('Links:' + link['rel'] + ':' + link['url'])
             if link['rel'] == 'next':
@@ -119,13 +146,16 @@ class oauth():
         if not self.token:
             return None
         logging.info('Oauth DELETE request: ' + url)
-        response = urlfetch.fetch(url=url,
-                                  method=urlfetch.DELETE,
-                                  headers={'Content-Type': 'application/json',
-                                           'Authorization': 'Bearer ' + self.token}
-                                  )
-        self.last_response_code = response.status_code
-        self.last_response_message = response.content
+        try:
+            response = urlfetch.fetch(url=url,
+                                      method=urlfetch.DELETE,
+                                      headers={'Content-Type': 'application/json',
+                                               'Authorization': 'Bearer ' + self.token}
+                                      )
+            self.last_response_code = response.status_code
+            self.last_response_message = response.content
+        except:
+            logging.warn("Spark DELETE failed.")
         if response.status_code < 200 and response.status_code > 299:
             logging.info('Error when sending DELETE request to Oauth: ' +
                          str(response.status_code) + response.content)
@@ -157,8 +187,8 @@ class oauth():
             'redirect_uri': self.config['redirect_uri'],
         }
         result = self.postRequest(url=self.config[
-                                  'token_uri'], cleartoken=True, params=params)
-        if 'access_token' in result:
+                                  'token_uri'], cleartoken=True, params=params, urlencode=True)
+        if result and 'access_token' in result:
             self.token = result['access_token']
         return result
 
@@ -172,7 +202,7 @@ class oauth():
             'refresh_token': refresh_token,
         }
         result = self.postRequest(url=self.config[
-                                  'token_uri'], cleartoken=True, params=params)
+                                  'token_uri'], cleartoken=True, params=params, urlencode=True)
         if not result:
             self.token = None
             return False

@@ -13,14 +13,10 @@ import webapp2
 class MainPage(webapp2.RequestHandler):
 
     def get(self, id, name):
-        myself = actor.actor(id)
-        if not myself.id:
-            self.response.set_status(404, 'Actor not found')
+        (Config, myself, check) = auth.init_actingweb(appreq=self,
+                                                      id=id, path='properties', subpath=name)
+        if not myself or not check:
             return
-        check = auth.auth(id, type='basic')
-        if not check.checkAuth(self, '/properties'):
-            return
-
         # if name is not set, this request URI was the properties root
         if not name:
             self.listall(myself)
@@ -58,25 +54,19 @@ class MainPage(webapp2.RequestHandler):
         return
 
     def put(self, id, name):
-        myself = actor.actor(id)
-        if myself.id:
-            check = auth.auth(id, type='basic')
-            if not check.checkAuth(self, '/properties'):
-                return
-            value = self.request.body.decode('utf-8', 'ignore')
-            myself.setProperty(name, value)
-            self.response.set_status(204)
-        else:
-            self.response.set_status(404, 'Actor not found')
+
+        (Config, myself, check) = auth.init_actingweb(appreq=self,
+                                                      id=id, path='properties', subpath=name)
+        if not myself or not check:
             return
+        value = self.request.body.decode('utf-8', 'ignore')
+        myself.setProperty(name, value)
+        self.response.set_status(204)
 
     def post(self, id, name):
-        myself = actor.actor(id)
-        if not myself.id:
-            self.response.set_status(404, 'Actor not found')
-            return
-        check = auth.auth(id, type='basic')
-        if not check.checkAuth(self, '/properties'):
+        (Config, myself, check) = auth.init_actingweb(appreq=self,
+                                                      id=id, path='properties', subpath=name)
+        if not myself or not check:
             return
         if len(name) > 0:
             self.response.set_status(405)
@@ -100,12 +90,9 @@ class MainPage(webapp2.RequestHandler):
         self.response.set_status(201, 'Created')
 
     def delete(self, id, name):
-        myself = actor.actor(id)
-        if not myself.id:
-            self.response.set_status(404, 'Actor not found')
-            return
-        check = auth.auth(id, type='basic')
-        if not check.checkAuth(self, '/properties'):
+        (Config, myself, check) = auth.init_actingweb(appreq=self,
+                                                      id=id, path='properties', subpath=name)
+        if not myself or not check:
             return
         myself.deleteProperty(name)
         self.response.set_status(204)

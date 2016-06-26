@@ -1,5 +1,6 @@
 import urllib
 import actor
+import trust
 import logging
 import time
 
@@ -9,7 +10,56 @@ import base64
 
 __all__ = [
     'auth',
+    'init_actingweb',
 ]
+
+# This is where each path and subpath in actingweb is assigned an authentication type
+
+
+def select_auth_type(path, subpath):
+    conf = config.config()
+    if path == '':
+        return 'basic'
+    elif path == 'www':
+        return conf.www_auth
+    elif path == 'oauth':
+        return 'oauth'
+    elif path == 'callbacks':
+        return 'basic'
+    elif path == 'meta':
+        return 'basic'
+    elif path == 'properties':
+        return 'basic'
+    elif path == 'trust':
+        return 'basic'
+    return 'basic'
+
+# Returns three objects {config, actor, auth} (actor is none if actor is
+# not found; auth is none if not authenticated and response message is set if this occurs)
+
+
+def init_actingweb(appreq=None, id=None, path='', subpath='', enforce_auth=True):
+    conf = config.config()
+    if id:
+        myself = actor.actor(id)
+    else:
+        myself = None
+    if not myself or not myself.id:
+        if enforce_auth:
+            appreq.response.set_status(404, "Actor not found")
+        return (conf, None, None)
+    fullpath = '/' + path + '/' + subpath
+    type = select_auth_type(path=path, subpath=subpath)
+    auth_obj = auth(id, type=type)
+    if not auth_obj.checkAuthentication(appreq=appreq, path=fullpath, enforce_auth=enforce_auth):
+        if type == 'oauth':
+            # Oauth has multiple auth steps and we need to return the auth object even if we did not authenticate
+            # as this may be a redirect
+            return (conf, myself, auth_obj)
+        if enforce_auth:
+            appreq.response.set_status(403, "Forbidden")
+        return (conf, myself, None)
+    return (conf, myself, auth_obj)
 
 
 class auth():
@@ -21,6 +71,15 @@ class auth():
         self.cookie = None
         self.type = type
         self.oauth = None
+        self.trust = None
+        # acl stores the actual verified credentials and access rights after
+        # authentication and authorisation have been done
+        self.acl = {
+            "authenticated": False,  # Has authentication been verified and passed?
+            "authorised": False,    # Has authorisation been done and appropriate acls set?
+            "rights": [],           # "r", "w"
+            "relationship": None,     # E.g. cookie, creator, friend, admin, etc
+        }
         Config = config.config()
         if not self.actor.id:
             self.actor = None
@@ -70,7 +129,7 @@ class auth():
             logging.warn('Call to processOauthCallback() with oauth disabled.')
             return False
         result = self.oauth.oauthRequestToken(code)
-        if 'access_token' not in result:
+        if not result or (result and 'access_token' not in result):
             logging.warn('No token in response')
             return False
         self.processOAuthAccept(result)
@@ -92,20 +151,23 @@ class auth():
     # Called from a www page (browser access) to verify that a cookie has been
     # set to the actor's valid token.
     def checkCookieAuth(self, appreq, path):
+        if not path:
+            path = ''
         if not self.actor:
             return False
-        # Test for other auth here and only return true if no auth is available
-        if self.type == 'none':
-            return True
         if self.token:
             now = time.time()
             auth = appreq.request.cookies.get(self.cookie)
             if auth == self.token and now < (float(self.expiry) - 20.0):
                 logging.debug('Authorization cookie header matches a valid token')
+                self.acl["relationship"] = "cookie"
                 return True
             elif auth != self.token:
                 self.actor.deleteProperty(self.property)
                 logging.debug('Authorization cookie header does not match a valid token')
+        if self.cookie_redirect:
+            logging.debug('Cookie redirect already set!')
+            return False
         self.actor.setProperty('cookie_redirect', '/' + self.actor.id + path)
         self.cookie_redirect = self.actor.id + path
         appreq.redirect(self.redirect)
@@ -125,19 +187,25 @@ class auth():
         self.actor.deleteProperty('cookie_redirect')
         return True
 
-    def checkBasicAuth(self, appreq, path):
+    def checkBasicAuth(self, appreq, path, enforce_auth=True):
         if self.type != 'basic':
             return False
         if not self.token:
             logging.warn("Trying to do basic auth when no passphrase value can be found.")
             return False
-        if not 'Authorization' in appreq.request.headers:
+        if not 'Authorization' in appreq.request.headers and enforce_auth:
             appreq.response.headers['WWW-Authenticate'] = 'Basic realm="' + self.realm + '"'
             appreq.response.set_status(401)
             appreq.response.out.write("Authorization required")
             return False
         else:
+            if not enforce_auth:
+                return False
             auth = appreq.request.headers['Authorization']
+            (basic, token) = auth.split(' ')
+            if basic.lower() != "basic":
+                appreq.response.set_status(403)
+                return False
             (username, password) = base64.b64decode(auth.split(' ')[1]).split(':')
             if username != self.actor.creator:
                 appreq.response.set_status(403)
@@ -145,11 +213,39 @@ class auth():
             if password != self.actor.passphrase:
                 appreq.response.set_status(403)
                 return False
+            self.acl["relationship"] = "creator"
             return True
 
-    def checkAuth(self, appreq, path):
+    def checkTokenAuth(self, appreq, path):
+        if not 'Authorization' in appreq.request.headers:
+            return None
+        else:
+            auth = appreq.request.headers['Authorization']
+            (bearer, token) = auth.split(' ')
+            if bearer.lower() != "bearer":
+                return None
+            new_trust = trust.trust(id=self.actor.id, token=token)
+            if new_trust.trust:
+                self.acl["relationship"] = new_trust.relationship
+                return new_trust
+            else:
+                return None
+
+    # NOTE that path is NOT used for actual authentication, it is just used
+    # for redirect as part of the authentication process
+    def checkAuthentication(self, appreq, path, enforce_auth=True):
+        trust = self.checkTokenAuth(appreq, path)
+        if trust:
+            self.trust = trust
+            self.token = trust.secret
+            self.acl["authenticated"] = True
+            return True
         if self.type == 'oauth':
-            return self.checkCookieAuth(appreq, path)
+            if self.checkCookieAuth(appreq=appreq, path=path):
+                self.acl["authenticated"] = True
+                return True
         if self.type == 'basic':
-            return self.checkBasicAuth(appreq, path)
+            if self.checkBasicAuth(appreq=appreq, path=path, enforce_auth=enforce_auth):
+                self.acl["authenticated"] = True
+                return True
         return False

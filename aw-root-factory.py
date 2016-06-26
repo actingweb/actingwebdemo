@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 #
 from actingweb import actor
-from actingweb.db import db
 from actingweb import config
 
 import webapp2
@@ -40,17 +39,12 @@ class MainPage(webapp2.RequestHandler):
                 passphrase = params['passphrase']
             else:
                 passphrase = ''
-            if 'trustee' in params:
-                trustee = params['trustee']
-            else:
-                trustee = ''
         except ValueError:
             is_json = False
             creator = self.request.get('creator')
             passphrase = self.request.get('passphrase')
-            trustee = self.request.get('trustee')
         myself.create(url=self.request.url, creator=creator,
-                      passphrase=passphrase, trustee=trustee)
+                      passphrase=passphrase)
         self.response.headers.add_header("Location", Config.root + myself.id)
         if Config.www_auth == 'oauth' and not is_json:
             self.redirect(Config.root + myself.id + '/www')
@@ -59,7 +53,6 @@ class MainPage(webapp2.RequestHandler):
             'id': myself.id,
             'creator': myself.creator,
             'passphrase': myself.passphrase,
-            'trustee': myself.trustee,
         }
         if Config.ui and not is_json:
             path = os.path.join(os.path.dirname(__file__), 'templates/aw-root-created.html')

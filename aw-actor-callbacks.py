@@ -22,7 +22,8 @@ class MainPage(webapp2.RequestHandler):
             self.put(id, name)
         if self.request.get('_method') == 'POST':
             self.post(id, name)
-        on_aw_callbacks.on_get_callbacks(myself, self, name)
+        if not on_aw_callbacks.on_get_callbacks(myself, self, name):
+            self.response.set_status(403, 'Forbidden')
 
     def put(self, id, name):
         self.post(id, name)
@@ -33,7 +34,8 @@ class MainPage(webapp2.RequestHandler):
             self.response.set_status(404, 'Actor or callback not found')
             return
         # Add code here to handle actingweb subscriptions to other actors' properties++
-        on_aw_callbacks.on_post_callbacks(myself, self, name)
+        if not on_aw_callbacks.on_post_callbacks(myself, self, name):
+            self.response.set_status(403, 'Forbidden')
 
 application = webapp2.WSGIApplication([
     webapp2.Route(r'/<id>/callbacks<:/?><name:(.*)>', MainPage, name='MainPage'),
