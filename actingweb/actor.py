@@ -6,6 +6,7 @@ from google.appengine.api import urlfetch
 import json
 import config
 import trust
+import logging
 
 __all__ = [
     'actor',

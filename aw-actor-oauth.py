@@ -12,7 +12,7 @@ class MainPage(webapp2.RequestHandler):
     def get(self, id, path):
         (Config, myself, my_auth) = auth.init_actingweb(appreq=self,
                                                         id=id, path='oauth', subpath=path)
-        if not myself or not check:
+        if not myself or not my_auth:
             return
         if my_auth.type != 'oauth':
             self.response.set_status(403, "OAuth not enabled")

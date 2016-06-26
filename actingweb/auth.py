@@ -48,10 +48,14 @@ def init_actingweb(appreq=None, id=None, path='', subpath='', enforce_auth=True)
         if enforce_auth:
             appreq.response.set_status(404, "Actor not found")
         return (conf, None, None)
-    fullpath = '/' + path + '/' + 'subpath'
+    fullpath = '/' + path + '/' + subpath
     type = select_auth_type(path=path, subpath=subpath)
     auth_obj = auth(id, type=type)
     if not auth_obj.checkAuthentication(appreq=appreq, path=fullpath, enforce_auth=enforce_auth):
+        if type == 'oauth':
+            # Oauth has multiple auth steps and we need to return the auth object even if we did not authenticate
+            # as this may be a redirect
+            return (conf, myself, auth_obj)
         if enforce_auth:
             appreq.response.set_status(403, "Forbidden")
         return (conf, myself, None)
@@ -125,7 +129,7 @@ class auth():
             logging.warn('Call to processOauthCallback() with oauth disabled.')
             return False
         result = self.oauth.oauthRequestToken(code)
-        if 'access_token' not in result:
+        if not result or (result and 'access_token' not in result):
             logging.warn('No token in response')
             return False
         self.processOAuthAccept(result)
@@ -161,6 +165,9 @@ class auth():
             elif auth != self.token:
                 self.actor.deleteProperty(self.property)
                 logging.debug('Authorization cookie header does not match a valid token')
+        if self.cookie_redirect:
+            logging.debug('Cookie redirect already set!')
+            return False
         self.actor.setProperty('cookie_redirect', '/' + self.actor.id + path)
         self.cookie_redirect = self.actor.id + path
         appreq.redirect(self.redirect)
