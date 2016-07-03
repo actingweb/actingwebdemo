@@ -168,7 +168,7 @@ class auth():
         if self.cookie_redirect:
             logging.debug('Cookie redirect already set!')
             return False
-        self.actor.setProperty('cookie_redirect', '/' + self.actor.id + path)
+        self.actor.setProperty('cookie_redirect', self.actor.id + path)
         self.cookie_redirect = self.actor.id + path
         appreq.redirect(self.redirect)
         return False

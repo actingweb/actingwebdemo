@@ -94,7 +94,6 @@ class oauth():
             self.last_response_message = response.content
         except:
             logging.warn("Spark POST failed with exception")
-            raise
             return False
         if response.status_code == 204:
             return True
@@ -107,6 +106,7 @@ class oauth():
 
     def getRequest(self, url, params=None):
         if not self.token:
+            logging.debug("No token set in getRequest()")
             return None
         if params:
             url = url + '?' + urllib.urlencode(params)
@@ -115,19 +115,17 @@ class oauth():
         try:
             response = urlfetch.fetch(url=url,
                                       method=urlfetch.GET,
-                                      headers={'Content-Type': 'application/json',
-                                               'Authorization': 'Bearer ' + self.token}
+                                      headers={'Authorization': 'Bearer ' + self.token}
                                       )
             self.last_response_code = response.status_code
             self.last_response_message = response.content
         except:
             logging.warn("Spark GET failed with exception")
-            raise
-            return False
+            return None
         if response.status_code < 200 or response.status_code > 299:
             logging.info('Error when sending GET request to Oauth: ' +
                          str(response.status_code) + response.content)
-            return False
+            return None
         links = PaginationLinks(response)
         self.next = None
         self.first = None
@@ -149,8 +147,7 @@ class oauth():
         try:
             response = urlfetch.fetch(url=url,
                                       method=urlfetch.DELETE,
-                                      headers={'Content-Type': 'application/json',
-                                               'Authorization': 'Bearer ' + self.token}
+                                      headers={'Authorization': 'Bearer ' + self.token}
                                       )
             self.last_response_code = response.status_code
             self.last_response_message = response.content

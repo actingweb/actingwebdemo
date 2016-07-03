@@ -15,8 +15,11 @@ class config():
         # Use basic auth  for /www path with creator and passphrase set/generated
         # when actor is created
         self.www_auth = "basic"
-        # URI for this app's actor factory with slash at end
-        self.root = "https://actingwebdemo-dev.appspot.com/"
+        # The host and domain, i.e. FQDN, of the URL
+        self.fqdn = "actingwebdemo-dev.appspot.com"
+        # URI for this app's actor factory with slash at end, could be a sub-path
+        # if the app is not deployed at the root
+        self.root = "https://" + self.fqdn + "/"
         self.type = "urn:actingweb:actingweb.org:gae-demo"  # The type of this actor
         # A human-readable description for this specific actor
         self.desc = "GAE Demo actor: "
@@ -36,11 +39,11 @@ class config():
         # Hack to get access to GAE default logger
         logging.getLogger().handlers[0].setLevel(self.logLevel)
 
-        self.auth_realm = "actingwebdemo-dev.appspot.com"
+        self.auth_realm = self.fqdn
         self.oauth = {
             'client_id': "",        # An empty client_id turns off oauth capabilities
             'client_secret': "",
-            'redirect_uri': "",
+            'redirect_uri': "https://" + self.fqdn + "/oauth",  # Default oauth redirect uri
             'scope': "",
             'auth_uri': "",
             'token_uri': "",
