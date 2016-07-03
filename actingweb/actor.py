@@ -1,5 +1,6 @@
 from db import db
 import datetime
+import time
 import property
 import urllib
 from google.appengine.api import urlfetch
@@ -180,6 +181,9 @@ class actor():
         # It is not verified until the peer has verified us
         new_trust.create(baseuri=url, secret=secret, type=type,
                          relationship=relationship, approved=True, verified=False, desc=desc)
+        # Add a sleep here to make sure that appengine has time to write the new
+        # relationship to datastore before we try to create the new trust
+        time.sleep(200)
         params = {
             'baseuri': Config.root + self.id,
             'id': self.id,
