@@ -16,7 +16,7 @@ class config():
         # when actor is created
         self.www_auth = "basic"
         # The host and domain, i.e. FQDN, of the URL
-        self.fqdn = "actingwebdemo-dev.appspot.com"
+        self.fqdn = "actingwebdemo.appspot.com"
         # URI for this app's actor factory with slash at end, could be a sub-path
         # if the app is not deployed at the root
         self.root = "https://" + self.fqdn + "/"
