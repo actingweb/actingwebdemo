@@ -183,7 +183,7 @@ class actor():
                          relationship=relationship, approved=True, verified=False, desc=desc)
         # Add a sleep here to make sure that appengine has time to write the new
         # relationship to datastore before we try to create the new trust
-        time.sleep(200)
+        time.sleep(0.4)
         params = {
             'baseuri': Config.root + self.id,
             'id': self.id,
