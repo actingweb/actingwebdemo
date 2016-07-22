@@ -11,39 +11,32 @@ import logging
 class config():
 
     def __init__(self):
+        #########
+        # Basic settings for this app
+        #########
         self.ui = True                                      # Turn on the /www path
-        # Use basic auth  for /www path with creator and passphrase set/generated
-        # when actor is created
-        self.www_auth = "basic"
-        # The host and domain, i.e. FQDN, of the URL
-        self.fqdn = "actingwebdemo-dev.appspot.com"
-        # URI for this app's actor factory with slash at end, could be a sub-path
-        # if the app is not deployed at the root
-        self.root = "https://" + self.fqdn + "/"
-        self.type = "urn:actingweb:actingweb.org:gae-demo"  # The type of this actor
-        # A human-readable description for this specific actor
-        self.desc = "GAE Demo actor: "
+        self.www_auth = "basic"                             # basic or oauth: basic for creator + bearer tokens
+        self.fqdn = "actingwebdemo-dev.appspot.com"         # The host and domain, i.e. FQDN, of the URL
+        self.proto = "https://"                             # http or https
+        self.logLevel = logging.DEBUG  # Change to WARN for production, DEBUG for debugging, and INFO for normal testing
+        #########
+        # ActingWeb settings for this app
+        #########
+        self.type = "urn:actingweb:actingweb.org:gae-demo"  # The app type this actor implements
+        self.desc = "GAE Demo actor: "                      # A human-readable description for this specific actor
         self.version = "1.0"                                # A version number for this app
         self.info = "http://actingweb.org/"                 # Where can more info be found
         self.aw_version = "0.9"                             # This app follows the actingweb specification specified
-        # This app supports the following options
-        self.aw_supported = "www,oauth,callbacks"
+        self.aw_supported = "www,oauth,callbacks"           # This app supports the following options
         self.raml = ""                                      # URL to a RAML definition if available
         self.aw_formats = "json"                            # These are the supported formats
-        # New relationships are default created as "friend" if not specified
-        self.default_relationship = "friend"
-        # Always accept the default relationship without approval. Change this if
-        # all relationships need explicite approval
-        self.auto_accept_default_relationship = True
-        self.logLevel = logging.INFO  # Change to WARN for production, DEBUG for debugging, and INFO for normal testing
-        # Hack to get access to GAE default logger
-        logging.getLogger().handlers[0].setLevel(self.logLevel)
-
-        self.auth_realm = self.fqdn
+        #########
+        # OAuth settings for this app, fill in if OAuth is used
+        #########
         self.oauth = {
-            'client_id': "",        # An empty client_id turns off oauth capabilities
+            'client_id': "",                                # An empty client_id turns off oauth capabilities
             'client_secret': "",
-            'redirect_uri': "https://" + self.fqdn + "/oauth",  # Default oauth redirect uri
+            'redirect_uri': self.proto + self.fqdn + "/oauth",
             'scope': "",
             'auth_uri': "",
             'token_uri': "",
@@ -51,6 +44,45 @@ class config():
             'grant_type': "authorization_code",
             'refresh_type': "refresh_token",
         }
+        #########
+        # Trust settings for this app
+        #########
+        self.default_relationship = "friend"                # Default relationship if not specified
+        self.auto_accept_default_relationship = True        # True if auto-approval
+        # List of paths and their access levels
+        # Matching is done top to bottom stopping at first match (role, path)
+        # If no match is found on path with the correct role, access is rejected
+        # <type> and <id> are used as templates for trust types and ids
+        self.access = [
+            # (role, path, method, access), e.g. ('friend', '/properties', '', 'rw')
+            # Roles: creator, trustee, associate, friend, partner, admin, any (i.e. authenticated),
+            #        owner (i.e. trust peer owning the entity)
+            #        + any other new role for this app
+            # Methods: GET, POST, PUT, DELETE
+            # Access: a (allow) or r (reject)
+            ('', 'meta', 'GET', 'a'),                       # Allow GET to anybody without auth
+            ('', 'oauth', '', 'a'),                         # Allow any method to anybody without auth
+            ('', 'callbacks', '', 'a'),                     # Allow anybody callbacks witout auth
+            ('creator', 'www', '', 'a'),                    # Allow only creator access to /www
+            ('creator', 'properties', '', 'a'),             # Allow creator access to /properties
+            ('associate', 'properties', 'GET', 'a'),        # Allow GET only to associate
+            ('friend', 'properties', '', 'a'),              # Allow friend/partner/admin all
+            ('partner', 'properties', '', 'a'),
+            ('admin', 'properties', '', 'a'),
+            ('', 'trust/<type>', 'POST', 'a'),              # Allow unauthenticated POST
+            ('owner', 'trust/<type>/<id>', '', 'a'),        # Allow trust peer full access
+            ('creator', 'trust', '', 'a'),                  # Allow access to all to
+            ('trustee', 'trust', '', 'a'),                  # creator/trustee/admin
+            ('admin', 'trust', '', 'a'),
+            ('creator', '/', '', 'a'),                      # Root access for actor
+            ('admin', '/', '', 'a'),
+        ]
+        #########
+        # Only touch the below if you know what you are doing
+        #########
+        logging.getLogger().handlers[0].setLevel(self.logLevel)  # Hack to get access to GAE logger
+        self.root = self.proto + self.fqdn + "/"            # root URI used to identity actor externally
+        self.auth_realm = self.fqdn                         # Authentication realm used in Basic auth
 
     def newUUID(self, seed):
         return uuid.uuid5(uuid.NAMESPACE_URL, seed).get_hex()

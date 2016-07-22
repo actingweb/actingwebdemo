@@ -22,6 +22,9 @@ class MainPage(webapp2.RequestHandler):
             self.put(id, name)
         if self.request.get('_method') == 'POST':
             self.post(id, name)
+        if not check.authorise(path='callbacks', subpath=name, method='GET'):
+            self.response.set_status(403)
+            return
         if not on_aw_callbacks.on_get_callbacks(myself, self, name):
             self.response.set_status(403, 'Forbidden')
 
@@ -32,6 +35,9 @@ class MainPage(webapp2.RequestHandler):
         myself = actor.actor(id)
         if not myself.id or not name:
             self.response.set_status(404, 'Actor or callback not found')
+            return
+        if not check.authorise(path='callbacks', subpath=name, method='POST'):
+            self.response.set_status(403)
             return
         # Add code here to handle actingweb subscriptions to other actors' properties++
         if not on_aw_callbacks.on_post_callbacks(myself, self, name):

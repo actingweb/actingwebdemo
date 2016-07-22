@@ -39,12 +39,9 @@ class rootHandler(webapp2.RequestHandler):
                                                       id=id, path='trust')
         if not myself or not check:
             return
-        # Only allow creator and admin relationships
-        if check.acl["relationship"] != "creator":
-            if not check.trust or check.trust.relationship != "admin":
-                self.response.set_status(403, "Forbidden")
-                return
-        Config = config.config()
+        if not check.authorise(path='trust', method='GET'):
+            self.response.set_status(403)
+            return
         relationship = ''
         type = ''
         peerid = ''
@@ -81,11 +78,9 @@ class rootHandler(webapp2.RequestHandler):
                                                       id=id, path='trust')
         if not myself or not check:
             return
-        # Only allow creator and admin relationships
-        if check.acl["relationship"] != "creator":
-            if not check.trust or check.trust.relationship != "admin":
-                self.response.set_status(403, "Forbidden")
-                return
+        if not check.authorise(path='trust', method='POST'):
+            self.response.set_status(403)
+            return
         secret = ''
         desc = ''
         relationship = Config.default_relationship
@@ -153,6 +148,9 @@ class relationshipHandler(webapp2.RequestHandler):
                                                       id=id, path='trust', subpath=relationship, enforce_auth=False)
         # We allow access here without authentication
         if not myself:
+            return
+        if not check.authorise(path='trust', subpath='<type>', method='POST'):
+            self.response.set_status(403)
             return
         try:
             params = json.loads(self.request.body.decode('utf-8', 'ignore'))
@@ -234,14 +232,9 @@ class trustHandler(webapp2.RequestHandler):
                                                       id=id, path='trust', subpath=relationship)
         if not myself or not check:
             return
-        if check.acl["relationship"] != "creator":
-            if not check.trust:
-                self.response.set_status(403, "Forbidden")
-                return
-            if check.trust.relationship != "admin" and check.trust.peerid != peerid:
-                self.response.set_status(403, "Forbidden")
-                return
-        Config = config.config()
+        if not check.authorise(path='trust', subpath='<type>/<id>', method='GET', peerid=peerid):
+            self.response.set_status(403)
+            return
         relationships = myself.getTrustRelationships(
             relationship=relationship, peerid=peerid)
         if not relationships:
@@ -280,14 +273,9 @@ class trustHandler(webapp2.RequestHandler):
                                                       id=id, path='trust', subpath=relationship)
         if not myself or not check:
             return
-        if check.acl["relationship"] != "creator":
-            if not check.trust:
-                self.response.set_status(403, "Forbidden")
-                return
-            if check.trust.relationship != "admin" and check.trust.peerid != peerid:
-                self.response.set_status(403, "Forbidden")
-                return
-        Config = config.config()
+        if not check.authorise(path='trust', subpath='<type>/<id>', method='POST', peerid=peerid):
+            self.response.set_status(403)
+            return
         try:
             params = json.loads(self.request.body.decode('utf-8', 'ignore'))
             peer_approved = None
@@ -307,14 +295,9 @@ class trustHandler(webapp2.RequestHandler):
                                                       id=id, path='trust', subpath=relationship)
         if not myself or not check:
             return
-        if check.acl["relationship"] != "creator":
-            if not check.trust:
-                self.response.set_status(403, "Forbidden")
-                return
-            if check.trust.relationship != "admin" and check.trust.peerid != peerid:
-                self.response.set_status(403, "Forbidden")
-                return
-        Config = config.config()
+        if not check.authorise(path='trust', subpath='<type>/<id>', method='PUT', peerid=peerid):
+            self.response.set_status(403)
+            return
         try:
             params = json.loads(self.request.body.decode('utf-8', 'ignore'))
             if 'baseuri' in params:
@@ -365,13 +348,9 @@ class trustHandler(webapp2.RequestHandler):
                                                       id=id, path='trust', subpath=relationship)
         if not myself or not check:
             return
-        if check.acl["relationship"] != "creator":
-            if not check.trust:
-                self.response.set_status(403, "Forbidden")
-                return
-            if check.trust.relationship != "admin" and check.trust.peerid != peerid:
-                self.response.set_status(403, "Forbidden")
-                return
+        if not check.authorise(path='trust', subpath='<type>/<id>', method='DELETE', peerid=peerid):
+            self.response.set_status(403)
+            return
         isPeer = False
         if check.trust and check.trust.peerid == peerid:
             isPeer = True

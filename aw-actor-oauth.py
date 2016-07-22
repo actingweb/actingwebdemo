@@ -14,6 +14,9 @@ class MainPage(webapp2.RequestHandler):
                                                         id=id, path='oauth', subpath=path)
         if not myself or not my_auth:
             return
+        if not check.authorise(path='oauth', subpath=path, method='GET'):
+            self.response.set_status(403)
+            return
         if my_auth.type != 'oauth':
             self.response.set_status(403, "OAuth not enabled")
             return

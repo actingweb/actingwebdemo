@@ -17,6 +17,9 @@ class MainPage(webapp2.RequestHandler):
                                                       id=id, path='properties', subpath=name)
         if not myself or not check:
             return
+        if not check.authorise(path='properties', subpath=name, method='GET'):
+            self.response.set_status(403)
+            return
         # if name is not set, this request URI was the properties root
         if not name:
             self.listall(myself)
@@ -59,6 +62,9 @@ class MainPage(webapp2.RequestHandler):
                                                       id=id, path='properties', subpath=name)
         if not myself or not check:
             return
+        if not check.authorise(path='properties', subpath=name, method='PUT'):
+            self.response.set_status(403)
+            return
         value = self.request.body.decode('utf-8', 'ignore')
         myself.setProperty(name, value)
         self.response.set_status(204)
@@ -67,6 +73,9 @@ class MainPage(webapp2.RequestHandler):
         (Config, myself, check) = auth.init_actingweb(appreq=self,
                                                       id=id, path='properties', subpath=name)
         if not myself or not check:
+            return
+        if not check.authorise(path='properties', subpath=name, method='POST'):
+            self.response.set_status(403)
             return
         if len(name) > 0:
             self.response.set_status(405)
@@ -93,6 +102,9 @@ class MainPage(webapp2.RequestHandler):
         (Config, myself, check) = auth.init_actingweb(appreq=self,
                                                       id=id, path='properties', subpath=name)
         if not myself or not check:
+            return
+        if not check.authorise(path='properties', subpath=name, method='DELETE'):
+            self.response.set_status(403)
             return
         myself.deleteProperty(name)
         self.response.set_status(204)

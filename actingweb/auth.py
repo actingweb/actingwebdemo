@@ -14,24 +14,16 @@ __all__ = [
 ]
 
 # This is where each path and subpath in actingweb is assigned an authentication type
+# Fairly simple: /oauth is always oauth, /www can be either basic+trust or
+# oauth through config.py, and everything else is basic+trust
 
 
 def select_auth_type(path, subpath):
     conf = config.config()
-    if path == '':
-        return 'basic'
-    elif path == 'www':
-        return conf.www_auth
-    elif path == 'oauth':
+    if path == 'oauth':
         return 'oauth'
-    elif path == 'callbacks':
-        return 'basic'
-    elif path == 'meta':
-        return 'basic'
-    elif path == 'properties':
-        return 'basic'
-    elif path == 'trust':
-        return 'basic'
+    if path == 'www':
+        return conf.www_auth
     return 'basic'
 
 # Returns three objects {config, actor, auth} (actor is none if actor is
@@ -51,14 +43,8 @@ def init_actingweb(appreq=None, id=None, path='', subpath='', enforce_auth=True)
     fullpath = '/' + path + '/' + subpath
     type = select_auth_type(path=path, subpath=subpath)
     auth_obj = auth(id, type=type)
-    if not auth_obj.checkAuthentication(appreq=appreq, path=fullpath, enforce_auth=enforce_auth):
-        if type == 'oauth':
-            # Oauth has multiple auth steps and we need to return the auth object even if we did not authenticate
-            # as this may be a redirect
-            return (conf, myself, auth_obj)
-        if enforce_auth:
-            appreq.response.set_status(403, "Forbidden")
-        return (conf, myself, None)
+    if not auth_obj.checkAuthentication(appreq=appreq, path=fullpath, enforce_auth=enforce_auth) and enforce_auth:
+        appreq.response.set_status(403, "Forbidden")
     return (conf, myself, auth_obj)
 
 
@@ -77,10 +63,12 @@ class auth():
         self.acl = {
             "authenticated": False,  # Has authentication been verified and passed?
             "authorised": False,    # Has authorisation been done and appropriate acls set?
-            "rights": [],           # "r", "w"
-            "relationship": None,     # E.g. cookie, creator, friend, admin, etc
+            "rights": '',           # "a", "r" (approve or reject)
+            "relationship": None,     # E.g. creator, friend, admin, etc
+            "peerid": '',           # Peerid if there is a relationship
         }
         Config = config.config()
+        self.config = Config
         if not self.actor.id:
             self.actor = None
             return
@@ -160,7 +148,7 @@ class auth():
             auth = appreq.request.cookies.get(self.cookie)
             if auth == self.token and now < (float(self.expiry) - 20.0):
                 logging.debug('Authorization cookie header matches a valid token')
-                self.acl["relationship"] = "cookie"
+                self.acl["relationship"] = "creator"
                 return True
             elif auth != self.token:
                 self.actor.deleteProperty(self.property)
@@ -216,7 +204,7 @@ class auth():
             self.acl["relationship"] = "creator"
             return True
 
-    def checkTokenAuth(self, appreq, path):
+    def checkTokenAuth(self, appreq):
         if not 'Authorization' in appreq.request.headers:
             return None
         else:
@@ -227,6 +215,7 @@ class auth():
             new_trust = trust.trust(id=self.actor.id, token=token)
             if new_trust.trust:
                 self.acl["relationship"] = new_trust.relationship
+                self.acl["peerid"] = new_trust.peerid
                 return new_trust
             else:
                 return None
@@ -234,7 +223,7 @@ class auth():
     # NOTE that path is NOT used for actual authentication, it is just used
     # for redirect as part of the authentication process
     def checkAuthentication(self, appreq, path, enforce_auth=True):
-        trust = self.checkTokenAuth(appreq, path)
+        trust = self.checkTokenAuth(appreq)
         if trust:
             self.trust = trust
             self.token = trust.secret
@@ -248,4 +237,31 @@ class auth():
             if self.checkBasicAuth(appreq=appreq, path=path, enforce_auth=enforce_auth):
                 self.acl["authenticated"] = True
                 return True
+        return False
+
+    def authorise(self, path='', subpath='', method='', peerid=''):
+        if self.acl["relationship"]:
+            relationship = self.acl["relationship"].lower()
+        else:
+            relationship = ''
+        method = method.upper()
+        self.acl["authorised"] = True
+        self.acl["rights"] = "r"
+        if len(path) == 0:
+            return False
+        fullpath = path.lower() + '/' + subpath.lower()
+        # ACLs: ('role', 'path', 'METHODS', 'access')
+        logging.debug('Testing access for (' + relationship +
+                      ' ' + self.acl["peerid"] + ') on (' + fullpath + ' ' + peerid + ') using method ' + method)
+        for acl in self.config.access:
+            if acl[0] == 'any' and not self.acl["authenticated"]:
+                continue
+            if len(acl[0]) > 0 and acl[0] != 'any' and acl[0] != relationship and acl[0] != 'owner':
+                continue  # no match on relationship
+            if acl[0] == relationship or acl[0] == 'any' or len(acl[0]) == 0 or (acl[0] == 'owner' and len(peerid) > 0 and self.acl["peerid"] == peerid):
+                if fullpath.find(acl[1]) == 0:
+                    if len(acl[2]) == 0 or acl[2].find(method) != -1:
+                        self.acl["rights"] = acl[3]
+                        logging.debug('Granted ' + acl[3] + ' access with ACL:' + str(acl))
+                        return True
         return False

@@ -24,6 +24,10 @@ class MainPage(webapp2.RequestHandler):
                                                       id=id, path='meta', subpath=path, enforce_auth=False)
         if not myself:
             return
+        if not check.authorise(path='meta', subpath=path, method='GET'):
+            self.response.set_status(403)
+            return
+
         if not path:
             values = {
                 'id': id,
