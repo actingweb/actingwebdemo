@@ -7,6 +7,7 @@ from google.appengine.api import urlfetch
 import json
 import config
 import trust
+import subscription
 import logging
 
 __all__ = [
@@ -15,6 +16,7 @@ __all__ = [
 
 
 def getPeerInfo(url):
+    """Contacts an another actor over http/s to retrieve meta information."""
     try:
         response = urlfetch.fetch(url=url + '/meta',
                                   method=urlfetch.GET
@@ -34,6 +36,7 @@ def getPeerInfo(url):
 class actor():
 
     def get(self, id):
+        """Retrieves an actor from db or initialises if does not exist."""
         result = db.Actor.query(db.Actor.id == id).get()
         if result:
             self.id = id
@@ -45,6 +48,7 @@ class actor():
             self.passphrase = None
 
     def create(self, url, creator, passphrase):
+        """"Creates a new actor and persists it to db."""
         seed = url
         now = datetime.datetime.now()
         seed += now.strftime("%Y%m%dT%H%M%S")
@@ -65,60 +69,70 @@ class actor():
         actor.put()
 
     def delete(self):
-        properties = self.getProperties()
+        """Deletes an actor and cleans up all relevant stored data in db."""
+        properties = db.Property.query(db.Property.id == self.id).fetch()
         for prop in properties:
             prop.key.delete()
-        relationships = self.getTrustRelationships()
+        relationships = db.Trust.query(db.Trust.id == self.id).fetch()
         for rel in relationships:
-            rel.trust.key.delete()
+            rel.key.delete()
+        subs = db.Subscription.query(db.Subscription.id == self.id).fetch()
+        for sub in subs:
+            sub.key.delete()
         result = db.Actor.query(db.Actor.id == self.id).get()
         if result:
             result.key.delete()
 
     def setProperty(self, name, value):
+        """Sets an actor's property name to value."""
         prop = property.property(self, name)
         prop.set(value)
 
     def getProperty(self, name):
+        """Retrieves a property name."""
         prop = property.property(self, name)
         return prop
 
     def deleteProperty(self, name):
+        """Deletes a property name."""
         prop = property.property(self, name)
         if prop:
             prop.delete()
 
     def getProperties(self):
-        properties = db.Property.query(db.Property.id == self.id).fetch(1000)
+        """Retrieves properties from db."""
+        properties = db.Property.query(db.Property.id == self.id).fetch()
         return properties
 
     def getTrustRelationships(self, relationship='', peerid='', type=''):
+        """Retrieves all trust relationships or filtered."""
         if len(relationship) > 0 and len(peerid) > 0 and len(type) > 0:
             relationships = db.Trust.query(
-                db.Trust.id == self.id and db.Trust.relationship == relationship and db.Trust.peerid == peerid and db.Trust.type == type).fetch(1000)
+                db.Trust.id == self.id and db.Trust.relationship == relationship and db.Trust.peerid == peerid and db.Trust.type == type).fetch()
         elif len(peerid) > 0 and len(type) > 0:
             relationships = db.Trust.query(
-                db.Trust.id == self.id and db.Trust.peerid == peerid and db.Trust.type == type).fetch(1000)
+                db.Trust.id == self.id and db.Trust.peerid == peerid and db.Trust.type == type).fetch()
         elif len(relationship) > 0 and len(peerid) > 0:
             relationships = db.Trust.query(
-                db.Trust.id == self.id and db.Trust.relationship == relationship and db.Trust.peerid == peerid).fetch(1000)
+                db.Trust.id == self.id and db.Trust.relationship == relationship and db.Trust.peerid == peerid).fetch()
         elif len(relationship) > 0:
             relationships = db.Trust.query(
-                db.Trust.id == self.id and db.Trust.relationship == relationship).fetch(1000)
+                db.Trust.id == self.id and db.Trust.relationship == relationship).fetch()
         elif len(peerid) > 0:
             relationships = db.Trust.query(
-                db.Trust.id == self.id and db.Trust.peerid == peerid).fetch(1000)
+                db.Trust.id == self.id and db.Trust.peerid == peerid).fetch()
         elif len(type) > 0:
             relationships = db.Trust.query(
-                db.Trust.id == self.id and db.Trust.type == type).fetch(1000)
+                db.Trust.id == self.id and db.Trust.type == type).fetch()
         else:
-            relationships = db.Trust.query(db.Trust.id == self.id).fetch(1000)
+            relationships = db.Trust.query(db.Trust.id == self.id).fetch()
         rels = []
         for rel in relationships:
             rels.append(trust.trust(self.id, rel.peerid))
         return rels
 
     def modifyTrustAndNotify(self, relationship=None, peerid=None, baseuri='', secret='', desc='', approved=None, verified=None, verificationToken=None, peer_approved=None):
+        """Changes a trust relationship and noties the peer if approval is changed."""
         if not relationship or not peerid:
             return False
         relationships = self.getTrustRelationships(
@@ -155,6 +169,7 @@ class actor():
 
         # Returns False or new trust object if successful
     def createReciprocalTrust(self, url, secret=None, desc='', relationship='', type=''):
+        """Creates a new reciprocal trust relationship locally and by requesting a relationship from a peer actor."""
         if len(url) == 0:
             return False
         if not secret:
@@ -179,11 +194,11 @@ class actor():
         new_trust = trust.trust(self.id, peer["id"])
         # Since we are initiating the relationship, we implicitly approve it
         # It is not verified until the peer has verified us
-        new_trust.create(baseuri=url, secret=secret, type=type,
+        new_trust.create(baseuri=url, secret=secret, type=peer["type"],
                          relationship=relationship, approved=True, verified=False, desc=desc)
         # Add a sleep here to make sure that appengine has time to write the new
-        # relationship to datastore before we try to create the new trust
-        time.sleep(0.4)
+        # relationship to datastore before we try to create the new trust with peer
+        # time.sleep(0.4)
         params = {
             'baseuri': Config.root + self.id,
             'id': self.id,
@@ -203,7 +218,7 @@ class actor():
         self.last_response_message = response.content
 
         if self.last_response_code == 201 or self.last_response_code == 202:
-            # Relead the trust to check if verification was done
+            # Reload the trust to check if approval was done
             mod_trust = trust.trust(self.id, peer["id"])
             if not mod_trust.trust:
                 logging.error("Couldn't find trust relationship after peer POST and verification")
@@ -219,6 +234,7 @@ class actor():
             return False
 
     def createVerifiedTrust(self, baseuri='', peerid=None, approved=False, secret=None, verificationToken=None, type=None, peer_approved=None, relationship=None, desc=''):
+        """Creates a new trust when requested and call backs to initiating actor to verify relationship."""
         if not peerid or len(baseuri) == 0 or not relationship:
             return False
         requrl = baseuri + '/trust/' + relationship + '/' + self.id
@@ -250,6 +266,7 @@ class actor():
             return new_trust
 
     def deleteReciprocalTrust(self, peerid=None, deletePeer=False):
+        """Deletes a trust relationship and requests deletion of peer's relationship as well."""
         failedOnce = False  # For multiple relationships, this will be True if at least one deletion at peer failed
         successOnce = False  # True if at least one relationship was deleted at peer
         if not peerid:
@@ -275,6 +292,32 @@ class actor():
         if deletePeer and (not successOnce or failedOnce):
             return False
         return True
+
+    def createSubscription(self, peerid=None, target=None, subtarget=None, granularity=None):
+        new_sub = subscription.subscription(self, peerid)
+        new_sub.create(target=target, subtarget=subtarget, granularity=granularity)
+        return new_sub
+
+    def getSubscriptions(self, peerid=None, target=None, subtarget=None):
+        """Retrieves subscriptions from db."""
+        if peerid and target and subtarget:
+            subs = db.Subscription.query(
+                db.Subscription.id == self.id and db.Subscription.peerid == peerid and db.Subscription.target == target and db.Subscription.subtarget == subtarget).fetch()
+        elif peerid and target:
+            subs = db.Subscription.query(
+                db.Subscription.id == self.id and db.Subscription.peerid == peerid and db.Subscription.target == target).fetch()
+        elif peerid:
+            subs = db.Subscription.query(
+                db.Subscription.id == self.id and db.Subscription.peerid == peerid).fetch()
+        elif target and subtarget:
+            subs = db.Subscription.query(
+                db.Subscription.id == self.id and db.Subscription.target == target and db.Subscription.subtarget == subtarget).fetch()
+        elif target:
+            subs = db.Subscription.query(
+                db.Subscription.id == self.id and db.Subscription.target == target).fetch()
+        else:
+            subs = db.Subscription.query(db.Subscription.id == self.id).fetch()
+        return subs
 
     def __init__(self, id=''):
         self.get(id)

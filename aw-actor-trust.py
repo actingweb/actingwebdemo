@@ -10,6 +10,7 @@ import webapp2
 import os
 from google.appengine.ext.webapp import template
 import json
+import logging
 
 
 # /trust handlers
@@ -108,6 +109,10 @@ class rootHandler(webapp2.RequestHandler):
             type = self.request.get('type')
         if len(url) == 0:
             self.response.set_status(400, 'Missing peer URL')
+            return
+        if not secret or len(secret) == 0:
+            self.response.set_status(400, 'Missing peer secret')
+            return
 
         new_trust = myself.createReciprocalTrust(
             url=url, secret=secret, desc=desc, relationship=relationship, type=type)
@@ -146,7 +151,6 @@ class relationshipHandler(webapp2.RequestHandler):
     def post(self, id, relationship):
         (Config, myself, check) = auth.init_actingweb(appreq=self,
                                                       id=id, path='trust', subpath=relationship, enforce_auth=False)
-        # We allow access here without authentication
         if not myself:
             return
         if not check.authorise(path='trust', subpath='<type>', method='POST'):

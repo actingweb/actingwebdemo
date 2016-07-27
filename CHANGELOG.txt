@@ -1,0 +1,42 @@
+Jul 27, 2016: New features
+- Started adding log statements to classes and methods
+- Added this file to track changes
+- Added support for requesting creation of subscriptions, GETing (with search) all subscriptions as creator (not peer), as well as deletion of subscriptions when an actor is deleted (still remaining GET all relationship as peer, GET on relationship to get diffs, DELETE subscription as peer, as well as mechanism to store diffs)
+
+Jul 27, 2016: Bug fixes
+- Changed all ndb.fetch() calls to not include a max item number
+- Cleaned up actor delete() to go directly on database to delete all relevant items
+- Fixed a bug where the requested peer would not store the requesting actor's mini-app type in db (in trust)
+- Added use_cache=False in all trust.py ndb calls to get rid of the cache issues experienced when two different threads communicate to set up a trust
+- Added a new check and return message when secret is not included in an "establish trust" request (requestor must always include secret)
+
+July 16, 2016: New features
+- Added support and use of markdown in posted messages
+    - Added markdown bool as optional argument to postMessage (to use new markdown functionality in Spark)
+    - Changed posted messages in commands to use markdown (on_aw_callbacks.py)
+- Added a new feature to post a notification to the Army Knife Control room when you are mentioned
+
+July 16, 2016: Bug fixes
+- Added a new test of the actor’s oauthId (spark id) for matching to avoid one actor answering a message from another user (security issue closed).
+
+July 12, 2016: New features
+- config.py cleaned up a bit
+- Changed /get <all/nickname> into retrieving the room title from Spark when listing messages
+    - Added new getRoom(id) method to ciscospark.py
+- Changed the /makepublic and /makeprivate commands to be the sole users of the Room db
+    - Got rid of the the getRooms() (get all rooms from spark)
+    - Changed the addUUID2room function to store necessary info about a room (as it will not be stored earlier)
+- Changed the functionality in on_aw_oauth.py to only create one firehose webhook
+    - Got rid of roomAlreadyHooked(), hookAllRooms(), unhookAllRooms() functions
+    - Changed on_aw_delete.py to clean up firehose, not one webhook per room
+- Added a new /cleanwebhooks command to on_aw_callbacks.py
+    - Added new cleanAllWebhooks() and getAllWebHooks() functions
+- Added new functionality posting a new message to the Army Knife Control room when the user is added to a new room
+
+July 12, 2016: Bug fixes
+- New template and error handling if user tries to get added to a room and already is a member (/makepublic)
+- Fix in on_aw_oauth_success where token can optionally supplied (first time oauth was done the token has not been flushed to db)
+- Fix in on_aw_oauth_success where login attempt with wrong Spark user did not clear the cookie_redirect variable
+- Removed sipaddress from stored rooms as this is no longer supported in spark
+- From actingweb library update: fixed issue with wrong Content-Type header for GET and DELETE messages without json body
+- Cleaned up “hidden” code to list rooms from /www path of actor
