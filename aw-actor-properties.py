@@ -67,6 +67,7 @@ class MainPage(webapp2.RequestHandler):
             return
         value = self.request.body.decode('utf-8', 'ignore')
         myself.setProperty(name, value)
+        myself.registerDiffs(target='properties', subtarget=name, blob=value)
         self.response.set_status(204)
 
     def post(self, id, name):
@@ -85,7 +86,11 @@ class MainPage(webapp2.RequestHandler):
                 pair[name] = self.request.get(name)
                 myself.setProperty(name, self.request.get(name))
         else:
-            params = json.loads(self.request.body.decode('utf-8', 'ignore'))
+            try:
+                params = json.loads(self.request.body.decode('utf-8', 'ignore'))
+            except:
+                self.response.set_status(405, "Error in json body")
+                return
             for key in params:
                 pair[key] = params[key]
                 if isinstance(params[key], dict):
@@ -94,6 +99,7 @@ class MainPage(webapp2.RequestHandler):
                     text = params[key]
                 myself.setProperty(key, text)
         out = json.dumps(pair)
+        myself.registerDiffs(target='properties', blob=out)
         self.response.write(out.encode('utf-8'))
         self.response.headers["Content-Type"] = "application/json"
         self.response.set_status(201, 'Created')

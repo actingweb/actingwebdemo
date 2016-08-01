@@ -88,7 +88,6 @@ class rootHandler(webapp2.RequestHandler):
         type = ''
         try:
             params = json.loads(self.request.body.decode('utf-8', 'ignore'))
-            is_json = True
             if 'url' in params:
                 url = params['url']
             else:
@@ -102,7 +101,6 @@ class rootHandler(webapp2.RequestHandler):
             if 'desc' in params:
                 desc = params['desc']
         except ValueError:
-            is_json = False
             url = self.request.get('url')
             secret = self.request.get('secret')
             relationship = self.request.get('relationship')

@@ -74,8 +74,9 @@ class config():
             ('creator', 'trust', '', 'a'),                  # Allow access to all to
             ('trustee', 'trust', '', 'a'),                  # creator/trustee/admin
             ('admin', 'trust', '', 'a'),
-            ('owner', 'subscription', '', 'a'),             # Owner can create++ own subscriptions
-            ('creator', 'subscription', '', 'a'),           # Creator can do everything
+            ('owner', 'subscriptions', '', 'a'),             # Owner can create++ own subscriptions
+            ('creator', 'subscriptions', '', 'a'),           # Creator can do everything
+            ('trustee', 'subscriptions', '', 'a'),           # Trustee can do everything
             ('creator', '/', '', 'a'),                      # Root access for actor
             ('admin', '/', '', 'a'),
         ]

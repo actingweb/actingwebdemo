@@ -76,6 +76,9 @@ class actor():
         relationships = db.Trust.query(db.Trust.id == self.id).fetch()
         for rel in relationships:
             rel.key.delete()
+        diffs = db.SubscriptionDiff.query(db.SubscriptionDiff.id == self.id).fetch()
+        for diff in diffs:
+            diff.key.delete()
         subs = db.Subscription.query(db.Subscription.id == self.id).fetch()
         for sub in subs:
             sub.key.delete()
@@ -167,7 +170,6 @@ class actor():
 
         return relationships[0].modify(baseuri=baseuri, secret=secret, desc=desc, approved=approved, verified=verified, verificationToken=verificationToken, peer_approved=peer_approved)
 
-        # Returns False or new trust object if successful
     def createReciprocalTrust(self, url, secret=None, desc='', relationship='', type=''):
         """Creates a new reciprocal trust relationship locally and by requesting a relationship from a peer actor."""
         if len(url) == 0:
@@ -293,13 +295,57 @@ class actor():
             return False
         return True
 
-    def createSubscription(self, peerid=None, target=None, subtarget=None, granularity=None):
-        new_sub = subscription.subscription(self, peerid)
+    def createSubscription(self, peerid=None, target=None, subtarget=None, granularity=None, subid=None, callback=False):
+        new_sub = subscription.subscription(
+            actor=self, peerid=peerid, subid=subid, callback=callback)
         new_sub.create(target=target, subtarget=subtarget, granularity=granularity)
         return new_sub
 
-    def getSubscriptions(self, peerid=None, target=None, subtarget=None):
+    def createRemoteSubscription(self, peerid=None, target=None, subtarget=None, granularity=None):
+        """Creates a new subscription at peerid."""
+        if not peerid or not target:
+            return False
+        Config = config.config()
+        relationships = self.getTrustRelationships(peerid=peerid)
+        if not relationships:
+            return False
+        peer = relationships[0]
+        params = {
+            'id': self.id,
+            'target': target,
+        }
+        if subtarget:
+            params['subtarget'] = subtarget
+        if granularity and len(granularity) > 0:
+            params['granularity'] = granularity
+        requrl = peer.baseuri + '/subscriptions/' + self.id
+        data = json.dumps(params)
+        headers = {'Authorization': 'Bearer ' + peer.secret,
+                   'Content-Type': 'application/json',
+                   }
+        response = urlfetch.fetch(url=requrl,
+                                  method=urlfetch.POST,
+                                  payload=data,
+                                  headers=headers
+                                  )
+        self.last_response_code = response.status_code
+        self.last_response_message = response.content
+        data = json.loads(response.content)
+        if 'subscriptionid' in data:
+            subid = data["subscriptionid"]
+        else:
+            subid = None
+        if self.last_response_code == 201:
+            self.createSubscription(peerid=peerid, target=target,
+                                    subtarget=subtarget, granularity=granularity, subid=subid, callback=True)
+            return response.headers['Location']
+        else:
+            return None
+
+    def getSubscriptions(self, peerid=None, target=None, subtarget=None, callback=False):
         """Retrieves subscriptions from db."""
+        if not self.id:
+            return None
         if peerid and target and subtarget:
             subs = db.Subscription.query(
                 db.Subscription.id == self.id and db.Subscription.peerid == peerid and db.Subscription.target == target and db.Subscription.subtarget == subtarget).fetch()
@@ -316,8 +362,46 @@ class actor():
             subs = db.Subscription.query(
                 db.Subscription.id == self.id and db.Subscription.target == target).fetch()
         else:
-            subs = db.Subscription.query(db.Subscription.id == self.id).fetch()
-        return subs
+            subs = db.Subscription.query(
+                db.Subscription.id == self.id).fetch()
+        # For some reason, doing a querit where callback is included results in a
+        # perfect match (everthing returned), so we need to apply callback as a filter
+        ret = []
+        for sub in subs:
+            if sub.callback == callback:
+                ret.append(sub)
+        return ret
+
+    def getSubscription(self, peerid=None, subid=None, callback=False):
+        """Retrieves a single subscription identified by peerid and subid."""
+        if not subid:
+            return False
+        sub = subscription.subscription(self, peerid=peerid, subid=subid, callback=callback)
+        if sub.subscription:
+            return sub
+
+    def deleteSubscription(self, peerid=None, subid=None, callback=False):
+        """Deletes a specified subscription"""
+        if not subid:
+            return False
+        sub = subscription.subscription(self, peerid=peerid, subid=subid, callback=callback)
+        return sub.delete()
+
+    def registerDiffs(self, target=None, subtarget=None, blob=None):
+        """Registers a blob diff against all subscriptions with the correct target and subtarget."""
+        if not blob:
+            return
+        subs = self.getSubscriptions(target=target, subtarget=subtarget, callback=False)
+        for sub in subs:
+            subObj = subscription.subscription(self, peerid=sub.peerid, subid=sub.subid)
+            if not subtarget and subObj.subtarget:
+                jsonblob = json.loads(blob)
+                subblob = json.dumps(jsonblob[subObj.subtarget])
+                if not subObj.addDiff(blob=subblob):
+                    logging.warn(
+                        "Failed when registering a sub-diff to subscription (" + sub.subid + ")")
+            elif not subObj.addDiff(blob=blob):
+                logging.warn("Failed when registering a diff to subscription (" + sub.subid + ")")
 
     def __init__(self, id=''):
         self.get(id)
