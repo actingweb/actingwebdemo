@@ -1,3 +1,19 @@
+Aug 3, 2016: New features
+- Support for doing callbacks when registering diffs
+  - New function in actor.py: callbackSubscription()
+  - Added defer of callbacks to avoid stalling responses when adding diffs
+  - Added new function getTrustRelationship() to get one specific relationship based on peerid (instead of searching using getTrustRelationships())
+- Improved diff registration
+  - Totally rewrote registerDiffs() to register diffs for subscriptions that are not exact matches (i.e. broader/higher-level and more specific)
+  - Added debug logging to trace how diffs are registered
+- Owner-based access only to /callbacks/subscriptions
+- Support for handling callbacks for subscriptions
+  - New function in on_aw_callbacks.py: on_post_subscriptions() for handling callbacks on subscriptions
+  - Changed aw-actor-callbacks.py to handle POSTs to /callbacks/subscriptions and forward those to on_post_subscriptions()
+
+Aug 3, 2016: Bug fixes
+- Added no cache to the rest of subscriptionDiffs DB operations to make sure that deferred subscription callbacks don't mess up sequencing
+
 Aug 1, 2016: New features
 - Added support for GET on subscriptions as peer, generic register diffs function, as well as adding diffs when changing /properties. Also added support for creator initiating creation of a subscription by distingushing on POST to /subscriptions (as creator to inititate a subscription with another peer) and to /subscriptions/<peerid> (as peer to create subscription)
 - Subscription is also created when initiating a remote subscription (using callback bool to set flag to identify a subscription where callback is expected). Still missing support for sending callbacks (high/low/none), as well as processing callbacks

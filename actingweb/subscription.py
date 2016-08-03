@@ -63,7 +63,7 @@ class subscription():
                                                 seqnr=seqnr,
                                                 callback=self.callback
                                                 )
-        self.subscription.put()
+        self.subscription.put(use_cache=False)
         return True
 
     def delete(self):
@@ -72,7 +72,7 @@ class subscription():
         for diff in diffs:
             diff.key.delete()
         if self.subscription:
-            self.subscription.key.delete()
+            self.subscription.key.delete(use_cache=False)
             return True
         return False
 
@@ -82,7 +82,7 @@ class subscription():
         if self.subscription:
             self.seqnr += 1
             self.subscription.seqnr = self.seqnr
-            self.subscription.put()
+            self.subscription.put(use_cache=False)
             return True
         return False
 
@@ -120,7 +120,7 @@ class subscription():
         """Clears one specific diff"""
         diff = self.getDiff(seqid)
         if diff:
-            diff.key.delete()
+            diff.key.delete(use_cache=False)
             return True
         return False
 
@@ -130,7 +130,7 @@ class subscription():
         for diff in diffs:
             if seqnr != 0 and diff.seqnr > seqnr:
                 break
-            diff.key.delete()
+            diff.key.delete(use_cache=False)
 
     def __init__(self, actor=None, peerid=None, subid=None, callback=False):
         self.peerid = peerid

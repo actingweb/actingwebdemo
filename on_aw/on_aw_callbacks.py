@@ -47,3 +47,10 @@ def on_post_callbacks(myself, req, name):
     #req.response.set_status(403, "Callback not found.")
     # END OF SAMPLE CODE
     return False
+
+
+def on_post_subscriptions(myself, req, sub, peerid, data):
+    """Process incoming subscription callback with json body, return True if processed, False if not."""
+    logging.debug("Got callback and processed " + sub.subid +
+                  " subscription from peer " + peerid + " with json blob: " + json.dumps(data))
+    return True

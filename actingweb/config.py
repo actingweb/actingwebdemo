@@ -62,6 +62,7 @@ class config():
             # Access: a (allow) or r (reject)
             ('', 'meta', 'GET', 'a'),                       # Allow GET to anybody without auth
             ('', 'oauth', '', 'a'),                         # Allow any method to anybody without auth
+            ('owner', 'callbacks/subscriptions', 'POST', 'a'),   # Allow owners on subscriptions
             ('', 'callbacks', '', 'a'),                     # Allow anybody callbacks witout auth
             ('creator', 'www', '', 'a'),                    # Allow only creator access to /www
             ('creator', 'properties', '', 'a'),             # Allow creator access to /properties

@@ -4,6 +4,7 @@ import time
 import property
 import urllib
 from google.appengine.api import urlfetch
+from google.appengine.ext import deferred
 import json
 import config
 import trust
@@ -106,6 +107,11 @@ class actor():
         """Retrieves properties from db."""
         properties = db.Property.query(db.Property.id == self.id).fetch()
         return properties
+
+    def getTrustRelationship(self, peerid=None):
+        if not peerid:
+            return None
+        return db.Trust.query(db.Trust.id == self.id and db.Trust.peerid == peerid).get()
 
     def getTrustRelationships(self, relationship='', peerid='', type=''):
         """Retrieves all trust relationships or filtered."""
@@ -387,21 +393,117 @@ class actor():
         sub = subscription.subscription(self, peerid=peerid, subid=subid, callback=callback)
         return sub.delete()
 
+    def callbackSubscription(self, peerid=None, sub=None, diff=None, blob=None):
+        if not peerid or not diff or not sub or not blob:
+            logging.warn("Missing parameters in callbackSubscription")
+            return
+        if sub.granularity == "none":
+            return
+        trust = self.getTrustRelationship(peerid)
+        if not trust:
+            return
+        params = {
+            'id': self.id,
+            'subscriptionid': sub.subid,
+            'target': sub.target,
+            'sequence': diff.seqnr,
+            'timestamp': str(diff.timestamp),
+            'granularity': sub.granularity,
+        }
+        if sub.subtarget:
+            params['subtarget'] = sub.subtarget
+        if sub.granularity == "high":
+            params['data'] = blob
+        if sub.granularity == "low":
+            Config = config.config()
+            params['url'] = Config.root + self.id + '/subscriptions/' + \
+                trust.peerid + '/' + sub.subid + '/' + str(diff.seqnr)
+        requrl = trust.baseuri + '/callbacks/subscriptions/' + self.id + '/' + sub.subid
+        data = json.dumps(params)
+        headers = {'Authorization': 'Bearer ' + trust.secret,
+                   'Content-Type': 'application/json',
+                   }
+        try:
+            response = urlfetch.fetch(url=requrl,
+                                      method=urlfetch.POST,
+                                      payload=data.encode('utf-8'),
+                                      headers=headers
+                                      )
+            self.last_response_code = response.status_code
+            self.last_response_message = response.content
+            if response.status_code == 204 and sub.granularity == "high":
+                sub.clearDiff(diff.seqnr)
+        except:
+            self.last_response_code = 0
+            self.last_response_message = 'No response from peer for subscription callback'
+
     def registerDiffs(self, target=None, subtarget=None, blob=None):
         """Registers a blob diff against all subscriptions with the correct target and subtarget."""
-        if not blob:
+        if not blob or not target:
             return
-        subs = self.getSubscriptions(target=target, subtarget=subtarget, callback=False)
+        # Get all subscriptions, both with the specific subtarget and those without
+        subs = self.getSubscriptions(target=target, subtarget=None, callback=False)
+        if subtarget:
+            logging.debug("registerDiffs() - blob(" + blob + "), target(" +
+                          target + "), subtarget(" + subtarget + "), # of subs(" + str(len(subs)) + ")")
+        else:
+            logging.debug("registerDiffs() - blob(" + blob + "), target(" +
+                          target + "), # of subs(" + str(len(subs)) + ")")
         for sub in subs:
+            # Skip the ones without correct subtarget
+            if subtarget and sub.subtarget and sub.subtarget != subtarget:
+                logging.debug("     - no match on subtarget, skipping...")
+                continue
+            logging.debug("     - subscription(" + sub.subid + ") for peer(" + sub.peerid + ")")
             subObj = subscription.subscription(self, peerid=sub.peerid, subid=sub.subid)
+            # Subscriptions with subtarget, but this diff is on a higher level
             if not subtarget and subObj.subtarget:
-                jsonblob = json.loads(blob)
-                subblob = json.dumps(jsonblob[subObj.subtarget])
-                if not subObj.addDiff(blob=subblob):
+                # Create a json diff on the subpart that this subscription covers
+                try:
+                    jsonblob = json.loads(blob)
+                    subblob = json.dumps(jsonblob[subObj.subtarget])
+                except:
+                    # The diff blob does not contain the subtarget
+                    subblob = None
+                logging.debug("         - subscription has subtarget(" +
+                              subObj.subtarget + "), adding diff(" + subblob + ")")
+                diff = subObj.addDiff(blob=subblob)
+                if not diff:
                     logging.warn(
-                        "Failed when registering a sub-diff to subscription (" + sub.subid + ")")
-            elif not subObj.addDiff(blob=blob):
-                logging.warn("Failed when registering a diff to subscription (" + sub.subid + ")")
+                        "Failed when registering a sub-diff to subscription (" + sub.subid + "). Will not send callback.")
+                else:
+                    deferred.defer(self.callbackSubscription,
+                                   peerid=sub.peerid, sub=subObj, diff=diff, blob=subblob)
+                continue
+            # The diff is on the subtarget, but the subscription is on the higher level
+            if subtarget and not subObj.subtarget:
+                # Create a data["subtarget"] = blob diff to give correct level of diff to subscriber
+                upblob = {}
+                try:
+                    jsonblob = json.loads(blob)
+                    upblob[subtarget] = jsonblob
+                except:
+                    upblob[subtarget] = blob
+                upblob = json.dumps(upblob)
+                logging.debug("         - diff has subtarget(" + subtarget +
+                              "), subscription has not, adding diff(" + upblob + ")")
+                diff = subObj.addDiff(blob=upblob)
+                if not diff:
+                    logging.warn(
+                        "Failed when registering a sub-diff to subscription (" + sub.subid + "). Will not send callback.")
+                else:
+                    deferred.defer(self.callbackSubscription, peerid=sub.peerid,
+                                   sub=subObj, diff=diff, blob=upblob)
+                continue
+            # The diff is correct for the subscription
+            diff = subObj.addDiff(blob=blob)
+            logging.debug("         - exact target/subtarget match, adding diff(" + blob + ")")
+            if not diff:
+                logging.warn("Failed when registering a diff to subscription (" +
+                             sub.subid + "). Will not send callback.")
+            else:
+                deferred.defer(self.callbackSubscription, peerid=sub.peerid,
+                               sub=subObj, diff=diff, blob=blob)
 
     def __init__(self, id=''):
         self.get(id)
