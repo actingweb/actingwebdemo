@@ -28,7 +28,7 @@ class config():
         self.info = "http://actingweb.org/"                 # Where can more info be found
         self.aw_version = "0.9"                             # This app follows the actingweb specification specified
         self.aw_supported = "www,oauth,callbacks"           # This app supports the following options
-        self.raml = ""                                      # URL to a RAML definition if available
+        self.specification = ""                             # URL to a RAML/Swagger etc definition if available
         self.aw_formats = "json"                            # These are the supported formats
         #########
         # OAuth settings for this app, fill in if OAuth is used
