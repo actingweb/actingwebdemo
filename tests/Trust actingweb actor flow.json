@@ -2,7 +2,7 @@
   "trigger_url": "https://api.runscope.com/radar/9399c9f4-7814-43ae-a987-8ec755beb05a/trigger", 
   "name": "Trust actingweb actor flow", 
   "version": "1.0", 
-  "exported_at": 1467544029, 
+  "exported_at": 1470375395, 
   "steps": [
     {
       "body": "{\r\n\"creator\":  \"trust1@actingweb.net\"\r\n}", 
@@ -200,6 +200,29 @@
       "step_type": "request", 
       "auth": {}, 
       "fragment": "", 
+      "note": "Get the new trust relationship as peer, wrong token", 
+      "headers": {
+        "Authorization": [
+          "Bearer wrongsecret"
+        ]
+      }, 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "403", 
+          "source": "response_status"
+        }
+      ], 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "GET"
+    }, 
+    {
+      "url": "{{trusturl1}}", 
+      "variables": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "fragment": "", 
       "note": "Get the new trust relationship as peer", 
       "headers": {
         "Authorization": "Bearer {{secret1}}"
@@ -264,29 +287,6 @@
       "method": "GET"
     }, 
     {
-      "url": "{{trusturl1}}", 
-      "variables": [], 
-      "step_type": "request", 
-      "auth": {}, 
-      "fragment": "", 
-      "note": "Get the new trust relationship as peer, wrong token", 
-      "headers": {
-        "Authorization": [
-          "Bearer wrongsecret"
-        ]
-      }, 
-      "assertions": [
-        {
-          "comparison": "equal_number", 
-          "value": "403", 
-          "source": "response_status"
-        }
-      ], 
-      "scripts": [], 
-      "before_scripts": [], 
-      "method": "GET"
-    }, 
-    {
       "body": "{\r\n\"baseuri\": \"test\",\r\n\"id\": \"test\",\r\n\"type\": \"urn:actingweb:actingweb.org:gae-demo\",\r\n\"desc\": \"Test friend relationship\"\r\n}", 
       "form": {}, 
       "url": "{{actorurl1}}/trust/friend", 
@@ -321,6 +321,27 @@
       "scripts": [], 
       "before_scripts": [], 
       "method": "POST"
+    }, 
+    {
+      "url": "{{trusturl1}}", 
+      "variables": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "fragment": "", 
+      "note": "Get the new trust relationship as peer, but wrong peer", 
+      "headers": {
+        "Authorization": "Bearer {{secret2}}"
+      }, 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "403", 
+          "source": "response_status"
+        }
+      ], 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "GET"
     }, 
     {
       "url": "{{actorurl1}}/trust", 
@@ -624,7 +645,7 @@
         {
           "comparison": "equal", 
           "property": "verified", 
-          "value": "false", 
+          "value": "true", 
           "source": "response_json"
         }
       ]
@@ -666,7 +687,7 @@
         {
           "comparison": "equal", 
           "property": "verified", 
-          "value": "false", 
+          "value": "true", 
           "source": "response_json"
         }
       ]
@@ -842,7 +863,7 @@
         {
           "comparison": "equal", 
           "property": "verified", 
-          "value": "false", 
+          "value": "true", 
           "source": "response_json"
         }, 
         {
