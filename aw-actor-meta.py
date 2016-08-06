@@ -24,6 +24,10 @@ class MainPage(webapp2.RequestHandler):
                                                       id=id, path='meta', subpath=path, enforce_auth=False)
         if not myself:
             return
+        if not check.authorise(path='meta', subpath=path, method='GET'):
+            self.response.set_status(403)
+            return
+
         if not path:
             values = {
                 'id': id,
@@ -31,7 +35,7 @@ class MainPage(webapp2.RequestHandler):
                 'version': Config.version,
                 'desc': Config.desc,
                 'info': Config.info,
-                'raml': Config.raml,
+                'specification': Config.specification,
                 'aw_version': Config.aw_version,
                 'aw_supported': Config.aw_supported,
                 'aw_formats': Config.aw_formats,
@@ -51,8 +55,8 @@ class MainPage(webapp2.RequestHandler):
             out = Config.desc + myself.id
         elif path == 'info':
             out = Config.info
-        elif path == 'raml':
-            out = Config.raml
+        elif path == 'specification':
+            out = Config.specification
         elif path == 'actingweb/version':
             out = Config.aw_version
         elif path == 'actingweb/supported':
@@ -61,6 +65,7 @@ class MainPage(webapp2.RequestHandler):
             out = Config.aw_formats
         else:
             self.response.set_status(404)
+            return
         self.response.write(out.encode('utf-8'))
 
 application = webapp2.WSGIApplication([

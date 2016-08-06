@@ -19,6 +19,7 @@ __all__ = [
 
 
 def on_get_callbacks(myself, req, name):
+    """Customizible function to handle GET /callbacks"""
     # return True if callback has been processed
     # THE BELOW IS SAMPLE CODE
     #my_oauth=oauth.oauth(token = myself.getProperty('oauth_token').value)
@@ -28,7 +29,14 @@ def on_get_callbacks(myself, req, name):
     return False
 
 
+def on_delete_callbacks(myself, req, name):
+    """Customizible function to handle DELETE /callbacks"""
+    # return True if callback has been processed
+    return False
+
+
 def on_post_callbacks(myself, req, name):
+    """Customizible function to handle POST /callbacks"""
     # return True if callback has been processed
     # THE BELOW IS SAMPLE CODE
     #Config = config.config()
@@ -47,3 +55,10 @@ def on_post_callbacks(myself, req, name):
     #req.response.set_status(403, "Callback not found.")
     # END OF SAMPLE CODE
     return False
+
+
+def on_post_subscriptions(myself, req, sub, peerid, data):
+    """Customizible function to process incoming callbacks/subscriptions/ callback with json body, return True if processed, False if not."""
+    logging.debug("Got callback and processed " + sub.subid +
+                  " subscription from peer " + peerid + " with json blob: " + json.dumps(data))
+    return True

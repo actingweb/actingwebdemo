@@ -25,6 +25,9 @@ class MainPage(webapp2.RequestHandler):
         if not Config.ui:
             self.response.set_status(404, "Web interface is not enabled")
             return
+        if not check.authorise(path='www', subpath=path, method='GET'):
+            self.response.set_status(403)
+            return
 
         if not path or path == '':
             template_values = {

@@ -2,6 +2,7 @@ import actor
 from db import db
 import datetime
 import config
+import logging
 
 __all__ = [
     'trust',
@@ -11,7 +12,7 @@ __all__ = [
 class trust():
 
     def get(self, id, peerid):
-        result = db.Trust.query(db.Trust.id == id, db.Trust.peerid == peerid).get()
+        result = db.Trust.query(db.Trust.id == id, db.Trust.peerid == peerid).get(use_cache=False)
         if result:
             self.trust = result
             self.id = id
@@ -34,7 +35,8 @@ class trust():
             self.verified = False
 
     def getByToken(self, token):
-        result = db.Trust.query(db.Trust.id == self.id, db.Trust.secret == token).get()
+        result = db.Trust.query(db.Trust.id == self.id, db.Trust.secret ==
+                                token).get(use_cache=False)
         if result:
             self.trust = result
             self.id = id
@@ -61,7 +63,7 @@ class trust():
             self.get(self.id, self.peerid)
         if not self.trust:
             return False
-        self.trust.key.delete()
+        self.trust.key.delete(use_cache=False)
 
     def modify(self, baseuri='', secret='', desc='', approved=None, verified=None, verificationToken=None, peer_approved=None):
         if not self.trust:
@@ -97,7 +99,7 @@ class trust():
             self.trust.peer_approved = peer_approved
         if not change:
             return False
-        self.trust.put()
+        self.trust.put(use_cache=False)
         return True
 
     def create(self, baseuri='', type='', relationship='', secret='', approved=False, verified=False, verificationToken='', desc='', peer_approved=False):
@@ -145,7 +147,7 @@ class trust():
                                   peer_approved=self.peer_approved,
                                   verificationToken=self.verificationToken,
                                   desc=self.desc)
-        self.trust.put()
+        self.trust.put(use_cache=False)
         return True
 
     def __init__(self, id, peerid=None, token=None):

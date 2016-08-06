@@ -1,0 +1,51 @@
+Aug 6, 2016: New features
+- Support for deleting remote subscription (i.e. callback and subscription, dependent on direction) when an actor is deleted
+  - New deleteRemoteSubscription() in actor.py
+  - Added deletion to actor.delete()
+  - New handler for DELETE of /callbacks in aw-actor-callbacks.py
+  - New on_delete_callbacks() in on_aw_callbacks.py
+
+Aug 6, 2016: Bug fixes
+- Fixed bug where /meta/nonexistent resulted in 500
+
+Aug 3, 2016: New features
+- Support for doing callbacks when registering diffs
+  - New function in actor.py: callbackSubscription()
+  - Added defer of callbacks to avoid stalling responses when adding diffs
+  - Added new function getTrustRelationship() to get one specific relationship based on peerid (instead of searching using getTrustRelationships())
+- Improved diff registration
+  - Totally rewrote registerDiffs() to register diffs for subscriptions that are not exact matches (i.e. broader/higher-level and more specific)
+  - Added debug logging to trace how diffs are registered
+- Owner-based access only to /callbacks/subscriptions
+- Support for handling callbacks for subscriptions
+  - New function in on_aw_callbacks.py: on_post_subscriptions() for handling callbacks on subscriptions
+  - Changed aw-actor-callbacks.py to handle POSTs to /callbacks/subscriptions and forward those to on_post_subscriptions()
+
+Aug 3, 2016: Bug fixes
+- Added no cache to the rest of subscriptionDiffs DB operations to make sure that deferred subscription callbacks don't mess up sequencing
+- Changed meta/raml to meta/specification to allow any type of specification language
+
+Aug 1, 2016: New features
+- Added support for GET on subscriptions as peer, generic register diffs function, as well as adding diffs when changing /properties. Also added support for creator initiating creation of a subscription by distingushing on POST to /subscriptions (as creator to inititate a subscription with another peer) and to /subscriptions/<peerid> (as peer to create subscription)
+- Subscription is also created when initiating a remote subscription (using callback bool to set flag to identify a subscription where callback is expected). Still missing support for sending callbacks (high/low/none), as well as processing callbacks
+- Added support for sequence number in subscription, so that missing diffs can be detected. Specific diffs can be retrieved by doing GET as peer on /subscriptions/<peerid>/<subid>/<seqnr> (and the diff will be cleared)
+
+Jul 27, 2016: New features
+- Started adding log statements to classes and methods
+- Added this file to track changes
+- Added support for requesting creation of subscriptions, GETing (with search) all subscriptions as creator (not peer), as well as deletion of subscriptions when an actor is deleted (still remaining GET all relationship as peer, GET on relationship to get diffs, DELETE subscription as peer, as well as mechanism to store diffs)
+
+Jul 27, 2016: Bug fixes
+- Changed all ndb.fetch() calls to not include a max item number
+- Cleaned up actor delete() to go directly on database to delete all relevant items
+- Fixed a bug where the requested peer would not store the requesting actor's mini-app type in db (in trust)
+- Added use_cache=False in all trust.py ndb calls to get rid of the cache issues experienced when two different threads communicate to set up a trust
+- Added a new check and return message when secret is not included in an "establish trust" request (requestor must always include secret)
+
+July 12, 2016: New features
+- config.py cleaned up a bit
+
+July 12, 2016: Bug fixes
+- Fix in on_aw_oauth_success where token can optionally supplied (first time oauth was done the token has not been flushed to db)
+- Fix in on_aw_oauth_success where login attempt with wrong Spark user did not clear the cookie_redirect variable
+- Fixed issue with wrong Content-Type header for GET and DELETE messages without json body

@@ -37,6 +37,10 @@ handlers:
   script: aw-actor-trust.application
   secure: always
 
+- url: /(.*?)/subscriptions/?(.*)
+  script: aw-actor-subscription.application
+  secure: always
+
 - url: /(.*?)/oauth/?(.*)
   script: aw-actor-oauth.application
   secure: always

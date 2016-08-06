@@ -17,6 +17,9 @@ class MainPage(webapp2.RequestHandler):
                                                       id=id, path='properties', subpath=name)
         if not myself or not check:
             return
+        if not check.authorise(path='properties', subpath=name, method='GET'):
+            self.response.set_status(403)
+            return
         # if name is not set, this request URI was the properties root
         if not name:
             self.listall(myself)
@@ -59,14 +62,21 @@ class MainPage(webapp2.RequestHandler):
                                                       id=id, path='properties', subpath=name)
         if not myself or not check:
             return
+        if not check.authorise(path='properties', subpath=name, method='PUT'):
+            self.response.set_status(403)
+            return
         value = self.request.body.decode('utf-8', 'ignore')
         myself.setProperty(name, value)
+        myself.registerDiffs(target='properties', subtarget=name, blob=value)
         self.response.set_status(204)
 
     def post(self, id, name):
         (Config, myself, check) = auth.init_actingweb(appreq=self,
                                                       id=id, path='properties', subpath=name)
         if not myself or not check:
+            return
+        if not check.authorise(path='properties', subpath=name, method='POST'):
+            self.response.set_status(403)
             return
         if len(name) > 0:
             self.response.set_status(405)
@@ -76,7 +86,11 @@ class MainPage(webapp2.RequestHandler):
                 pair[name] = self.request.get(name)
                 myself.setProperty(name, self.request.get(name))
         else:
-            params = json.loads(self.request.body.decode('utf-8', 'ignore'))
+            try:
+                params = json.loads(self.request.body.decode('utf-8', 'ignore'))
+            except:
+                self.response.set_status(405, "Error in json body")
+                return
             for key in params:
                 pair[key] = params[key]
                 if isinstance(params[key], dict):
@@ -85,6 +99,7 @@ class MainPage(webapp2.RequestHandler):
                     text = params[key]
                 myself.setProperty(key, text)
         out = json.dumps(pair)
+        myself.registerDiffs(target='properties', blob=out)
         self.response.write(out.encode('utf-8'))
         self.response.headers["Content-Type"] = "application/json"
         self.response.set_status(201, 'Created')
@@ -93,6 +108,9 @@ class MainPage(webapp2.RequestHandler):
         (Config, myself, check) = auth.init_actingweb(appreq=self,
                                                       id=id, path='properties', subpath=name)
         if not myself or not check:
+            return
+        if not check.authorise(path='properties', subpath=name, method='DELETE'):
+            self.response.set_status(403)
             return
         myself.deleteProperty(name)
         self.response.set_status(204)
