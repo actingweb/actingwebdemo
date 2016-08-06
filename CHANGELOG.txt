@@ -1,3 +1,10 @@
+Aug 6, 2016: New features
+- Support for deleting remote subscription (i.e. callback and subscription, dependent on direction) when an actor is deleted
+  - New deleteRemoteSubscription() in actor.py
+  - Added deletion to actor.delete()
+  - New handler for DELETE of /callbacks in aw-actor-callbacks.py
+  - New on_delete_callbacks() in on_aw_callbacks.py
+
 Aug 3, 2016: New features
 - Support for doing callbacks when registering diffs
   - New function in actor.py: callbackSubscription()

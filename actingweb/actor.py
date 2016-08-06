@@ -82,6 +82,7 @@ class actor():
             diff.key.delete()
         subs = db.Subscription.query(db.Subscription.id == self.id).fetch()
         for sub in subs:
+            self.deleteRemoteSubscription(peerid=sub.peerid, subid=sub.subid)
             sub.key.delete()
         result = db.Actor.query(db.Actor.id == self.id).get()
         if result:
@@ -385,6 +386,32 @@ class actor():
         sub = subscription.subscription(self, peerid=peerid, subid=subid, callback=callback)
         if sub.subscription:
             return sub
+
+    def deleteRemoteSubscription(self, peerid=None, subid=None):
+        if not subid or not peerid:
+            return False
+        trust = self.getTrustRelationship(peerid=peerid)
+        if not trust:
+            return False
+        sub = self.getSubscription(peerid=peerid, subid=subid)
+        if not sub.callback:
+            url = trust.baseuri + '/subscriptions/' + self.id + '/' + subid
+        else:
+            url = trust.baseuri + '/callbacks/subscriptions/' + self.id + '/' + subid
+        headers = {'Authorization': 'Bearer ' + trust.secret,
+                   }
+        try:
+            response = urlfetch.fetch(url=url,
+                                      method=urlfetch.DELETE,
+                                      headers=headers)
+            self.last_response_code = response.status_code
+            self.last_response_message = response.content
+            if response.status_code == 204:
+                return True
+            else:
+                return False
+        except:
+            return False
 
     def deleteSubscription(self, peerid=None, subid=None, callback=False):
         """Deletes a specified subscription"""

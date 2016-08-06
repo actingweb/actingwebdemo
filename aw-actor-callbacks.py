@@ -15,6 +15,7 @@ from on_aw import on_aw_callbacks
 class MainPage(webapp2.RequestHandler):
 
     def get(self, id, name):
+        """Handles GETs to callbacks"""
         if self.request.get('_method') == 'PUT':
             self.put(id, name)
         if self.request.get('_method') == 'POST':
@@ -30,9 +31,37 @@ class MainPage(webapp2.RequestHandler):
             self.response.set_status(403, 'Forbidden')
 
     def put(self, id, name):
+        """PUT requests are handled as POST for callbacks"""
         self.post(id, name)
 
+    def delete(self, id, name):
+        """Handles deletion of callbacks, like subscriptions"""
+        (Config, myself, check) = auth.init_actingweb(appreq=self,
+                                                      id=id, path='callbacks')
+        if not myself or not check:
+            return
+        path = name.split('/')
+        if path[0] == 'subscriptions':
+            peerid = path[1]
+            subid = path[2]
+            if not check.authorise(path='callbacks', subpath='subscriptions', method='DELETE', peerid=peerid):
+                self.response.set_status(403)
+                return
+            sub = myself.getSubscription(peerid=peerid, subid=subid, callback=True)
+            if sub:
+                sub.delete()
+                self.response.set_status(204, 'Deleted')
+                return
+            self.response.set_status(404, 'Not found')
+            return
+        if not check.authorise(path='callbacks', subpath=name, method='DELETE'):
+            self.response.set_status(403)
+            return
+        if not on_aw_callbacks.on_delete_callbacks(myself, self, name):
+            self.response.set_status(403, 'Forbidden')
+
     def post(self, id, name):
+        """Handles POST callbacks"""
         (Config, myself, check) = auth.init_actingweb(appreq=self,
                                                       id=id, path='callbacks')
         if not myself or not check:
