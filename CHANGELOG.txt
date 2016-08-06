@@ -5,6 +5,9 @@ Aug 6, 2016: New features
   - New handler for DELETE of /callbacks in aw-actor-callbacks.py
   - New on_delete_callbacks() in on_aw_callbacks.py
 
+Aug 6, 2016: Bug fixes
+- Fixed bug where /meta/noexistent resulted in 500
+
 Aug 3, 2016: New features
 - Support for doing callbacks when registering diffs
   - New function in actor.py: callbackSubscription()

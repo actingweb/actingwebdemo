@@ -65,6 +65,7 @@ class MainPage(webapp2.RequestHandler):
             out = Config.aw_formats
         else:
             self.response.set_status(404)
+            return
         self.response.write(out.encode('utf-8'))
 
 application = webapp2.WSGIApplication([
