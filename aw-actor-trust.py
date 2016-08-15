@@ -350,7 +350,8 @@ class trustHandler(webapp2.RequestHandler):
                                                       id=id, path='trust', subpath=relationship)
         if not myself or not check:
             return
-        if not check.authorise(path='trust', subpath='<type>/<id>', method='DELETE', peerid=peerid):
+        # We allow non-approved peers to delete even if we haven't approved the relationship yet
+        if not check.authorise(path='trust', subpath='<type>/<id>', method='DELETE', peerid=peerid, approved=False):
             self.response.set_status(403)
             return
         isPeer = False

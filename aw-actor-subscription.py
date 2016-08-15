@@ -161,6 +161,10 @@ class relationshipHandler(webapp2.RequestHandler):
                          " tried to create a subscription for peer " + check.acl["peerid"])
             self.response.set_status(403, 'Forbidden. Wrong peer id in request')
             return
+        # We need to validate that this peer has GET rights on what it wants to subscribe to
+        if not check.authorise(path=target, subpath=subtarget, method='GET', peerid=peerid):
+            self.response.set_status(403)
+            return
         new_sub = myself.createSubscription(
             peerid=check.acl["peerid"], target=target, subtarget=subtarget, granularity=granularity)
         if not new_sub:
