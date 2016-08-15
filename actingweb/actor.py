@@ -337,7 +337,10 @@ class actor():
                                   )
         self.last_response_code = response.status_code
         self.last_response_message = response.content
-        data = json.loads(response.content)
+        try:
+            data = json.loads(response.content)
+        except ValueError:
+            data = []
         if 'subscriptionid' in data:
             subid = data["subscriptionid"]
         else:

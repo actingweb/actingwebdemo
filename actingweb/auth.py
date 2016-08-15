@@ -253,6 +253,8 @@ class auth():
         self.acl["rights"] = "r"
         if len(path) == 0:
             return False
+        if not subpath:
+            subpath = ''
         fullpath = path.lower() + '/' + subpath.lower()
         # ACLs: ('role', 'path', 'METHODS', 'access')
         logging.debug('Testing access for (' + relationship +

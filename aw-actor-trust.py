@@ -315,7 +315,7 @@ class trustHandler(webapp2.RequestHandler):
             else:
                 desc = ''
             if 'approved' in params:
-                if params['approved'].lower() == "true":
+                if params['approved'] == True or params['approved'].lower() == "true":
                     approved = True
             else:
                 approved = None
