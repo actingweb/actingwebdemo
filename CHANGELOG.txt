@@ -4,6 +4,10 @@ Aug 15, 2016: Bug fixes
 - Changed default relationship to the lowest level (associate) and turned off default approval of the default relationship
 - Added a new authorisation check to subscriptions to make sure that only peers with access to a path are allowed to subscribe to those paths
 - Added a new approval in trust to allow non-approved peers to delete their relationship (in case they want to "withdraw" their relationship request)
+- Fixed uncaught json exception in createRemoteSubscription()
+- Fixed possibility of subpath being None instead of '' in auth.py
+- Fixed handling of both bool json type and string bool value for approved parameter for trust relationships
+
 
 Aug 6, 2016: New features
 - Support for deleting remote subscription (i.e. callback and subscription, dependent on direction) when an actor is deleted
