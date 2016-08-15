@@ -15,6 +15,8 @@ from google.appengine.ext.webapp import template
 __all__ = [
     'on_post_callbacks',
     'on_get_callbacks',
+    'on_post_subscriptions',
+    'on_delete_callbacks',
 ]
 
 
