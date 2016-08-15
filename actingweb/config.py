@@ -47,8 +47,8 @@ class config():
         #########
         # Trust settings for this app
         #########
-        self.default_relationship = "friend"                # Default relationship if not specified
-        self.auto_accept_default_relationship = True        # True if auto-approval
+        self.default_relationship = "associate"                # Default relationship if not specified
+        self.auto_accept_default_relationship = False          # True if auto-approval
         # List of paths and their access levels
         # Matching is done top to bottom stopping at first match (role, path)
         # If no match is found on path with the correct role, access is rejected

@@ -66,6 +66,7 @@ class auth():
             "rights": '',           # "a", "r" (approve or reject)
             "relationship": None,     # E.g. creator, friend, admin, etc
             "peerid": '',           # Peerid if there is a relationship
+            "approved": False,      # True if the peer is approved
         }
         Config = config.config()
         self.config = Config
@@ -216,6 +217,7 @@ class auth():
             if new_trust.trust:
                 self.acl["relationship"] = new_trust.relationship
                 self.acl["peerid"] = new_trust.peerid
+                self.acl["approved"] = new_trust.approved
                 return new_trust
             else:
                 return None
@@ -239,7 +241,9 @@ class auth():
                 return True
         return False
 
-    def authorise(self, path='', subpath='', method='', peerid=''):
+    def authorise(self, path='', subpath='', method='', peerid='', approved=True):
+        if len(self.acl["peerid"]) > 0 and approved and self.acl["approved"] == False:
+            return False
         if self.acl["relationship"]:
             relationship = self.acl["relationship"].lower()
         else:
