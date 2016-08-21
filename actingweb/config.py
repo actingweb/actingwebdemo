@@ -18,7 +18,7 @@ class config():
         self.www_auth = "basic"                             # basic or oauth: basic for creator + bearer tokens
         self.fqdn = "actingwebdemo.appspot.com"         # The host and domain, i.e. FQDN, of the URL
         self.proto = "https://"                             # http or https
-        self.logLevel = logging.INFO  # Change to WARN for production, DEBUG for debugging, and INFO for normal testing
+        self.logLevel = logging.DEBUG  # Change to WARN for production, DEBUG for debugging, and INFO for normal testing
         #########
         # ActingWeb settings for this app
         #########
