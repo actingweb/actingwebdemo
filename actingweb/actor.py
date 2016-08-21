@@ -19,6 +19,7 @@ __all__ = [
 def getPeerInfo(url):
     """Contacts an another actor over http/s to retrieve meta information."""
     try:
+        logging.debug('Getting peer info at url(' + url + ')')
         response = urlfetch.fetch(url=url + '/meta',
                                   method=urlfetch.GET
                                   )
@@ -27,6 +28,7 @@ def getPeerInfo(url):
             "last_response_message": response.content,
             "data": json.loads(response.content),
         }
+        logging.debug('Got peer info from url(' + url + ') with body(' + response.content + ')')
     except:
         res = {
             "last_response_code": 500,
@@ -164,6 +166,8 @@ class actor():
             # Note the POST here instead of PUT. POST is used to used to notify about
             # state change in the relationship (i.e. not change the object as PUT
             # would do)
+            logging.debug(
+                'Trust relationship has been approved, notifying peer at url(' + requrl + ')')
             try:
                 response = urlfetch.fetch(url=requrl,
                                           method=urlfetch.POST,
@@ -173,6 +177,7 @@ class actor():
                 self.last_response_code = response.status_code
                 self.last_response_message = response.content
             except:
+                logging.debug('Not able to notify peer at url(' + requrl + ')')
                 self.last_response_code = 500
 
         return relationships[0].modify(baseuri=baseuri, secret=secret, desc=desc, approved=approved, verified=verified, verificationToken=verificationToken, peer_approved=peer_approved)
@@ -218,13 +223,20 @@ class actor():
         }
         requrl = url + '/trust/' + relationship
         data = json.dumps(params)
-        response = urlfetch.fetch(url=requrl,
-                                  method=urlfetch.POST,
-                                  payload=data,
-                                  headers={'Content-Type': 'application/json', }
-                                  )
-        self.last_response_code = response.status_code
-        self.last_response_message = response.content
+        logging.debug('Creating reciprocal trust at url(' +
+                      requrl + ') and body (' + str(data) + ')')
+        try:
+            response = urlfetch.fetch(url=requrl,
+                                      method=urlfetch.POST,
+                                      payload=data,
+                                      headers={'Content-Type': 'application/json', }
+                                      )
+            self.last_response_code = response.status_code
+            self.last_response_message = response.content
+        except:
+            logging.debug("Not able to create trust with peer, deleting my trust.")
+            new_trust.delete()
+            return False
 
         if self.last_response_code == 201 or self.last_response_code == 202:
             # Reload the trust to check if approval was done
@@ -239,6 +251,7 @@ class actor():
                 mod_trust.modify(peer_approved=True)
             return mod_trust
         else:
+            logging.debug("Not able to create trust with peer, deleting my trust.")
             new_trust.delete()
             return False
 
@@ -251,6 +264,11 @@ class actor():
         if secret:
             headers = {'Authorization': 'Bearer ' + secret,
                        }
+            logging.debug('Verifying trust at requesting peer(' + peerid +
+                          ') at url (' + requrl + ') and secret(' + secret + ')')
+        else:
+            logging.debug('Verifying trust at requesting peer(' + peerid +
+                          ') at url (' + requrl + ') and no secret')
         try:
             response = urlfetch.fetch(url=requrl,
                                       method=urlfetch.GET,
@@ -258,14 +276,17 @@ class actor():
             self.last_response_code = response.status_code
             self.last_response_message = response.content
             try:
+                logging.debug('Verifying trust response JSON:' + response.content)
                 data = json.loads(response.content)
                 if data["verificationToken"] == verificationToken:
                     verified = True
                 else:
                     verified = False
             except ValueError:
+                logging.debug('No json body in response when verifying trust at url' + requrl + ')')
                 verified = False
         except:
+            logging.debug('No response when verifying trust at url' + requrl + ')')
             verified = False
         new_trust = trust.trust(self.id, peerid)
         if not new_trust.create(baseuri=baseuri, secret=secret, type=type, approved=approved, peer_approved=peer_approved,
@@ -289,10 +310,17 @@ class actor():
                 if rel.secret:
                     headers = {'Authorization': 'Bearer ' + rel.secret,
                                }
-                response = urlfetch.fetch(url=url,
-                                          method=urlfetch.DELETE,
-                                          headers=headers)
+                logging.debug('Deleting reciprocal relationship at url(' + url + ')')
+                try:
+                    response = urlfetch.fetch(url=url,
+                                              method=urlfetch.DELETE,
+                                              headers=headers)
+                except:
+                    logging.debug('Failed to delete reciprocal relationship at url(' + url + ')')
+                    failedOnce = True
+                    continue
                 if (response.status_code < 200 or response.status_code > 299) and response.status_code != 404:
+                    logging.debug('Failed to delete reciprocal relationship at url(' + url + ')')
                     failedOnce = True
                     continue
                 else:
@@ -330,21 +358,28 @@ class actor():
         headers = {'Authorization': 'Bearer ' + peer.secret,
                    'Content-Type': 'application/json',
                    }
-        response = urlfetch.fetch(url=requrl,
-                                  method=urlfetch.POST,
-                                  payload=data,
-                                  headers=headers
-                                  )
-        self.last_response_code = response.status_code
-        self.last_response_message = response.content
         try:
+            logging.debug('Creating remote subscription at url(' +
+                          requrl + ') with body (' + str(data) + ')')
+            response = urlfetch.fetch(url=requrl,
+                                      method=urlfetch.POST,
+                                      payload=data,
+                                      headers=headers
+                                      )
+            self.last_response_code = response.status_code
+            self.last_response_message = response.content
+        except:
+            return None
+        try:
+            logging.debug('Created remote subscription at url(' + requrl +
+                          ') and got JSON response (' + response.content + ')')
             data = json.loads(response.content)
         except ValueError:
-            data = []
+            return None
         if 'subscriptionid' in data:
             subid = data["subscriptionid"]
         else:
-            subid = None
+            return None
         if self.last_response_code == 201:
             self.createSubscription(peerid=peerid, target=target,
                                     subtarget=subtarget, granularity=granularity, subid=subid, callback=True)
@@ -404,6 +439,7 @@ class actor():
         headers = {'Authorization': 'Bearer ' + trust.secret,
                    }
         try:
+            logging.debug('Deleting remote subscription at url(' + url + ')')
             response = urlfetch.fetch(url=url,
                                       method=urlfetch.DELETE,
                                       headers=headers)
@@ -412,6 +448,7 @@ class actor():
             if response.status_code == 204:
                 return True
             else:
+                logging.debug('Failed to delete remote subscription at url(' + url + ')')
                 return False
         except:
             return False
@@ -454,6 +491,8 @@ class actor():
                    'Content-Type': 'application/json',
                    }
         try:
+            logging.debug('Doing a callback on subscription at url(' +
+                          requrl + ') with body(' + str(data) + ')')
             response = urlfetch.fetch(url=requrl,
                                       method=urlfetch.POST,
                                       payload=data.encode('utf-8'),
@@ -464,6 +503,7 @@ class actor():
             if response.status_code == 204 and sub.granularity == "high":
                 sub.clearDiff(diff.seqnr)
         except:
+            logging.debug('Peer did not respond to callback on url(' + requrl + ')')
             self.last_response_code = 0
             self.last_response_message = 'No response from peer for subscription callback'
 
