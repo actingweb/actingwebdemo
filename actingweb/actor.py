@@ -283,7 +283,7 @@ class actor():
                 else:
                     verified = False
             except ValueError:
-                logging.debug('No json body in response when verifying trust at url' + requrl + ')')
+                logging.debug('No json body in response when verifying trust at url(' + requrl + ')')
                 verified = False
         except:
             logging.debug('No response when verifying trust at url' + requrl + ')')

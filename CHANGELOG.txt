@@ -1,3 +1,6 @@
+Aug 21, 2016: New features
+- Removed the possibility of setting a secret when initiating a new relationship, as well as ability to change secret. This is to avoid the possibility of detecting existing secrets (from other peers) by testing secrets
+
 Aug 15, 2016: Bug fixes
 - Added new acl["approved"] flag to auth.py indicating whether an authenticated peer has been approved
 - Added new parameter to the authorise() function to turn off the requirement that peer has been approved to allow access

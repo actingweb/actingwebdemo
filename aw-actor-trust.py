@@ -11,6 +11,8 @@ import os
 from google.appengine.ext.webapp import template
 import json
 import logging
+import datetime
+import time
 
 
 # /trust handlers
@@ -92,8 +94,6 @@ class rootHandler(webapp2.RequestHandler):
                 url = params['url']
             else:
                 url = ''
-            if 'secret' in params:
-                secret = params['secret']
             if 'relationship' in params:
                 relationship = params['relationship']
             if 'type' in params:
@@ -108,9 +108,10 @@ class rootHandler(webapp2.RequestHandler):
         if len(url) == 0:
             self.response.set_status(400, 'Missing peer URL')
             return
-        if not secret or len(secret) == 0:
-            self.response.set_status(400, 'Missing peer secret')
-            return
+        seed = str(url)
+        now = datetime.datetime.now()
+        seed += now.strftime("%Y%m%dT%H%M%S")
+        secret = Config.newUUID(seed)
 
         new_trust = myself.createReciprocalTrust(
             url=url, secret=secret, desc=desc, relationship=relationship, type=type)
@@ -306,10 +307,6 @@ class trustHandler(webapp2.RequestHandler):
                 baseuri = params['baseuri']
             else:
                 baseuri = ''
-            if 'secret' in params:
-                secret = params['secret']
-            else:
-                secret = ''
             if 'desc' in params:
                 desc = params['desc']
             else:
@@ -336,11 +333,7 @@ class trustHandler(webapp2.RequestHandler):
                 desc = self.request.get('desc')
             else:
                 desc = ''
-            if self.request.get('secret') and len(self.request.get('secret')) > 0:
-                secret = self.request.get('secret')
-            else:
-                secret = ''
-        if myself.modifyTrustAndNotify(relationship=relationship, peerid=peerid, baseuri=baseuri, secret=secret, approved=approved, desc=desc):
+        if myself.modifyTrustAndNotify(relationship=relationship, peerid=peerid, baseuri=baseuri, approved=approved, desc=desc):
             self.response.set_status(204, 'Ok')
         else:
             self.response.set_status(405, 'Not modified')
