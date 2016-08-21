@@ -30,12 +30,12 @@ class MainPage(webapp2.RequestHandler):
                 # to the original identity that was bound to this actor.
                 # The check_on_oauth_success() function returns False if identity (or
                 # anything else) is wrong.
-                if not on_aw_oauth.check_on_oauth_success(myself, token=my_auth.token)):
+                if not on_aw_oauth.check_on_oauth_success(myself, token=my_auth.token):
                     logging.info('Forbidden identity.')
                     self.response.set_status(403, "Forbidden to this identity")
                     return
 
-        redirect_uri=my_auth.validateOAuthToken()
+        redirect_uri = my_auth.validateOAuthToken()
         if len(redirect_uri) > 0:
             self.redirect(redirect_uri)
             return
@@ -48,6 +48,6 @@ class MainPage(webapp2.RequestHandler):
         return
 
 
-application=webapp2.WSGIApplication([
+application = webapp2.WSGIApplication([
     webapp2.Route(r'/<id>/oauth<:/?><path:.*>', MainPage, name='MainPage'),
-], debug = True)
+], debug=True)
