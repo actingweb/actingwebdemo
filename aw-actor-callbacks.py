@@ -22,10 +22,10 @@ class MainPage(webapp2.RequestHandler):
             self.post(id, name)
         (Config, myself, check) = auth.init_actingweb(appreq=self,
                                                       id=id, path='callbacks')
-        if not myself or not check:
+        if not myself or check.response["code"] != 200:
             return
-        if not check.authorise(path='callbacks', subpath=name, method='GET'):
-            self.response.set_status(403)
+        if not check.checkAuthorisation(path='callbacks', subpath=name, method='GET'):
+            self.response.set_status(403, 'Forbidden')
             return
         if not on_aw_callbacks.on_get_callbacks(myself, self, name):
             self.response.set_status(403, 'Forbidden')
@@ -38,14 +38,14 @@ class MainPage(webapp2.RequestHandler):
         """Handles deletion of callbacks, like subscriptions"""
         (Config, myself, check) = auth.init_actingweb(appreq=self,
                                                       id=id, path='callbacks')
-        if not myself or not check:
+        if not myself or check.response["code"] != 200:
             return
         path = name.split('/')
         if path[0] == 'subscriptions':
             peerid = path[1]
             subid = path[2]
-            if not check.authorise(path='callbacks', subpath='subscriptions', method='DELETE', peerid=peerid):
-                self.response.set_status(403)
+            if not check.checkAuthorisation(path='callbacks', subpath='subscriptions', method='DELETE', peerid=peerid):
+                self.response.set_status(403, 'Forbidden')
                 return
             sub = myself.getSubscription(peerid=peerid, subid=subid, callback=True)
             if sub:
@@ -54,8 +54,8 @@ class MainPage(webapp2.RequestHandler):
                 return
             self.response.set_status(404, 'Not found')
             return
-        if not check.authorise(path='callbacks', subpath=name, method='DELETE'):
-            self.response.set_status(403)
+        if not check.checkAuthorisation(path='callbacks', subpath=name, method='DELETE'):
+            self.response.set_status(403, 'Forbidden')
             return
         if not on_aw_callbacks.on_delete_callbacks(myself, self, name):
             self.response.set_status(403, 'Forbidden')
@@ -64,14 +64,14 @@ class MainPage(webapp2.RequestHandler):
         """Handles POST callbacks"""
         (Config, myself, check) = auth.init_actingweb(appreq=self,
                                                       id=id, path='callbacks')
-        if not myself or not check:
+        if not myself or check.response["code"] != 200:
             return
         path = name.split('/')
         if path[0] == 'subscriptions':
             peerid = path[1]
             subid = path[2]
-            if not check.authorise(path='callbacks', subpath='subscriptions', method='POST', peerid=peerid):
-                self.response.set_status(403)
+            if not check.checkAuthorisation(path='callbacks', subpath='subscriptions', method='POST', peerid=peerid):
+                self.response.set_status(403, 'Forbidden')
                 return
             sub = myself.getSubscription(peerid=peerid, subid=subid, callback=True)
             if sub:
@@ -87,8 +87,8 @@ class MainPage(webapp2.RequestHandler):
                 return
             self.response.set_status(404, 'Not found')
             return
-        if not check.authorise(path='callbacks', subpath=name, method='POST'):
-            self.response.set_status(403)
+        if not check.checkAuthorisation(path='callbacks', subpath=name, method='POST'):
+            self.response.set_status(403, 'Forbidden')
             return
         if not on_aw_callbacks.on_post_callbacks(myself, self, name):
             self.response.set_status(403, 'Forbidden')
