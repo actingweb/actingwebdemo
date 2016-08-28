@@ -11,6 +11,7 @@ import base64
 __all__ = [
     'auth',
     'init_actingweb',
+    'add_auth_response',
 ]
 
 # This is where each path and subpath in actingweb is assigned an authentication type
@@ -29,6 +30,19 @@ def select_auth_type(path, subpath):
     if path == 'www':
         return conf.www_auth
     return 'basic'
+
+def add_auth_response(appreq=None, auth_obj=None):
+    """Called after init_actingweb() if add_response was set to False, and now responses should be added."""
+    if not appreq or not auth_obj:
+        return False
+    appreq.response.set_status(auth_obj.response['code'], auth_obj.response['text'])
+    if auth_obj.response['code'] == 302:
+        appreq.redirect(auth_obj.redirect)
+    elif auth_obj.response['code'] == 401:
+        appreq.response.out.write("Authentication required")
+    for h in auth_obj.response['headers']:
+        appreq.response.headers[h["header"]] = h["value"]
+    return True
 
 
 def init_actingweb(appreq=None, id=None, path='', subpath='', add_response=True):
@@ -55,13 +69,7 @@ def init_actingweb(appreq=None, id=None, path='', subpath='', add_response=True)
         return (conf, None, None)
     auth_obj.checkAuthentication(appreq=appreq, path=fullpath)
     if add_response:
-        appreq.response.set_status(auth_obj.response['code'], auth_obj.response['text'])
-        if auth_obj.response['code'] == 302:
-            appreq.redirect(auth_obj.redirect)
-        elif auth_obj.response['code'] == 401:
-            appreq.response.out.write("Authentication required")
-        for h in auth_obj.response['headers']:
-            appreq.response.headers[h["header"]] = h["value"]
+        add_auth_response(appreq, auth_obj)
     return (conf, auth_obj.actor, auth_obj)
 
 

@@ -22,7 +22,8 @@ class MainPage(webapp2.RequestHandler):
             self.post(id, name)
         (Config, myself, check) = auth.init_actingweb(appreq=self,
                                                       id=id, path='callbacks')
-        if not myself or check.response["code"] != 200:
+        if not myself or (check.response["code"] != 200 and check.response["code"] != 401):
+            auth.add_auth_response(appreq=self, auth_obj=check)
             return
         if not check.checkAuthorisation(path='callbacks', subpath=name, method='GET'):
             self.response.set_status(403, 'Forbidden')
@@ -64,7 +65,8 @@ class MainPage(webapp2.RequestHandler):
         """Handles POST callbacks"""
         (Config, myself, check) = auth.init_actingweb(appreq=self,
                                                       id=id, path='callbacks')
-        if not myself or check.response["code"] != 200:
+        if not myself or (check.response["code"] != 200 and check.response["code"] != 401):
+            auth.add_auth_response(appreq=self, auth_obj=check)
             return
         path = name.split('/')
         if path[0] == 'subscriptions':

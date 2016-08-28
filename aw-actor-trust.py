@@ -340,8 +340,9 @@ class trustHandler(webapp2.RequestHandler):
 
     def delete(self, id, relationship, peerid):
         (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='trust', subpath=relationship)
-        if not myself or check.response["code"] != 200:
+                                                      id=id, path='trust', subpath=relationship, add_response=False)
+        if not myself or (check.response["code"] != 200 and check.response["code"] != 401):
+            auth.add_auth_response(appreq=self, auth_obj=check)
             return
         # We allow non-approved peers to delete even if we haven't approved the relationship yet
         if not check.checkAuthorisation(path='trust', subpath='<type>/<id>', method='DELETE', peerid=peerid, approved=False):
