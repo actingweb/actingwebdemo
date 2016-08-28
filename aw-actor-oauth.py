@@ -10,19 +10,19 @@ from on_aw import on_aw_oauth
 class MainPage(webapp2.RequestHandler):
 
     def get(self, id, path):
-        (Config, myself, my_auth) = auth.init_actingweb(appreq=self,
+        (Config, myself, check) = auth.init_actingweb(appreq=self,
                                                         id=id, path='oauth', subpath=path)
-        if not myself or not my_auth:
+        if not myself or not check:
             return
         if not check.checkAuthorisation(path='oauth', subpath=path, method='GET'):
             self.response.set_status(403)
             return
-        if my_auth.type != 'oauth':
+        if check.type != 'oauth':
             self.response.set_status(403, "OAuth not enabled")
             return
         # Handle callback from oauth granter
         if self.request.get('code'):
-            if not my_auth.processOAuthCallback(self.request.get('code')):
+            if not check.processOAuthCallback(self.request.get('code')):
                 self.response.set_status(502, "OAuth Token Request Failed")
                 return
             else:
@@ -30,17 +30,17 @@ class MainPage(webapp2.RequestHandler):
                 # to the original identity that was bound to this actor.
                 # The check_on_oauth_success() function returns False if identity (or
                 # anything else) is wrong.
-                if not on_aw_oauth.check_on_oauth_success(myself, token=my_auth.token):
+                if not on_aw_oauth.check_on_oauth_success(myself, token=check.token):
                     logging.info('Forbidden identity.')
                     self.response.set_status(403, "Forbidden to this identity")
                     return
 
-        redirect_uri = my_auth.validateOAuthToken()
+        redirect_uri = check.validateOAuthToken()
         if len(redirect_uri) > 0:
             self.redirect(redirect_uri)
             return
         if len(redirect_uri) == 0:
-            if my_auth.setCookieOnCookieRedirect(self):
+            if check.setCookieOnCookieRedirect(self):
                 return
             self.response.set_status(204, "OAuthorization Done")
             return
