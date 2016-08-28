@@ -1,3 +1,6 @@
+Aug 28, 2016:
+- Major refactoring of auth.py. Only affects how init_actingweb() is used, see function docs
+
 Aug 21, 2016: New features
 - Removed the possibility of setting a secret when initiating a new relationship, as well as ability to change secret. This is to avoid the possibility of detecting existing secrets (from other peers) by testing secrets
 
