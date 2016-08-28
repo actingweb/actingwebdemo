@@ -261,33 +261,34 @@ class actor():
             return False
         requrl = baseuri + '/trust/' + relationship + '/' + self.id
         headers = {}
-        if secret:
+        if not secret or len(secret) == 0:
+            logging.debug('No secret received from requesting peer(' + peerid +
+                ') at url (' + requrl + '). Verification is not possible.')
+            verified = False
+        else:
             headers = {'Authorization': 'Bearer ' + secret,
                        }
             logging.debug('Verifying trust at requesting peer(' + peerid +
                           ') at url (' + requrl + ') and secret(' + secret + ')')
-        else:
-            logging.debug('Verifying trust at requesting peer(' + peerid +
-                          ') at url (' + requrl + ') and no secret')
-        try:
-            response = urlfetch.fetch(url=requrl,
-                                      method=urlfetch.GET,
-                                      headers=headers)
-            self.last_response_code = response.status_code
-            self.last_response_message = response.content
             try:
-                logging.debug('Verifying trust response JSON:' + response.content)
-                data = json.loads(response.content)
-                if data["verificationToken"] == verificationToken:
-                    verified = True
-                else:
+                response = urlfetch.fetch(url=requrl,
+                                        method=urlfetch.GET,
+                                        headers=headers)
+                self.last_response_code = response.status_code
+                self.last_response_message = response.content
+                try:
+                    logging.debug('Verifying trust response JSON:' + response.content)
+                    data = json.loads(response.content)
+                    if data["verificationToken"] == verificationToken:
+                        verified = True
+                    else:
+                        verified = False
+                except ValueError:
+                    logging.debug('No json body in response when verifying trust at url(' + requrl + ')')
                     verified = False
-            except ValueError:
-                logging.debug('No json body in response when verifying trust at url(' + requrl + ')')
+            except:
+                logging.debug('No response when verifying trust at url' + requrl + ')')
                 verified = False
-        except:
-            logging.debug('No response when verifying trust at url' + requrl + ')')
-            verified = False
         new_trust = trust.trust(self.id, peerid)
         if not new_trust.create(baseuri=baseuri, secret=secret, type=type, approved=approved, peer_approved=peer_approved,
                                 relationship=relationship, verified=verified, desc=desc):
