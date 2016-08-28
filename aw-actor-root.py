@@ -19,9 +19,9 @@ class MainPage(webapp2.RequestHandler):
             return
         (Config, myself, check) = auth.init_actingweb(appreq=self,
                                                       id=id, path='', subpath='')
-        if not myself or not check:
+        if not myself or check.response["code"] != 200:
             return
-        if not check.authorise(path='/', method='GET'):
+        if not check.checkAuthorisation(path='/', method='GET'):
             self.response.set_status(403)
             return
         pair = {
@@ -37,9 +37,9 @@ class MainPage(webapp2.RequestHandler):
     def delete(self, id):
         (Config, myself, check) = auth.init_actingweb(appreq=self,
                                                       id=id, path='', subpath='')
-        if not myself or not check:
+        if not myself or check.response["code"] != 200:
             return
-        if not check.authorise(path='/', method='DELETE'):
+        if not check.checkAuthorisation(path='/', method='DELETE'):
             self.response.set_status(403)
             return
         on_aw_delete.on_aw_delete_actor(myself)

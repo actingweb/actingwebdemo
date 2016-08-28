@@ -19,6 +19,10 @@ __all__ = [
 
 
 def select_auth_type(path, subpath):
+    """Selects authentication type based on path and subpath.
+
+    Currently are only basic and oauth supported. Peer auth is automatic if an Authorization Bearer <token> header is included in the http request.
+    """
     conf = config.config()
     if path == 'oauth':
         return 'oauth'
@@ -26,54 +30,110 @@ def select_auth_type(path, subpath):
         return conf.www_auth
     return 'basic'
 
-# Returns three objects {config, actor, auth} (actor is none if actor is
-# not found; auth is none if not authenticated and response message is set if this occurs)
 
+def init_actingweb(appreq=None, id=None, path='', subpath='', add_response=True):
+    """Initialises actingweb by loading a config object, an actor object, and authentication object.
+    
 
-def init_actingweb(appreq=None, id=None, path='', subpath='', enforce_auth=True):
+            More details about the authentication can be found in the auth object. If add_response is True, appreq.response
+            will be changed according to authentication result. If False, appreq will not be touched.
+            authn_done (bool), response['code'], response['text'], and response['headers'] will indicate results of the authentication process
+            and need to be acted upon.
+            200 is access approved
+            302 is redirect and auth_obj.redirect contains redirect location where response must be redirected
+            401 is authentication required, response['headers'] must be added to response
+            403 is forbidden, text in response['text']
+    """
+
     conf = config.config()
-    if id:
-        myself = actor.actor(id)
-    else:
-        myself = None
-    if not myself or not myself.id:
-        if enforce_auth:
-            appreq.response.set_status(404, "Actor not found")
-        return (conf, None, None)
     fullpath = '/' + path + '/' + subpath
     type = select_auth_type(path=path, subpath=subpath)
     auth_obj = auth(id, type=type)
-    if not auth_obj.checkAuthentication(appreq=appreq, path=fullpath, enforce_auth=enforce_auth) and enforce_auth:
-        appreq.response.set_status(403, "Forbidden")
-    return (conf, myself, auth_obj)
+    if not auth_obj.actor:
+        if add_response:
+            appreq.response.set_status(404, 'Actor not found')
+        return (conf, None, None)
+    auth_obj.checkAuthentication(appreq=appreq, path=fullpath)
+    if add_response:
+        appreq.response.set_status(auth_obj.response['code'], auth_obj.response['text'])
+        if auth_obj.response['code'] == 302:
+            appreq.redirect(auth_obj.redirect)
+        elif auth_obj.response['code'] == 401:
+            appreq.response.out.write("Authentication required")
+        for h in auth_obj.response['headers']:
+            appreq.response.headers[h["header"]] = h["value"]
+    return (conf, auth_obj.actor, auth_obj)
 
 
 class auth():
+    """ The auth class handles authentication and authorisation for the various schemes supported.
+
+    The helper function init_actingweb() can be used to give you an auth object and do authentication (or can be called directly).
+    The check_authentication() function checks the various authentication schemes against the path and does proper authentication.
+    There are three types supported: basic (using creator credentials), token (received when trust is created), or oauth (used to bind
+    an actor to an oauth-enabled external service, as well as to log into /www path where interactive web functionality of the actor
+    is available).
+    The check_authorisation() function validates the authenticated user against the config.py access list.
+    checkTokenAuth() can be called from outside the class to do a simple peer/bearer token verification.
+    The OAuth helper functions are used to:
+    processOAuthCallback() - process an OAuth callback as part of an OAuth flow and exchange code with a valid token
+    validateOAuthToken() - validate and, if necessary, refresh a token
+    setCookieOnCookieRedirect() - set a session cookie in the browser to the token value (called AFTER OAuth has been done!)
+
+    The response[], acl[], and authn_done variables are useful outside auth(). authn_done is set when authentication has been done and
+    a final authentication status can be found in response[].
+
+         self.response = {
+            "code": 403,                # Result code (http)
+            "text": "Forbidden",        # Proposed response text
+            "headers": [],              # Headers to add to response after authentication has been done
+        }    
+        self.acl = {
+            "authenticated": False, # Has authentication been verified and passed?
+            "authorised": False,    # Has authorisation been done and appropriate acls set?
+            "rights": '',           # "a", "r" (approve or reject)
+            "relationship": None,   # E.g. creator, friend, admin, etc
+            "peerid": '',           # Peerid if there is a relationship
+            "approved": False,      # True if the peer is approved
+        }
+
+    """
 
     def __init__(self, id, type='basic'):
-        self.actor = actor.actor(id)
         self.token = None
         self.cookie_redirect = None
         self.cookie = None
         self.type = type
         self.oauth = None
         self.trust = None
+        # Proposed response code after checkAuthentication() or authorise() have been called
+        self.response = {
+            'code': 403,                # Result code (http)
+            'text': "Forbidden",        # Proposed response text
+            'headers': [],              # Headers to add to response after authentication has been done
+        }             
+        # Whether authentication is complete or not (depends on flow)
+        self.authn_done = False
         # acl stores the actual verified credentials and access rights after
         # authentication and authorisation have been done
         self.acl = {
-            "authenticated": False,  # Has authentication been verified and passed?
+            "authenticated": False, # Has authentication been verified and passed?
             "authorised": False,    # Has authorisation been done and appropriate acls set?
             "rights": '',           # "a", "r" (approve or reject)
-            "relationship": None,     # E.g. creator, friend, admin, etc
+            "relationship": None,   # E.g. creator, friend, admin, etc
             "peerid": '',           # Peerid if there is a relationship
             "approved": False,      # True if the peer is approved
         }
         Config = config.config()
         self.config = Config
+        self.actor = actor.actor(id)
         if not self.actor.id:
             self.actor = None
             return
-        if self.type == 'oauth':
+        if self.type == 'basic':
+            self.token = self.actor.passphrase
+            self.realm = Config.auth_realm
+        elif self.type == 'oauth':
             self.oauth = oauth.oauth()
             if self.oauth.enabled():
                 self.property = 'oauth_token'
@@ -90,11 +150,8 @@ class auth():
                 self.redirect = Config.root + self.actor.id + '/oauth'
             else:
                 self.type = 'none'
-        elif self.type == 'basic':
-            self.token = self.actor.passphrase
-            self.realm = Config.auth_realm
 
-    def processOAuthAccept(self, result):
+    def __processOAuthAccept(self, result):
         if not result:
             return None
         if not result['access_token']:
@@ -112,6 +169,7 @@ class auth():
             self.actor.setProperty('oauth_refresh_token_expiry', self.refresh_expiry)
 
     def processOAuthCallback(self, code):
+        """ Called when a callback is received as part of an OAuth flow to exchange code for a bearer token."""
         if not code:
             return False
         if not self.oauth:
@@ -121,10 +179,11 @@ class auth():
         if not result or (result and 'access_token' not in result):
             logging.warn('No token in response')
             return False
-        self.processOAuthAccept(result)
+        self.__processOAuthAccept(result)
         return True
 
     def validateOAuthToken(self):
+        """ Called to validate if the token we already have is still a valid token or needs to be refreshed."""
         if not self.token or not self.expiry:
             return self.oauth.oauthRedirectURI(state=self.actor.id)
         now = time.time()
@@ -134,12 +193,12 @@ class auth():
         else:
             return ""
         result = self.oauth.oauthRefreshToken(self.refresh_token)
-        self.processOAuthAccept(result)
+        self.__processOAuthAccept(result)
         return ""
 
     # Called from a www page (browser access) to verify that a cookie has been
     # set to the actor's valid token.
-    def checkCookieAuth(self, appreq, path):
+    def __checkCookieAuth(self, appreq, path):
         if not path:
             path = ''
         if not self.actor:
@@ -150,20 +209,26 @@ class auth():
             if auth == self.token and now < (float(self.expiry) - 20.0):
                 logging.debug('Authorization cookie header matches a valid token')
                 self.acl["relationship"] = "creator"
+                self.acl["authenticated"] = True
+                self.response['code'] = 200
+                self.authn_done = True
                 return True
             elif auth != self.token:
                 self.actor.deleteProperty(self.property)
                 logging.debug('Authorization cookie header does not match a valid token')
+                self.response['code'] = 403
+                self.response['text'] = "Forbidden"
+                self.authn_done = True
         if self.cookie_redirect:
             logging.debug('Cookie redirect already set!')
             return False
         self.actor.setProperty('cookie_redirect', self.actor.id + path)
         self.cookie_redirect = self.actor.id + path
-        appreq.redirect(self.redirect)
+        self.response['code'] = 302
         return False
 
-    # Called after successful auth (through checkCookieAuth) to set the cookie with the token value
     def setCookieOnCookieRedirect(self, appreq):
+        """ Called after successful auth to set the cookie with the token value."""
         if not self.cookie_redirect:
             return False
         if not self.token:
@@ -176,72 +241,88 @@ class auth():
         self.actor.deleteProperty('cookie_redirect')
         return True
 
-    def checkBasicAuth(self, appreq, path, enforce_auth=True):
+    def __checkBasicAuth(self, appreq, path):
         if self.type != 'basic':
+            self.response['code'] = 403
+            self.response['text'] = "Forbidden"
             return False
         if not self.token:
             logging.warn("Trying to do basic auth when no passphrase value can be found.")
+            self.response['code'] = 403
+            self.response['text'] = "Forbidden"
             return False
-        if not 'Authorization' in appreq.request.headers and enforce_auth:
-            appreq.response.headers['WWW-Authenticate'] = 'Basic realm="' + self.realm + '"'
-            appreq.response.set_status(401)
-            appreq.response.out.write("Authorization required")
+        if not 'Authorization' in appreq.request.headers:
+            self.response['headers'].append({
+                                        'header': 'WWW-Authenticate',
+                                        'value': 'Basic realm="' + self.realm + '"',
+            })
+            self.response['code'] = 401
+            self.response['text'] = "Authentication required"
             return False
-        else:
-            if not enforce_auth:
-                return False
-            auth = appreq.request.headers['Authorization']
-            (basic, token) = auth.split(' ')
-            if basic.lower() != "basic":
-                appreq.response.set_status(403)
-                return False
-            (username, password) = base64.b64decode(auth.split(' ')[1]).split(':')
-            if username != self.actor.creator:
-                appreq.response.set_status(403)
-                return False
-            if password != self.actor.passphrase:
-                appreq.response.set_status(403)
-                return False
-            self.acl["relationship"] = "creator"
-            return True
+        auth = appreq.request.headers['Authorization']
+        (basic, token) = auth.split(' ')
+        if basic.lower() != "basic":
+            self.response['code'] = 403
+            self.response['text'] = "No basic auth in Authorization header"
+            return False
+        self.authn_done = True
+        (username, password) = base64.b64decode(auth.split(' ')[1]).split(':')
+        if username != self.actor.creator:
+            self.response['code'] = 403
+            self.response['text'] = "Invalid username or password"
+            return False
+        if password != self.actor.passphrase:
+            self.response['code'] = 403
+            self.response['text'] = "Invalid username or password"
+            return False
+        self.acl["relationship"] = "creator"
+        self.acl["authenticated"] = True
+        self.response['code'] = 200
+        return True
 
     def checkTokenAuth(self, appreq):
+        """ Called with an http request to check the Authorization header and validate if we have a peer with this token."""
         if not 'Authorization' in appreq.request.headers:
-            return None
-        else:
-            auth = appreq.request.headers['Authorization']
-            (bearer, token) = auth.split(' ')
-            if bearer.lower() != "bearer":
-                return None
-            new_trust = trust.trust(id=self.actor.id, token=token)
-            if new_trust.trust:
-                self.acl["relationship"] = new_trust.relationship
-                self.acl["peerid"] = new_trust.peerid
-                self.acl["approved"] = new_trust.approved
-                return new_trust
-            else:
-                return None
-
-    # NOTE that path is NOT used for actual authentication, it is just used
-    # for redirect as part of the authentication process
-    def checkAuthentication(self, appreq, path, enforce_auth=True):
-        trust = self.checkTokenAuth(appreq)
-        if trust:
-            self.trust = trust
-            self.token = trust.secret
+            return False
+        auth = appreq.request.headers['Authorization']
+        (bearer, token) = auth.split(' ')
+        if bearer.lower() != "bearer":
+            return False
+        self.authn_done = True
+        new_trust = trust.trust(id=self.actor.id, token=token)
+        if new_trust.trust:
+            self.acl["relationship"] = new_trust.relationship
+            self.acl["peerid"] = new_trust.peerid
+            self.acl["approved"] = new_trust.approved
             self.acl["authenticated"] = True
+            self.response['code'] = 200
+            self.trust = new_trust
+            self.token = new_trust.secret
             return True
-        if self.type == 'oauth':
-            if self.checkCookieAuth(appreq=appreq, path=path):
-                self.acl["authenticated"] = True
-                return True
-        if self.type == 'basic':
-            if self.checkBasicAuth(appreq=appreq, path=path, enforce_auth=enforce_auth):
-                self.acl["authenticated"] = True
-                return True
-        return False
+        else:
+            return False
 
-    def authorise(self, path='', subpath='', method='', peerid='', approved=True):
+
+    def checkAuthentication(self, appreq, path):
+        """ Checks authentication in appreq, redirecting back to path if oauth is done."""
+        if self.checkTokenAuth(appreq):
+            return
+        elif self.type == 'oauth':
+            self.__checkCookieAuth(appreq=appreq, path=path)
+            return
+        elif self.type == 'basic':
+            self.__checkBasicAuth(appreq=appreq, path=path)
+            return
+        self.authn_done = True
+        self.response['code'] = 403
+        self.response['text'] = "Forbidden"
+        return
+
+    def checkAuthorisation(self, path='', subpath='', method='', peerid='', approved=True):
+        """ Checks if the authenticated user has access rights based on acl in config.py.
+        
+        Takes the path, subpath, method, and peerid of the path (if auth user is different from the peer that owns the
+        path, e.g. creator). If approved is False, then the trust relationship does not need to be approved for access"""
         if len(self.acl["peerid"]) > 0 and approved and self.acl["approved"] == False:
             return False
         if self.acl["relationship"]:

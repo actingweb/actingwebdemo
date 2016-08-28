@@ -15,9 +15,9 @@ class MainPage(webapp2.RequestHandler):
     def get(self, id, name):
         (Config, myself, check) = auth.init_actingweb(appreq=self,
                                                       id=id, path='properties', subpath=name)
-        if not myself or not check:
+        if not myself or check.response["code"] != 200:
             return
-        if not check.authorise(path='properties', subpath=name, method='GET'):
+        if not check.checkAuthorisation(path='properties', subpath=name, method='GET'):
             self.response.set_status(403)
             return
         # if name is not set, this request URI was the properties root
@@ -60,9 +60,9 @@ class MainPage(webapp2.RequestHandler):
 
         (Config, myself, check) = auth.init_actingweb(appreq=self,
                                                       id=id, path='properties', subpath=name)
-        if not myself or not check:
+        if not myself or check.response["code"] != 200:
             return
-        if not check.authorise(path='properties', subpath=name, method='PUT'):
+        if not check.checkAuthorisation(path='properties', subpath=name, method='PUT'):
             self.response.set_status(403)
             return
         value = self.request.body.decode('utf-8', 'ignore')
@@ -73,9 +73,9 @@ class MainPage(webapp2.RequestHandler):
     def post(self, id, name):
         (Config, myself, check) = auth.init_actingweb(appreq=self,
                                                       id=id, path='properties', subpath=name)
-        if not myself or not check:
+        if not myself or check.response["code"] != 200:
             return
-        if not check.authorise(path='properties', subpath=name, method='POST'):
+        if not check.checkAuthorisation(path='properties', subpath=name, method='POST'):
             self.response.set_status(403)
             return
         if len(name) > 0:
@@ -107,9 +107,9 @@ class MainPage(webapp2.RequestHandler):
     def delete(self, id, name):
         (Config, myself, check) = auth.init_actingweb(appreq=self,
                                                       id=id, path='properties', subpath=name)
-        if not myself or not check:
+        if not myself or check.response["code"] != 200:
             return
-        if not check.authorise(path='properties', subpath=name, method='DELETE'):
+        if not check.checkAuthorisation(path='properties', subpath=name, method='DELETE'):
             self.response.set_status(403)
             return
         myself.deleteProperty(name)

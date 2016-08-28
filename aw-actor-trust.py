@@ -40,9 +40,9 @@ class rootHandler(webapp2.RequestHandler):
             return
         (Config, myself, check) = auth.init_actingweb(appreq=self,
                                                       id=id, path='trust')
-        if not myself or not check:
+        if not myself or check.response["code"] != 200:
             return
-        if not check.authorise(path='trust', method='GET'):
+        if not check.checkAuthorisation(path='trust', method='GET'):
             self.response.set_status(403)
             return
         relationship = ''
@@ -79,9 +79,9 @@ class rootHandler(webapp2.RequestHandler):
     def post(self, id):
         (Config, myself, check) = auth.init_actingweb(appreq=self,
                                                       id=id, path='trust')
-        if not myself or not check:
+        if not myself or check.response["code"] != 200:
             return
-        if not check.authorise(path='trust', method='POST'):
+        if not check.checkAuthorisation(path='trust', method='POST'):
             self.response.set_status(403)
             return
         secret = ''
@@ -149,10 +149,10 @@ class relationshipHandler(webapp2.RequestHandler):
 
     def post(self, id, relationship):
         (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='trust', subpath=relationship, enforce_auth=False)
+                                                      id=id, path='trust', subpath=relationship, add_response=False)
         if not myself:
             return
-        if not check.authorise(path='trust', subpath='<type>', method='POST'):
+        if not check.checkAuthorisation(path='trust', subpath='<type>', method='POST'):
             self.response.set_status(403)
             return
         try:
@@ -233,9 +233,9 @@ class trustHandler(webapp2.RequestHandler):
             return
         (Config, myself, check) = auth.init_actingweb(appreq=self,
                                                       id=id, path='trust', subpath=relationship)
-        if not myself or not check:
+        if not myself or check.response["code"] != 200:
             return
-        if not check.authorise(path='trust', subpath='<type>/<id>', method='GET', peerid=peerid):
+        if not check.checkAuthorisation(path='trust', subpath='<type>/<id>', method='GET', peerid=peerid):
             self.response.set_status(403)
             return
         relationships = myself.getTrustRelationships(
@@ -274,9 +274,9 @@ class trustHandler(webapp2.RequestHandler):
     def post(self, id, relationship, peerid):
         (Config, myself, check) = auth.init_actingweb(appreq=self,
                                                       id=id, path='trust', subpath=relationship)
-        if not myself or not check:
+        if not myself or check.response["code"] != 200:
             return
-        if not check.authorise(path='trust', subpath='<type>/<id>', method='POST', peerid=peerid):
+        if not check.checkAuthorisation(path='trust', subpath='<type>/<id>', method='POST', peerid=peerid):
             self.response.set_status(403)
             return
         try:
@@ -296,9 +296,9 @@ class trustHandler(webapp2.RequestHandler):
     def put(self, id, relationship, peerid):
         (Config, myself, check) = auth.init_actingweb(appreq=self,
                                                       id=id, path='trust', subpath=relationship)
-        if not myself or not check:
+        if not myself or check.response["code"] != 200:
             return
-        if not check.authorise(path='trust', subpath='<type>/<id>', method='PUT', peerid=peerid):
+        if not check.checkAuthorisation(path='trust', subpath='<type>/<id>', method='PUT', peerid=peerid):
             self.response.set_status(403)
             return
         try:
@@ -341,10 +341,10 @@ class trustHandler(webapp2.RequestHandler):
     def delete(self, id, relationship, peerid):
         (Config, myself, check) = auth.init_actingweb(appreq=self,
                                                       id=id, path='trust', subpath=relationship)
-        if not myself or not check:
+        if not myself or check.response["code"] != 200:
             return
         # We allow non-approved peers to delete even if we haven't approved the relationship yet
-        if not check.authorise(path='trust', subpath='<type>/<id>', method='DELETE', peerid=peerid, approved=False):
+        if not check.checkAuthorisation(path='trust', subpath='<type>/<id>', method='DELETE', peerid=peerid, approved=False):
             self.response.set_status(403)
             return
         isPeer = False

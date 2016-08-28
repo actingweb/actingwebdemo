@@ -20,12 +20,12 @@ class MainPage(webapp2.RequestHandler):
     def get(self, id, path):
         (Config, myself, check) = auth.init_actingweb(appreq=self,
                                                       id=id, path='www', subpath=path)
-        if not myself or not check:
+        if not myself or check.response["code"] != 200:
             return
         if not Config.ui:
             self.response.set_status(404, "Web interface is not enabled")
             return
-        if not check.authorise(path='www', subpath=path, method='GET'):
+        if not check.checkAuthorisation(path='www', subpath=path, method='GET'):
             self.response.set_status(403)
             return
 

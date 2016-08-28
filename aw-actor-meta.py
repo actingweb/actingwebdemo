@@ -21,10 +21,11 @@ class MainPage(webapp2.RequestHandler):
 
     def get(self, id, path):
         (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='meta', subpath=path, enforce_auth=False)
+                                                      id=id, path='meta', subpath=path, add_response=False)
+        # We accept no auth here, so don't check response code
         if not myself:
             return
-        if not check.authorise(path='meta', subpath=path, method='GET'):
+        if not check.checkAuthorisation(path='meta', subpath=path, method='GET'):
             self.response.set_status(403)
             return
 
