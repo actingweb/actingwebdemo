@@ -231,9 +231,11 @@ class trustHandler(webapp2.RequestHandler):
         if self.request.get('_method') == 'DELETE':
             self.delete(id, relationship, peerid)
             return
+        logging.debug('GET trust headers: ' + str(self.request.headers))
         (Config, myself, check) = auth.init_actingweb(appreq=self,
                                                       id=id, path='trust', subpath=relationship)
         if not myself or check.response["code"] != 200:
+            logging.debug('Failed authentication.')
             return
         if not check.checkAuthorisation(path='trust', subpath='<type>/<id>', method='GET', peerid=peerid):
             self.response.set_status(403)
