@@ -28,7 +28,8 @@ def getPeerInfo(url):
             "last_response_message": response.content,
             "data": json.loads(response.content),
         }
-        logging.debug('Got peer info from url(' + url + ') with body(' + response.content + ')')
+        logging.debug('Got peer info from url(' + url +
+                      ') with body(' + response.content + ')')
     except:
         res = {
             "last_response_code": 500,
@@ -79,7 +80,8 @@ class actor():
         relationships = db.Trust.query(db.Trust.id == self.id).fetch()
         for rel in relationships:
             rel.key.delete()
-        diffs = db.SubscriptionDiff.query(db.SubscriptionDiff.id == self.id).fetch()
+        diffs = db.SubscriptionDiff.query(
+            db.SubscriptionDiff.id == self.id).fetch()
         for diff in diffs:
             diff.key.delete()
         subs = db.Subscription.query(db.Subscription.id == self.id).fetch()
@@ -195,11 +197,13 @@ class actor():
             return False
         peer = res["data"]
         if not peer["id"] or not peer["type"] or len(peer["type"]) == 0:
-            logging.info("Received invalid peer info when trying to establish trust: " + url)
+            logging.info(
+                "Received invalid peer info when trying to establish trust: " + url)
             return False
         if len(type) > 0:
             if type.lower() != peer["type"].lower():
-                logging.info("Peer is of the wrong actingweb type: " + peer["type"])
+                logging.info(
+                    "Peer is of the wrong actingweb type: " + peer["type"])
                 return False
         if not relationship or len(relationship) == 0:
             relationship = Config.default_relationship
@@ -209,7 +213,8 @@ class actor():
         # Since we are initiating the relationship, we implicitly approve it
         # It is not verified until the peer has verified us
         new_trust.create(baseuri=url, secret=secret, type=peer["type"],
-                         relationship=relationship, approved=True, verified=False, desc=desc)
+                         relationship=relationship, approved=True,
+                         verified=False, desc=desc)
         # Add a sleep here to make sure that appengine has time to write the new
         # relationship to datastore before we try to create the new trust with peer
         # time.sleep(0.4)
@@ -229,12 +234,14 @@ class actor():
             response = urlfetch.fetch(url=requrl,
                                       method=urlfetch.POST,
                                       payload=data,
-                                      headers={'Content-Type': 'application/json', }
+                                      headers={
+                                          'Content-Type': 'application/json', }
                                       )
             self.last_response_code = response.status_code
             self.last_response_message = response.content
         except:
-            logging.debug("Not able to create trust with peer, deleting my trust.")
+            logging.debug(
+                "Not able to create trust with peer, deleting my trust.")
             new_trust.delete()
             return False
 
@@ -242,7 +249,8 @@ class actor():
             # Reload the trust to check if approval was done
             mod_trust = trust.trust(self.id, peer["id"])
             if not mod_trust.trust:
-                logging.error("Couldn't find trust relationship after peer POST and verification")
+                logging.error(
+                    "Couldn't find trust relationship after peer POST and verification")
                 return False
             if self.last_response_code == 201:
                 # Already approved by peer (probably auto-approved)
@@ -251,7 +259,8 @@ class actor():
                 mod_trust.modify(peer_approved=True)
             return mod_trust
         else:
-            logging.debug("Not able to create trust with peer, deleting my trust.")
+            logging.debug(
+                "Not able to create trust with peer, deleting my trust.")
             new_trust.delete()
             return False
 
@@ -263,7 +272,7 @@ class actor():
         headers = {}
         if not secret or len(secret) == 0:
             logging.debug('No secret received from requesting peer(' + peerid +
-                ') at url (' + requrl + '). Verification is not possible.')
+                          ') at url (' + requrl + '). Verification is not possible.')
             verified = False
         else:
             headers = {'Authorization': 'Bearer ' + secret,
@@ -272,22 +281,25 @@ class actor():
                           ') at url (' + requrl + ') and secret(' + secret + ')')
             try:
                 response = urlfetch.fetch(url=requrl,
-                                        method=urlfetch.GET,
-                                        headers=headers)
+                                          method=urlfetch.GET,
+                                          headers=headers)
                 self.last_response_code = response.status_code
                 self.last_response_message = response.content
                 try:
-                    logging.debug('Verifying trust response JSON:' + response.content)
+                    logging.debug(
+                        'Verifying trust response JSON:' + response.content)
                     data = json.loads(response.content)
                     if data["verificationToken"] == verificationToken:
                         verified = True
                     else:
                         verified = False
                 except ValueError:
-                    logging.debug('No json body in response when verifying trust at url(' + requrl + ')')
+                    logging.debug(
+                        'No json body in response when verifying trust at url(' + requrl + ')')
                     verified = False
             except:
-                logging.debug('No response when verifying trust at url' + requrl + ')')
+                logging.debug(
+                    'No response when verifying trust at url' + requrl + ')')
                 verified = False
         new_trust = trust.trust(self.id, peerid)
         if not new_trust.create(baseuri=baseuri, secret=secret, type=type, approved=approved, peer_approved=peer_approved,
@@ -311,17 +323,20 @@ class actor():
                 if rel.secret:
                     headers = {'Authorization': 'Bearer ' + rel.secret,
                                }
-                logging.debug('Deleting reciprocal relationship at url(' + url + ')')
+                logging.debug(
+                    'Deleting reciprocal relationship at url(' + url + ')')
                 try:
                     response = urlfetch.fetch(url=url,
                                               method=urlfetch.DELETE,
                                               headers=headers)
                 except:
-                    logging.debug('Failed to delete reciprocal relationship at url(' + url + ')')
+                    logging.debug(
+                        'Failed to delete reciprocal relationship at url(' + url + ')')
                     failedOnce = True
                     continue
                 if (response.status_code < 200 or response.status_code > 299) and response.status_code != 404:
-                    logging.debug('Failed to delete reciprocal relationship at url(' + url + ')')
+                    logging.debug(
+                        'Failed to delete reciprocal relationship at url(' + url + ')')
                     failedOnce = True
                     continue
                 else:
@@ -334,7 +349,8 @@ class actor():
     def createSubscription(self, peerid=None, target=None, subtarget=None, granularity=None, subid=None, callback=False):
         new_sub = subscription.subscription(
             actor=self, peerid=peerid, subid=subid, callback=callback)
-        new_sub.create(target=target, subtarget=subtarget, granularity=granularity)
+        new_sub.create(target=target, subtarget=subtarget,
+                       granularity=granularity)
         return new_sub
 
     def createRemoteSubscription(self, peerid=None, target=None, subtarget=None, granularity=None):
@@ -411,7 +427,8 @@ class actor():
             subs = db.Subscription.query(
                 db.Subscription.id == self.id).fetch()
         # For some reason, doing a querit where callback is included results in a
-        # perfect match (everthing returned), so we need to apply callback as a filter
+        # perfect match (everthing returned), so we need to apply callback as a
+        # filter
         ret = []
         for sub in subs:
             if sub.callback == callback:
@@ -422,7 +439,8 @@ class actor():
         """Retrieves a single subscription identified by peerid and subid."""
         if not subid:
             return False
-        sub = subscription.subscription(self, peerid=peerid, subid=subid, callback=callback)
+        sub = subscription.subscription(
+            self, peerid=peerid, subid=subid, callback=callback)
         if sub.subscription:
             return sub
 
@@ -449,7 +467,8 @@ class actor():
             if response.status_code == 204:
                 return True
             else:
-                logging.debug('Failed to delete remote subscription at url(' + url + ')')
+                logging.debug(
+                    'Failed to delete remote subscription at url(' + url + ')')
                 return False
         except:
             return False
@@ -458,7 +477,8 @@ class actor():
         """Deletes a specified subscription"""
         if not subid:
             return False
-        sub = subscription.subscription(self, peerid=peerid, subid=subid, callback=callback)
+        sub = subscription.subscription(
+            self, peerid=peerid, subid=subid, callback=callback)
         return sub.delete()
 
     def callbackSubscription(self, peerid=None, sub=None, diff=None, blob=None):
@@ -504,7 +524,8 @@ class actor():
             if response.status_code == 204 and sub.granularity == "high":
                 sub.clearDiff(diff.seqnr)
         except:
-            logging.debug('Peer did not respond to callback on url(' + requrl + ')')
+            logging.debug(
+                'Peer did not respond to callback on url(' + requrl + ')')
             self.last_response_code = 0
             self.last_response_message = 'No response from peer for subscription callback'
 
@@ -512,8 +533,10 @@ class actor():
         """Registers a blob diff against all subscriptions with the correct target and subtarget."""
         if not blob or not target:
             return
-        # Get all subscriptions, both with the specific subtarget and those without
-        subs = self.getSubscriptions(target=target, subtarget=None, callback=False)
+        # Get all subscriptions, both with the specific subtarget and those
+        # without
+        subs = self.getSubscriptions(
+            target=target, subtarget=None, callback=False)
         if subtarget:
             logging.debug("registerDiffs() - blob(" + blob + "), target(" +
                           target + "), subtarget(" + subtarget + "), # of subs(" + str(len(subs)) + ")")
@@ -525,11 +548,14 @@ class actor():
             if subtarget and sub.subtarget and sub.subtarget != subtarget:
                 logging.debug("     - no match on subtarget, skipping...")
                 continue
-            logging.debug("     - subscription(" + sub.subid + ") for peer(" + sub.peerid + ")")
-            subObj = subscription.subscription(self, peerid=sub.peerid, subid=sub.subid)
+            logging.debug("     - subscription(" + sub.subid +
+                          ") for peer(" + sub.peerid + ")")
+            subObj = subscription.subscription(
+                self, peerid=sub.peerid, subid=sub.subid)
             # Subscriptions with subtarget, but this diff is on a higher level
             if not subtarget and subObj.subtarget:
-                # Create a json diff on the subpart that this subscription covers
+                # Create a json diff on the subpart that this subscription
+                # covers
                 try:
                     jsonblob = json.loads(blob)
                     subblob = json.dumps(jsonblob[subObj.subtarget])
@@ -546,9 +572,11 @@ class actor():
                     deferred.defer(self.callbackSubscription,
                                    peerid=sub.peerid, sub=subObj, diff=diff, blob=subblob)
                 continue
-            # The diff is on the subtarget, but the subscription is on the higher level
+            # The diff is on the subtarget, but the subscription is on the
+            # higher level
             if subtarget and not subObj.subtarget:
-                # Create a data["subtarget"] = blob diff to give correct level of diff to subscriber
+                # Create a data["subtarget"] = blob diff to give correct level
+                # of diff to subscriber
                 upblob = {}
                 try:
                     jsonblob = json.loads(blob)
@@ -568,7 +596,8 @@ class actor():
                 continue
             # The diff is correct for the subscription
             diff = subObj.addDiff(blob=blob)
-            logging.debug("         - exact target/subtarget match, adding diff(" + blob + ")")
+            logging.debug(
+                "         - exact target/subtarget match, adding diff(" + blob + ")")
             if not diff:
                 logging.warn("Failed when registering a diff to subscription (" +
                              sub.subid + "). Will not send callback.")
