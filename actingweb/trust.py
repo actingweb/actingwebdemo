@@ -103,6 +103,8 @@ class trust():
         return True
 
     def create(self, baseuri='', type='', relationship='', secret='', approved=False, verified=False, verificationToken='', desc='', peer_approved=False):
+        if self.trust:
+            return False
         self.baseuri = baseuri
         self.type = type
         Config = config.config()
@@ -113,10 +115,11 @@ class trust():
         if not secret or len(secret) == 0:
             self.secret = Config.newToken()
         else:
-            result = db.Trust.query(db.Trust.id == self.id, db.Trust.secret == secret).get()
-            if result:
-                return False
             self.secret = secret
+        # Be absolutely sure that the secret is not already used
+        result = db.Trust.query(db.Trust.id == self.id, db.Trust.secret == secret).get(use_cache=False)
+        if result:
+            return False
         self.approved = approved
         self.peer_approved = peer_approved
         self.verified = verified
@@ -125,28 +128,17 @@ class trust():
         if not desc:
             desc = ''
         self.desc = desc
-        if self.trust:
-            self.trust.baseuri = self.baseuri
-            self.trust.type = self.type
-            self.trust.relationship = self.relationship
-            self.trust.secret = self.secret
-            self.trust.approved = self.approved
-            self.trust.peer_approved = self.peer_approved
-            self.trust.verified = self.verified
-            self.trust.verificationToken = self.verificationToken
-            self.trust.desc = self.desc
-        else:
-            self.trust = db.Trust(id=self.id,
-                                  peerid=self.peerid,
-                                  baseuri=self.baseuri,
-                                  type=self.type,
-                                  relationship=self.relationship,
-                                  secret=self.secret,
-                                  approved=self.approved,
-                                  verified=self.verified,
-                                  peer_approved=self.peer_approved,
-                                  verificationToken=self.verificationToken,
-                                  desc=self.desc)
+        self.trust = db.Trust(id=self.id,
+                                peerid=self.peerid,
+                                baseuri=self.baseuri,
+                                type=self.type,
+                                relationship=self.relationship,
+                                secret=self.secret,
+                                approved=self.approved,
+                                verified=self.verified,
+                                peer_approved=self.peer_approved,
+                                verificationToken=self.verificationToken,
+                                desc=self.desc)
         self.trust.put(use_cache=False)
         return True
 

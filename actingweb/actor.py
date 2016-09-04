@@ -76,21 +76,21 @@ class actor():
         """Deletes an actor and cleans up all relevant stored data in db."""
         properties = db.Property.query(db.Property.id == self.id).fetch()
         for prop in properties:
-            prop.key.delete()
+            prop.key.delete(use_cache=False)
         relationships = db.Trust.query(db.Trust.id == self.id).fetch()
         for rel in relationships:
-            rel.key.delete()
+            rel.key.delete(use_cache=False)
         diffs = db.SubscriptionDiff.query(
             db.SubscriptionDiff.id == self.id).fetch()
         for diff in diffs:
-            diff.key.delete()
+            diff.key.delete(use_cache=False)
         subs = db.Subscription.query(db.Subscription.id == self.id).fetch()
         for sub in subs:
             self.deleteRemoteSubscription(peerid=sub.peerid, subid=sub.subid)
-            sub.key.delete()
+            sub.key.delete(use_cache=False)
         result = db.Actor.query(db.Actor.id == self.id).get()
         if result:
-            result.key.delete()
+            result.key.delete(use_cache=False)
 
     def setProperty(self, name, value):
         """Sets an actor's property name to value."""
@@ -182,16 +182,21 @@ class actor():
                 logging.debug('Not able to notify peer at url(' + requrl + ')')
                 self.last_response_code = 500
 
-        return relationships[0].modify(baseuri=baseuri, secret=secret, desc=desc, approved=approved, verified=verified, verificationToken=verificationToken, peer_approved=peer_approved)
+        return relationships[0].modify(baseuri=baseuri,
+                                       secret=secret,
+                                       desc=desc,
+                                       approved=approved,
+                                       verified=verified,
+                                       verificationToken=verificationToken,
+                                       peer_approved=peer_approved)
 
     def createReciprocalTrust(self, url, secret=None, desc='', relationship='', type=''):
         """Creates a new reciprocal trust relationship locally and by requesting a relationship from a peer actor."""
         if len(url) == 0:
             return False
-        if not secret:
+        if not secret or len(secret) == 0:
             return False
         Config = config.config()
-
         res = getPeerInfo(url)
         if not res or res["last_response_code"] < 200 or res["last_response_code"] >= 300:
             return False
@@ -210,6 +215,9 @@ class actor():
         # Create trust, so that peer can do a verify on the relationship (using
         # verificationToken) when we request the relationship
         new_trust = trust.trust(self.id, peer["id"])
+        if new_trust.trust:
+            logging.warn("Trying to establish a new Reciprocal trust when peer relationship already exists (" + peer["id"] + ")")
+            return False
         # Since we are initiating the relationship, we implicitly approve it
         # It is not verified until the peer has verified us
         new_trust.create(baseuri=url, secret=secret, type=peer["type"],
