@@ -102,16 +102,12 @@ class rootHandler(webapp2.RequestHandler):
                 desc = params['desc']
         except ValueError:
             url = self.request.get('url')
-            secret = self.request.get('secret')
             relationship = self.request.get('relationship')
             type = self.request.get('type')
         if len(url) == 0:
             self.response.set_status(400, 'Missing peer URL')
             return
-        seed = str(url)
-        now = datetime.datetime.now()
-        seed += now.strftime("%Y%m%dT%H%M%S")
-        secret = Config.newUUID(seed)
+        secret = Config.newToken()
 
         new_trust = myself.createReciprocalTrust(
             url=url, secret=secret, desc=desc, relationship=relationship, type=type)
