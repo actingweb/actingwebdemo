@@ -17,7 +17,7 @@ class subscription():
         if self.peerid and self.subid:
             result = db.Subscription.query(db.Subscription.id == self.actor.id,
                                            db.Subscription.peerid == self.peerid,
-                                           db.Subscription.subid == self.subid).get()
+                                           db.Subscription.subid == self.subid).get(use_cache=False)
             if result:
                 self.subscription = result
                 self.target = result.target
@@ -109,12 +109,12 @@ class subscription():
             return None
         return db.SubscriptionDiff.query(db.SubscriptionDiff.id == self.actor.id,
                                          db.SubscriptionDiff.subid == self.subid,
-                                         db.SubscriptionDiff.seqnr == seqid).get()
+                                         db.SubscriptionDiff.seqnr == seqid).get(use_cache=False)
 
     def getDiffs(self):
         """Get all the diffs available for this subscription ordered by the timestamp, oldest first"""
         return db.SubscriptionDiff.query(db.SubscriptionDiff.id == self.actor.id,
-                                         db.SubscriptionDiff.subid == self.subid).order(db.SubscriptionDiff.seqnr).fetch()
+                                         db.SubscriptionDiff.subid == self.subid).order(db.SubscriptionDiff.seqnr).fetch(use_cache=False)
 
     def clearDiff(self, seqid):
         """Clears one specific diff"""
@@ -145,4 +145,4 @@ class subscription():
             return False
         self.actor = actor
         if self.actor.id and self.peerid and self.subid:
-            self.get()
+            self.get(use_cache=False)

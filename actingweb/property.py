@@ -12,7 +12,7 @@ class property():
 
     def get(self):
         result = db.Property.query(db.Property.id == self.actor.id,
-                                   db.Property.name == self.name).get()
+                                   db.Property.name == self.name).get(use_cache=False)
         if result:
             self.dbprop = result
             self.value = result.value
@@ -25,11 +25,11 @@ class property():
             self.dbprop.value = value
         else:
             self.dbprop = db.Property(id=self.actor.id, name=self.name, value=value)
-        self.dbprop.put()
+        self.dbprop.put(use_cache=False)
 
     def delete(self):
         if self.dbprop:
-            self.dbprop.key.delete()
+            self.dbprop.key.delete(use_cache=False)
 
     def __init__(self, actor, name):
         self.dbprop = None
@@ -37,4 +37,4 @@ class property():
         self.value = None
         if actor.id:
             self.actor = actor
-            self.get()
+            self.get(use_cache=False)
