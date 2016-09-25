@@ -37,4 +37,4 @@ class property():
         self.value = None
         if actor.id:
             self.actor = actor
-            self.get(use_cache=False)
+            self.get()

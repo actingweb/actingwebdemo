@@ -145,4 +145,4 @@ class subscription():
             return False
         self.actor = actor
         if self.actor.id and self.peerid and self.subid:
-            self.get(use_cache=False)
+            self.get()
