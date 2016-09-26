@@ -106,7 +106,7 @@ class actor():
         """Deletes a property name."""
         prop = property.property(self, name)
         if prop:
-            prop.delete(use_cache=False)
+            prop.delete()
 
     def getProperties(self):
         """Retrieves properties from db."""
