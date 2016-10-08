@@ -595,8 +595,8 @@ class actor():
                 self, peerid=sub.peerid, subid=sub.subid)
             logging.debug("     - processing subscription(" + sub.subid +
                           ") for peer(" + sub.peerid + ") with target(" + 
-                          subObj.target + ") subtarget(" + subObj.subtarget +
-                          ") and resource(" + subObj.resource + ")")
+                          subObj.target + ") subtarget(" + str(subObj.subtarget or '') +
+                          ") and resource(" + str(subObj.resource or '') + ")")
             finblob = None
             # Subscription with a resource, but this diff is on a higher level
             if (not resource or not subtarget) and subObj.subtarget and subObj.resource:
