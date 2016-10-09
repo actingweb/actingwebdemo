@@ -1,7 +1,12 @@
+Oct 9, 2016:
+- Added support for GET, PUT, and DELETE for any sub-level of /properties, 
+also below resource, i.e. /properties/<subtarget>/<resource>/something/andmore/...
+- Fixed bug where blob='', i.e. deletion, would not be registered
+
 Oct 7, 2016:
 - Added support for resource (in addition to target and subtarget) in subscriptions, thus allowing subscriptions to
 e.g. /resources/files/<fileid> (where <fileid> is the resource to subscribe to. /properties/subtarget/resource subscriptions
-are also allowed. TBD: Support for GET, PUT, DELETE on /properties/subtarget/resource
+are also allowed. 
 
 Oct 6, 2016:
 - Added support for /resources with on_aw_resources.py in on_aw/ to hook into GET, DELETE, and POST requests to /resources

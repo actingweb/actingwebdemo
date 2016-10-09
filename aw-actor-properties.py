@@ -11,9 +11,9 @@ import webapp2
 
 
 def merge_dict(d1, d2):
-    """
-    Modifies d1 in-place to contain values from d2.  If any value
-    in d1 is a dictionary (or dict-like), *and* the corresponding
+    """ Modifies d1 in-place to contain values from d2.
+
+    If any value in d1 is a dictionary (or dict-like), *and* the corresponding
     value in d2 is also a dictionary, then merge them in-place.
     Thanks to Edward Loper on stackoverflow.com
     """
@@ -23,6 +23,29 @@ def merge_dict(d1, d2):
             merge_dict(v1, v2)
         else:
             d1[k] = v2
+
+
+def delete_dict(d1, path):
+    """ Deletes path (an array of strings) in d1 dict.
+
+    d1 is modified to no longer contain the attr/value pair
+    or dict that is specified by path.
+    """
+    if not d1:
+        # logging.debug('Path not found')
+        return False
+    # logging.debug('d1: ' + json.dumps(d1))
+    # logging.debug('path: ' + str(path))
+    if len(path) > 1 and path[1] and len(path[1]) > 0:
+        return delete_dict(d1.get(path[0]), path[1:])
+    if len(path) == 1 and path[0] and path[0] in d1:
+        # logging.debug('Deleting d1[' + path[0] + ']')
+        try:
+            del d1[path[0]]
+            return True
+        except KeyError:
+            return False
+    return False
 
 
 class MainPage(webapp2.RequestHandler):
@@ -51,18 +74,22 @@ class MainPage(webapp2.RequestHandler):
         if not name:
             self.listall(myself)
             return
-        lookup = myself.getProperty(path[0])
+        lookup = myself.getProperty(name)
         if not lookup.value:
             self.response.set_status(404, "Property not found")
             return
         try:
             jsonblob = json.loads(lookup.value)
-            out = jsonblob
-            if len(path) > 1:
-                del path[0]
-                for p in path:
-                    out = out[p]
-            out = json.dumps(out)
+            try:
+                out = jsonblob
+                if len(path) > 1:
+                    del path[0]
+                    for p in path:
+                        out = out[p]
+                out = json.dumps(out)
+            except:
+                self.response.set_status(404)
+                return
         except:
             out = str(lookup.value)
         self.response.headers["Content-Type"] = "application/json"
@@ -186,8 +213,19 @@ class MainPage(webapp2.RequestHandler):
         else:
             path = name.split('/')
             name = path[0]
+            if len(path) >= 2 and len(path[1]) > 0:
+                resource = path[1]
+            else:
+                resource = None
         if not check.checkAuthorisation(path='properties', subpath=name, method='DELETE'):
             self.response.set_status(403)
+            return
+        if not name:
+            props = myself.getProperties()
+            for p in props:
+                myself.deleteProperty(p.name)
+            myself.registerDiffs(target='properties', subtarget=None, blob='')
+            self.response.set_status(204)
             return
         if len(path) == 1:
             myself.deleteProperty(name)
@@ -197,28 +235,19 @@ class MainPage(webapp2.RequestHandler):
         orig = myself.getProperty(name).value
         logging.debug('DELETE /properties original value(' + orig + ')')
         try:
-            origjson = json.loads(orig)
-            orig_is_json = True
-            orig = origjson
+            orig = json.loads(orig)
         except:
-            orig_is_json = False
-        del path[0]
-        i = len(path)-1
-        store = {}
-        while i > 0:
-            store[path[i]] = store
-            i -= 1
-        del store[path[len(path)-1]]
-        if orig_is_json:
-            orig[path[0]] = store
-            res = json.dumps(orig)
-            blob = json.dumps(store)
-        else:
-            res = json.dumps(store)
-            blob = res
+            # Since /properties/something was handled above
+            # orig must be json loadable
+            self.response.set_status(404)
+            return
+        if not delete_dict(orig, path[1:]):
+            self.response.set_status(404)
+            return
+        res = json.dumps(orig)
         logging.debug('Result to store( ' + res + ') in /properties/' + name)
         myself.setProperty(name, res)
-        myself.registerDiffs(target='properties', subtarget=name, resource = path[0], blob=blob)
+        myself.registerDiffs(target='properties', subtarget=name, resource = resource, blob='')
         self.response.set_status(204)
 
 application = webapp2.WSGIApplication([

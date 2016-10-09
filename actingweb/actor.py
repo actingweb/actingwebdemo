@@ -565,7 +565,7 @@ class actor():
 
     def registerDiffs(self, target=None, subtarget=None, resource=None, blob=None):
         """Registers a blob diff against all subscriptions with the correct target, subtarget, and resource."""
-        if not blob or not target:
+        if blob is None or not target:
             return
         # Get all subscriptions, both with the specific subtarget/resource and those
         # without
