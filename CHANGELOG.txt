@@ -1,3 +1,20 @@
+Oct 9, 2016:
+- Added support for GET, PUT, and DELETE for any sub-level of /properties, 
+also below resource, i.e. /properties/<subtarget>/<resource>/something/andmore/...
+- Fixed bug where blob='', i.e. deletion, would not be registered
+
+Oct 7, 2016:
+- Added support for resource (in addition to target and subtarget) in subscriptions, thus allowing subscriptions to
+e.g. /resources/files/<fileid> (where <fileid> is the resource to subscribe to. /properties/subtarget/resource subscriptions
+are also allowed. 
+
+Oct 6, 2016:
+- Added support for /resources with on_aw_resources.py in on_aw/ to hook into GET, DELETE, and POST requests to /resources
+- Added fixes for box.com specific OAUTH implementation
+- Added new function oauthGET(), oauthPOST(), and oauthDELETE() to auth() class. These will refresh a token if necessary and
+can be used insted of oauth.getRequest(), postRequest(), and deleteRequest()
+- Minor refactoring of inner workings of auth.py and oauth.py wrt return values and error codes
+
 Sep 25, 2016:
 - Added use_cache=False to all db operations to avoid cache issue when there are multiple instances of same app in gae
 
