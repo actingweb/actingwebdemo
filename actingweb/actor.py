@@ -116,28 +116,39 @@ class actor():
     def getTrustRelationship(self, peerid=None):
         if not peerid:
             return None
-        return db.Trust.query(db.Trust.id == self.id and db.Trust.peerid == peerid).get(use_cache=False)
+        return db.Trust.query(db.Trust.id == self.id,
+                              db.Trust.peerid == peerid).get(use_cache=False)
 
     def getTrustRelationships(self, relationship='', peerid='', type=''):
         """Retrieves all trust relationships or filtered."""
         if len(relationship) > 0 and len(peerid) > 0 and len(type) > 0:
             relationships = db.Trust.query(
-                db.Trust.id == self.id and db.Trust.relationship == relationship and db.Trust.peerid == peerid and db.Trust.type == type).fetch(use_cache=False)
+                db.Trust.id == self.id,
+                db.Trust.relationship == relationship,
+                db.Trust.peerid == peerid,
+                db.Trust.type == type).fetch(use_cache=False)
         elif len(peerid) > 0 and len(type) > 0:
             relationships = db.Trust.query(
-                db.Trust.id == self.id and db.Trust.peerid == peerid and db.Trust.type == type).fetch(use_cache=False)
+                db.Trust.id == self.id,
+                db.Trust.peerid == peerid,
+                db.Trust.type == type).fetch(use_cache=False)
         elif len(relationship) > 0 and len(peerid) > 0:
             relationships = db.Trust.query(
-                db.Trust.id == self.id and db.Trust.relationship == relationship and db.Trust.peerid == peerid).fetch(use_cache=False)
+                db.Trust.id == self.id,
+                db.Trust.relationship == relationship,
+                db.Trust.peerid == peerid).fetch(use_cache=False)
         elif len(relationship) > 0:
             relationships = db.Trust.query(
-                db.Trust.id == self.id and db.Trust.relationship == relationship).fetch(use_cache=False)
+                db.Trust.id == self.id,
+                db.Trust.relationship == relationship).fetch(use_cache=False)
         elif len(peerid) > 0:
             relationships = db.Trust.query(
-                db.Trust.id == self.id and db.Trust.peerid == peerid).fetch(use_cache=False)
+                db.Trust.id == self.id,
+                db.Trust.peerid == peerid).fetch(use_cache=False)
         elif len(type) > 0:
             relationships = db.Trust.query(
-                db.Trust.id == self.id and db.Trust.type == type).fetch(use_cache=False)
+                db.Trust.id == self.id,
+                db.Trust.type == type).fetch(use_cache=False)
         else:
             relationships = db.Trust.query(db.Trust.id == self.id).fetch(use_cache=False)
         rels = []
@@ -420,40 +431,40 @@ class actor():
             return None
         if peerid and target and subtarget and resource:
             subs = db.Subscription.query(
-                db.Subscription.id == self.id and
-                db.Subscription.peerid == peerid and
-                db.Subscription.target == target and
-                db.Subscription.subtarget == subtarget and
+                db.Subscription.id == self.id,
+                db.Subscription.peerid == peerid,
+                db.Subscription.target == target,
+                db.Subscription.subtarget == subtarget,
                 db.Subscription.resource == resource).fetch(use_cache=False)
         elif peerid and target and subtarget:
             subs = db.Subscription.query(
-                db.Subscription.id == self.id and
-                db.Subscription.peerid == peerid and
-                db.Subscription.target == target and
+                db.Subscription.id == self.id,
+                db.Subscription.peerid == peerid,
+                db.Subscription.target == target,
                 db.Subscription.subtarget == subtarget).fetch(use_cache=False)
         elif peerid and target:
             subs = db.Subscription.query(
-                db.Subscription.id == self.id and
-                db.Subscription.peerid == peerid and
+                db.Subscription.id == self.id,
+                db.Subscription.peerid == peerid,
                 db.Subscription.target == target).fetch(use_cache=False)
         elif peerid:
             subs = db.Subscription.query(
-                db.Subscription.id == self.id and
+                db.Subscription.id == self.id,
                 db.Subscription.peerid == peerid).fetch(use_cache=False)
         elif target and subtarget and resource:
             subs = db.Subscription.query(
-                db.Subscription.id == self.id and
-                db.Subscription.target == target and
-                db.Subscription.subtarget == subtarget and
+                db.Subscription.id == self.id,
+                db.Subscription.target == target,
+                db.Subscription.subtarget == subtarget,
                 db.Subscription.resource == resource).fetch(use_cache=False)
         elif target and subtarget:
             subs = db.Subscription.query(
-                db.Subscription.id == self.id and
-                db.Subscription.target == target and
+                db.Subscription.id == self.id,
+                db.Subscription.target == target,
                 db.Subscription.subtarget == subtarget).fetch(use_cache=False)
         elif target:
             subs = db.Subscription.query(
-                db.Subscription.id == self.id and
+                db.Subscription.id == self.id,
                 db.Subscription.target == target).fetch(use_cache=False)
         else:
             subs = db.Subscription.query(
@@ -472,7 +483,7 @@ class actor():
         if not subid:
             return False
         sub = subscription.subscription(
-            self, peerid=peerid, subid=subid, callback=callback)
+            actor=self, peerid=peerid, subid=subid, callback=callback)
         if sub.subscription:
             return sub
 
