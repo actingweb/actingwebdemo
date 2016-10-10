@@ -21,7 +21,7 @@ class MainPage(webapp2.RequestHandler):
         if self.request.get('_method') == 'POST':
             self.post(id, name)
         (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='callbacks')
+                                                      id=id, path='callbacks', add_response=False)
         if not myself or (check.response["code"] != 200 and check.response["code"] != 401):
             auth.add_auth_response(appreq=self, auth_obj=check)
             return
