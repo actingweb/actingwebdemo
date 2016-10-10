@@ -20,7 +20,7 @@ __all__ = [
 ]
 
 
-def on_get_callbacks(myself, req, name):
+def on_get_callbacks(myself, req, auth, name):
     """Customizible function to handle GET /callbacks"""
     # return True if callback has been processed
     # THE BELOW IS SAMPLE CODE
@@ -31,18 +31,17 @@ def on_get_callbacks(myself, req, name):
     return False
 
 
-def on_delete_callbacks(myself, req, name):
+def on_delete_callbacks(myself, req, auth, name):
     """Customizible function to handle DELETE /callbacks"""
     # return True if callback has been processed
     return False
 
 
-def on_post_callbacks(myself, req, name):
+def on_post_callbacks(myself, req, auth, name):
     """Customizible function to handle POST /callbacks"""
     # return True if callback has been processed
     # THE BELOW IS SAMPLE CODE
     #Config = config.config()
-    #my_oauth=oauth.oauth(token = myself.getProperty('oauth_token').value)
     #logging.debug("Callback body: "+req.request.body.decode('utf-8', 'ignore'))
     # non-json POSTs to be handled first
     # if name == 'somethingelse':
@@ -59,7 +58,7 @@ def on_post_callbacks(myself, req, name):
     return False
 
 
-def on_post_subscriptions(myself, req, sub, peerid, data):
+def on_post_subscriptions(myself, req, auth, sub, peerid, data):
     """Customizible function to process incoming callbacks/subscriptions/ callback with json body, return True if processed, False if not."""
     logging.debug("Got callback and processed " + sub.subid +
                   " subscription from peer " + peerid + " with json blob: " + json.dumps(data))
