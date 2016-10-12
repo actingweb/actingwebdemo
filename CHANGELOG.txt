@@ -1,3 +1,7 @@
+Oct 12, 2016:
+- Support for actor.get_from_property(property-name, value) to initialse an actor from db by looking up a property value
+(it must be unique)
+
 Oct 9, 2016:
 - Added support for GET, PUT, and DELETE for any sub-level of /properties, 
 also below resource, i.e. /properties/<subtarget>/<resource>/something/andmore/...
