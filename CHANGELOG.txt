@@ -1,3 +1,12 @@
+Oct 15, 2016:
+- Added support for requests to /bot and a bot (permanent) token in config.py to do API requests
+without going through the /<actorid>/ paths. Used to support scenarios where users can communicate with a bot to
+initiate creation of an actor (or to do commands that don't need personal oauth authorization.
+
+Oct 12, 2016:
+- Support for actor.get_from_property(property-name, value) to initialse an actor from db by looking up a property value
+(it must be unique)
+
 Oct 9, 2016:
 - Added support for GET, PUT, and DELETE for any sub-level of /properties, 
 also below resource, i.e. /properties/<subtarget>/<resource>/something/andmore/...

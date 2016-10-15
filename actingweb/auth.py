@@ -137,6 +137,11 @@ class auth():
         self.actor = actor.actor(id)
         if not self.actor.id:
             self.actor = None
+            self.oauth = oauth.oauth(token=None)
+            self.token = None
+            self.expiry = None
+            self.refresh_expiry = None
+            self.refresh_token = None
             return
         # We need to initialise oauth for use towards the external oauth service
         self.property = 'oauth_token'  # Property name used to set self.token
