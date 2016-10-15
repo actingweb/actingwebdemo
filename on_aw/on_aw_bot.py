@@ -7,16 +7,9 @@ from actingweb import actor
 from actingweb import oauth
 from actingweb import config
 
-from spark import ciscospark
-
-__all__ = [
-    'check_on_oauth_success',
-]
-
-
 def on_bot_post(req, auth, path):
     """Called on POSTs to /bot.
-    
+
     auth will be initialised with the configured bot token to do
     oauth-authorized API calls.
     However, there will not be any actor iniatialised.
