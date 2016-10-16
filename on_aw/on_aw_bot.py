@@ -7,6 +7,11 @@ from actingweb import actor
 from actingweb import oauth
 from actingweb import config
 
+__all__ = [
+    'on_bot_post',
+]
+
+
 def on_bot_post(req, auth, path):
     """Called on POSTs to /bot.
 
