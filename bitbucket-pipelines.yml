@@ -23,7 +23,7 @@ pipelines:
           - echo ${GOOGLE_CLIENT_SECRET_DEV} > client-secret.json
           - gcloud config set project ${GOOGLE_PROJECT_DEV}
           - gcloud auth activate-service-account --key-file client-secret.json
-          - gcloud --quiet --verbosity=info app deploy app.yaml --promote
+          - gcloud --quiet --verbosity=error app deploy app.yaml --promote
   branches:
     release:
       - step:
@@ -47,4 +47,4 @@ pipelines:
           - echo ${GOOGLE_CLIENT_SECRET} > client-secret.json
           - gcloud config set project ${GOOGLE_PROJECT}
           - gcloud auth activate-service-account --key-file client-secret.json
-          - gcloud --quiet --verbosity=info app deploy app.yaml --promote
+          - gcloud --quiet --verbosity=error app deploy app.yaml --promote
