@@ -23,7 +23,7 @@ pipelines:
           - gcloud config set project ${GOOGLE_PROJECT_DEV}
           - gcloud auth activate-service-account --key-file client-secret.json
           - gcloud --quiet --verbosity=error app deploy app.yaml --promote
-          - curl https://api.runscope.com/radar/bucket/09212f02-d661-4466-879c-bfd11dad2df1/trigger?appRoot=https://actingwebdemo-dev.appspot.com
+          - curl https://api.runscope.com/radar/bucket/09212f02-d661-4466-879c-bfd11dad2df1/trigger?appRoot=https://actingwebdemo-dev.appspot.com/
   branches:
     release:
       - step:
@@ -47,5 +47,5 @@ pipelines:
           - gcloud config set project ${GOOGLE_PROJECT}
           - gcloud auth activate-service-account --key-file client-secret.json
           - gcloud --quiet --verbosity=error app deploy app.yaml --promote
-          - curl https://api.runscope.com/radar/bucket/09212f02-d661-4466-879c-bfd11dad2df1/trigger?appRoot=https://actingwebdemo.appspot.com
+          - curl https://api.runscope.com/radar/bucket/09212f02-d661-4466-879c-bfd11dad2df1/trigger?appRoot=https://actingwebdemo.appspot.com/
 
