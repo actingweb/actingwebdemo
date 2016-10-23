@@ -18,7 +18,7 @@ pipelines:
           - python scripts/fetch_gae_sdk.py $(dirname "${GAE_PYTHONPATH}")
           - echo "${PYTHONPATH}" && ls ${GAE_PYTHONPATH}
           # Install app & dev dependencies, test, deploy, test deployment
-          - pip --quiet install -r requirements.txt -t lib/
+          #- pip --quiet install -r requirements.txt -t lib/
           - echo "key = '${GOOGLE_API_KEY}'" > api_key.py
           - python test_main.py
           - echo ${GOOGLE_CLIENT_SECRET} > client-secret.json
