@@ -19,8 +19,16 @@ pipelines:
           - echo "${PYTHONPATH}" && ls ${GAE_PYTHONPATH}
           # Install app & dev dependencies, test, deploy, test deployment
           #- pip --quiet install -r requirements.txt -t lib/
+          - echo "key = '${GOOGLE_API_KEY_DEV}'" > api_key.py
+          - echo ${GOOGLE_CLIENT_SECRET_DEV} > client-secret.json
+  branches:
+    release:
+      - step:
+          script:
           - echo "key = '${GOOGLE_API_KEY}'" > api_key.py
-          #- python test_main.py
           - echo ${GOOGLE_CLIENT_SECRET} > client-secret.json
+  default:
+    - step:
+        script:
           - gcloud auth activate-service-account --key-file client-secret.json
-          - gcloud --quiet --verbosity=error app deploy app.yaml --promote
+          - gcloud --quiet --verbosity=info app deploy app.yaml --promote
