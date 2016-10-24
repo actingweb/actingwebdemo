@@ -22,7 +22,7 @@ pipelines:
           - echo ${GOOGLE_CLIENT_SECRET_DEV} > client-secret.json
           - gcloud config set project ${GOOGLE_PROJECT_DEV}
           - gcloud auth activate-service-account --key-file client-secret.json
-          - gcloud --quiet --verbosity=error app deploy app.yaml --promote --stop-previous-version
+          - gcloud --quiet --verbosity=error app deploy app.yaml --promote --stop-previous-version -v 1
           - sleep 30
           - curl https://api.runscope.com/radar/bucket/09212f02-d661-4466-879c-bfd11dad2df1/trigger?appRoot=https://actingwebdemo-dev.appspot.com/
   branches:
@@ -47,7 +47,7 @@ pipelines:
           - echo ${GOOGLE_CLIENT_SECRET} > client-secret.json
           - gcloud config set project ${GOOGLE_PROJECT}
           - gcloud auth activate-service-account --key-file client-secret.json
-          - gcloud --quiet --verbosity=error app deploy app.yaml --promote --stop-previous-version
+          - gcloud --quiet --verbosity=error app deploy app.yaml --promote --stop-previous-version -v 1
           - sleep 30
           - curl https://api.runscope.com/radar/bucket/09212f02-d661-4466-879c-bfd11dad2df1/trigger?appRoot=https://actingwebdemo.appspot.com/
 
