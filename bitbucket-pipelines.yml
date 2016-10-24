@@ -24,7 +24,7 @@ pipelines:
           - gcloud auth activate-service-account --key-file client-secret.json
           - gcloud --quiet --verbosity=error app deploy app.yaml --promote --stop-previous-version -v 1
           - sleep 30
-          - curl https://api.runscope.com/radar/bucket/09212f02-d661-4466-879c-bfd11dad2df1/trigger?appRoot=https://actingwebdemo-dev.appspot.com/
+          - curl https://api.runscope.com/radar/bucket/09212f02-d661-4466-879c-bfd11dad2df1/trigger
   branches:
     release:
       - step:
