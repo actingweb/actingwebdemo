@@ -47,7 +47,10 @@ class MainPage(webapp2.RequestHandler):
         except ValueError:
             is_json = False
             creator = self.request.get('creator')
-            trustee_root = self.request.get('trustee_root')
+            if creator.lower() == 'trustee':
+                trustee_root = self.request.get('trustee_root')
+            else:
+                trustee_root = ''
             passphrase = self.request.get('passphrase')
         if creator.lower() == 'trustee' and not trustee_root:
             self.response.set_status(405, 'No trustee_root param when creator is trustee')
@@ -65,6 +68,8 @@ class MainPage(webapp2.RequestHandler):
             'creator': myself.creator,
             'passphrase': myself.passphrase,
         }
+        if len(trustee_root) > 0:
+            pair['trustee_root'] = trustee_root
         if Config.ui and not is_json:
             path = os.path.join(os.path.dirname(__file__), 'templates/aw-root-created.html')
             self.response.write(template.render(path, pair).encode('utf-8'))
