@@ -28,6 +28,7 @@ class MainPage(webapp2.RequestHandler):
     def post(self):
         myself = actor.actor()
         Config = config.config()
+        trustee_root = ''
         try:
             params = json.loads(self.request.body.decode('utf-8', 'ignore'))
             is_json = True
@@ -37,9 +38,7 @@ class MainPage(webapp2.RequestHandler):
                 creator = ''
             if creator.lower() == 'trustee':
                 if 'trustee_root' in params:
-                    trustee_root = params['trustee_root']
-                else:
-                    trustee_root = ''
+                    trustee_root = params['trustee_root'] 
             if 'passphrase' in params:
                 passphrase = params['passphrase']
             else:
@@ -49,8 +48,6 @@ class MainPage(webapp2.RequestHandler):
             creator = self.request.get('creator')
             if creator.lower() == 'trustee':
                 trustee_root = self.request.get('trustee_root')
-            else:
-                trustee_root = ''
             passphrase = self.request.get('passphrase')
         if creator.lower() == 'trustee' and not trustee_root:
             self.response.set_status(405, 'No trustee_root param when creator is trustee')
