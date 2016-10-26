@@ -1,3 +1,8 @@
+Oct 26, 2016:
+- Add support for trustee by adding trustee_root to actor factory
+- Add debug logging in auth process
+- Fix bug where actors created within the same second got the same id
+
 Oct 15, 2016:
 - Added support for requests to /bot and a bot (permanent) token in config.py to do API requests
 without going through the /<actorid>/ paths. Used to support scenarios where users can communicate with a bot to
