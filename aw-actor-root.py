@@ -29,8 +29,8 @@ class MainPage(webapp2.RequestHandler):
             'creator': myself.creator,
             'passphrase': myself.passphrase,
         }
-        if myself.creator == 'trustee':
-            trustee_root = myself.getProperty('trustee_root').value
+        trustee_root = myself.getProperty('trustee_root').value
+        if trustee_root and len(trustee_root) > 0:
             pair['trustee_root'] = trustee_root
         out = json.dumps(pair)
         self.response.write(out.encode('utf-8'))

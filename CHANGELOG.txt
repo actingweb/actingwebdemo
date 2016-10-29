@@ -1,3 +1,21 @@
+Oct 28, 2016:
+- Add support for establishment and tear-down of peer actors as trustee, actor.getPeer() and actor.deletePeer()
+  - Add new db storage for peers created as trustee
+  - Add new config.actor section in config.py to define known possible peers
+- Add new actor support function: getTrustRelationshipByType()
+- Add new aw_proxy() class with helper functions to do RPCish peer operations on trust relationships
+  - Either use trust_target or peer_target to send commands to a specific trust or to the trust
+    associated with a peer (i.e. peer created by this app as a trustee)
+  - Support for createResource() (POST on remote actor path like /resources or /properties)
+- Fix bug where clean up of actor did not delete remote subscription (actor.delete())
+  - Add remoteSubscription deletion in aw-actor-subscription.py
+  - Fix auth issue in aw-actor-callbacks.py revealed by ths bug
+
+Oct 26, 2016:
+- Add support for trustee by adding trustee_root to actor factory
+- Add debug logging in auth process
+- Fix bug where actors created within the same second got the same id
+
 Oct 15, 2016:
 - Added support for requests to /bot and a bot (permanent) token in config.py to do API requests
 without going through the /<actorid>/ paths. Used to support scenarios where users can communicate with a bot to
