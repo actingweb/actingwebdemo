@@ -16,7 +16,7 @@ __all__ = [
 ]
 
 
-def on_get_resources(myself, req, auth, name, params):
+def on_get_resources(myself, req, auth, name):
     """ Called on GET to resources. Return struct for json out.
 
         Returning {} will give a 404 response back to requestor. 
