@@ -1,3 +1,11 @@
+Nov 5, 2016:
+- Add support for getResources in aw_proxy.py
+- Renamed peer to peerTrustee in peer.py to better reflect that it is created by actor as trustee
+
+Nov 1, 2016:
+- Add support for changeResource() and deleteResource() in aw_proxy.py
+- Add support for PUT to /resources and on_put_resources() in on_aw_resources.py
+
 Oct 28, 2016:
 - Add support for establishment and tear-down of peer actors as trustee, actor.getPeer() and actor.deletePeer()
   - Add new db storage for peers created as trustee
