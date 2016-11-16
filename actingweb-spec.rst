@@ -103,7 +103,8 @@ a flow where one actor requests a trust relationship with another, which
 then needs to be approved either interactively by a user or
 programatically through the REST interface.
 
-**Overview of Operation**
+Overview of operations
+----------------------
 
 The ActingWeb is an application-layer communication protocol used
 between independent software components that can reside on any
@@ -372,7 +373,7 @@ allow use of OAuth to get access.
 +--------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 The Actor
------------------------------
+==========
 
 What is an Actor?
 -----------------------------
@@ -485,7 +486,7 @@ it MAY choose to respond with 301 Moved Permanently where the Location
 header is set to the root URI of the new actor.
 
 Endpoints
-=========
+---------
 
 ActingWeb actors communicate by sending http requests to each other on
 pre-defined URI paths with pre-defined meanings and representations.
@@ -590,7 +591,7 @@ payload in the subscription request as the original payload to the
 endpoint, and thus forward this payload to the agent when forwarding.
 
 Endpoints
------------------------------
+==========
 
 /meta (MUST)
 -----------------------------
