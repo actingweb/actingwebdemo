@@ -10,6 +10,11 @@ distributed micro-services model. It is both a demo application implementing the
     README
     actingweb-spec
 
+Code
+====
+.. automodule:: actor
+   :members:
+
 Indices and tables
 ==================
 
