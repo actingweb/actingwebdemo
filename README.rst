@@ -4,6 +4,11 @@ acting-web-gae-library - an ActingWeb Library
 This is a python and Google AppEngine implementation showcasing the REST-based `ActingWeb <http://actingweb.org>`_
 distributed micro-services model. It is both a demo application implementing the micro-services model as described in the specification, and it serves as the reference implementation for the ActingWeb REST protocol specification for how such micro-services interact.
 
+.. toctree::
+   :maxdepth: 2
+
+   actingweb-specification
+
 Features of acting-web-gae-library
 ----------------------------------
 The latest code in master is at all times deployed to `https://actingwebdemo.appspot.com/ <https://actingwebdemo.appspot.com/>`_
@@ -52,3 +57,11 @@ The ActingWeb Security Model
 The security model is based on trust between actors, not mini-applications. This means that each instance of the mini-application holding the sensitive data for one particular person or thing **must** be connected through a trust relationship to another ActingWeb actor, but it doesn't have to be a mini-application of the same type (like location sharing), but could be a location sharing actor establishing a trust relationship with 911 authorities to allow emergency services to always be able to look you up.
 
 There are currently two ways of establishing trust between actors: either through an explicit OAuth flow where an actor is tied to somebody's account somewhere else (like Google, Box.com, etc) or through a flow where one actor requests a trust relationship with another, which then needs to be approved either interactively by a user or programatically through the REST interface.
+
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
