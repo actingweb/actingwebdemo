@@ -16,7 +16,7 @@ The latest documentation for the released version (release branch) of this libra
 `http://acting-web-gae-library.readthedocs.io/ <http://acting-web-gae-library.readthedocs.io/>`_.
 
 The master branch of the library has the latest features and bug fixes and the updated documentation can be found at
-`http://acting-web-gae-library.readthedocs.io/en/master` <http://acting-web-gae-library.readthedocs.io/en/master>`_.
+`http://acting-web-gae-library.readthedocs.io/en/master <http://acting-web-gae-library.readthedocs.io/en/master>`_.
 
 Features of acting-web-gae-library
 ----------------------------------
