@@ -2,7 +2,6 @@
 ActingWeb Specification - version 1.0
 =====================================
 
-============
 Introduction
 ============
 
@@ -287,7 +286,6 @@ proxy as a publicly available storage and proxy for communication with
 other actors. The proxy may store requests for resources, actions, and
 methods and forward these when the agent comes online
 
-==========================
 The Mini-Application Model
 ==========================
 
@@ -486,7 +484,6 @@ the actor is deleted after being migrated to a newer version/new actor,
 it MAY choose to respond with 301 Moved Permanently where the Location
 header is set to the root URI of the new actor.
 
-=========
 Endpoints
 =========
 
@@ -999,7 +996,6 @@ actingweb.net/myapp/<actor-id>/oauth?code=… where processing of the code
 can be done and the final token request to the 3\ :sup:`rd` party
 service can be done.
 
-=======================================
 /trust - Trust Relationships (OPTIONAL)
 =======================================
 
@@ -1624,7 +1620,6 @@ Note that the passphrase created at actor instantiation time together
 with the (default) username ‘creator’ MUST use http basic
 authentication.
 
-=========================================
 /subscriptions - Subscriptions (OPTIONAL)
 =========================================
 
@@ -2056,7 +2051,6 @@ return 404 Not found after clearing has been done.
 
   204 No content
 
-=======================
 Security Considerations
 =======================
 
@@ -2074,7 +2068,6 @@ and POST is specified in this document, the parameter
 'true\_method' MUST be supported as alternative ways to specify the
 intended http method.
 
-===================
 IANA Considerations
 ===================
 
@@ -2082,6 +2075,5 @@ Currently, ActingWeb.org controls the namespaces that IANA might be
 responsible for. Dependent on how this specification is moved forward,
 that may or may not change.
 
-=======================
 References and Endnotes
 =======================
