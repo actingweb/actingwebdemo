@@ -7,7 +7,7 @@ distributed micro-services model. It is both a demo application implementing the
 .. toctree::
    :maxdepth: 2
 
-   actingweb-specification
+   actingweb-spec
 
 Features of acting-web-gae-library
 ----------------------------------
