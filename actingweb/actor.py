@@ -22,6 +22,7 @@ def getPeerInfo(url):
     """Contacts an another actor over http/s to retrieve meta information."""
     try:
         logging.debug('Getting peer info at url(' + url + ')')
+        urlfetch.set_default_fetch_deadline(20)
         response = urlfetch.fetch(url=url + '/meta',
                                   method=urlfetch.GET
                                   )
@@ -158,6 +159,7 @@ class actor():
                    base64.b64encode('trustee:' + new_peer.passphrase),
                    }
         try:
+            urlfetch.set_default_fetch_deadline(20)
             response = urlfetch.fetch(url=new_peer.baseuri,
                                       method=urlfetch.DELETE,
                                       headers=headers
@@ -219,6 +221,7 @@ class actor():
                 'Creating peer actor at factory(' + factory + ') with data(' +
                 str(data) + ')')
             try:
+                urlfetch.set_default_fetch_deadline(20)
                 response = urlfetch.fetch(url=factory,
                                         method=urlfetch.POST,
                                         payload=data
@@ -273,6 +276,7 @@ class actor():
                        }
             data = json.dumps(params)
             try:
+                urlfetch.set_default_fetch_deadline(20)
                 response = urlfetch.fetch(url=new_peer.baseuri +
                                           '/trust/' +
                                           Config.actors[shorttype]['relationship'] +
@@ -365,6 +369,7 @@ class actor():
             logging.debug(
                 'Trust relationship has been approved, notifying peer at url(' + requrl + ')')
             try:
+                urlfetch.set_default_fetch_deadline(20)
                 response = urlfetch.fetch(url=requrl,
                                           method=urlfetch.POST,
                                           payload=data,
@@ -433,6 +438,7 @@ class actor():
         logging.debug('Creating reciprocal trust at url(' +
                       requrl + ') and body (' + str(data) + ')')
         try:
+            urlfetch.set_default_fetch_deadline(20)
             response = urlfetch.fetch(url=requrl,
                                       method=urlfetch.POST,
                                       payload=data,
@@ -482,6 +488,7 @@ class actor():
             logging.debug('Verifying trust at requesting peer(' + peerid +
                           ') at url (' + requrl + ') and secret(' + secret + ')')
             try:
+                urlfetch.set_default_fetch_deadline(20)
                 response = urlfetch.fetch(url=requrl,
                                           method=urlfetch.GET,
                                           headers=headers)
@@ -528,6 +535,7 @@ class actor():
                 logging.debug(
                     'Deleting reciprocal relationship at url(' + url + ')')
                 try:
+                    urlfetch.set_default_fetch_deadline(20)
                     response = urlfetch.fetch(url=url,
                                               method=urlfetch.DELETE,
                                               headers=headers)
@@ -582,6 +590,7 @@ class actor():
         try:
             logging.debug('Creating remote subscription at url(' +
                           requrl + ') with body (' + str(data) + ')')
+            urlfetch.set_default_fetch_deadline(20)
             response = urlfetch.fetch(url=requrl,
                                       method=urlfetch.POST,
                                       payload=data,
@@ -687,6 +696,7 @@ class actor():
                    }
         try:
             logging.debug('Deleting remote subscription at url(' + url + ')')
+            urlfetch.set_default_fetch_deadline(20)
             response = urlfetch.fetch(url=url,
                                       method=urlfetch.DELETE,
                                       headers=headers)
@@ -748,6 +758,7 @@ class actor():
         try:
             logging.debug('Doing a callback on subscription at url(' +
                           requrl + ') with body(' + str(data) + ')')
+            urlfetch.set_default_fetch_deadline(20)
             response = urlfetch.fetch(url=requrl,
                                       method=urlfetch.POST,
                                       payload=data.encode('utf-8'),
