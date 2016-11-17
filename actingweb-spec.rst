@@ -362,9 +362,9 @@ allow use of OAuth to get access.
 +------------------+-----------------------------------------------------------------------------------+
 | **Tag**          | **Description**                                                                   |
 +==================+===================================================================================+
-| trust            || The trust endpoint is available to request and establish regular, two-way trust  |
-|                  || relationships between actors. If trust is available, the actor should also be    |
-|                  || able to receive callbacks on /callbacks                                          |
+| trust            | The trust endpoint is available to request and establish regular, two-way trust   |
+|                  | relationships between actors. If trust is available, the actor should also be     |
+|                  | able to receive callbacks on /callbacks                                           |
 +------------------+-----------------------------------------------------------------------------------+
 | onewaytrust      | The version of trust implemented is more restrictive and although one actor A     |
 |                  | has a trust relationship with another actor B giving A access to B’s              |
@@ -1395,11 +1395,28 @@ versioning/migration of actors.
     "relationship": "friend",
     "baseuri": "https://actingweb.net/myotherapp/e41f4aae-4dee-10d0-b725-0af0a413bcf2",
     "desc": "Service subscription of monthly $29.95 for the Geekly Review magazine. ",
-    "peer\_approved": false,
+    "peer_approved": false,
     "type": "urn:actingweb:actingweb.net:myotherapp",
     "id": "f81d4fae-7dec-11d0-a765-00a0c91e6bf6",
     "approved": true
   }
+
+**Verification and Approval**
+
+There are two mechanisms for validating a trust requests. As seen in the 
+above example, there are three attributes stored for each trust relationship:
+*verified*, *peer_approved*, and *approved*. Verification is done as part of the initial
+trust request where the receiving actor does a request back to the requesting actor
+on the requesting actor's trust URL. The shared secret and a verification token are 
+used as mutual authentication to verify that the two actors have a clear, trusted
+communication channel.  The requesting actor is assumed to implicitly have verified
+(or pre-verified, see below) the actor before sending a trust request and it's verified
+is true as default.
+
+The approval is an explicit mutual approval that can happen automatically based on some
+criteria (including passed verification) or through an external process either through
+a trustee or a human. The *approved* attribute is set when the local actor has approved,
+*peer_approved* is set when the peer actor has approved the relationship.
 
 Initiating a trust request
 -----------------------------
@@ -1423,6 +1440,11 @@ If successful, a 201 Created should be returned with an application/json
 body equal to the body in a GET request to the location of the new
 relationship. Also, a Location header with the newly created trust
 relationship MUST be returned.
+
+The actor MAY choose to accept a *type* attribute as a mandatory type that
+the actor responding to the URL should have. In any case, the actor MAY
+implement a request to the peer actor to-be's /meta path to verify type,
+response, and get information about actor capabilities.
 
 Types of Relationships
 -----------------------------
@@ -2083,9 +2105,33 @@ return 404 Not found after clearing has been done.
 Security Considerations
 =======================
 
-<TBD> There are many security considerations, some are well known for
+There are many security considerations, some are well known for
 any http-based communication, while some are specific to ActingWeb, in
 particular the trust model.
+
+The use of https is a MANDATORY requirement for any non-trivial implementation. 
+Some of the validation of peers MAY be based on validation of server-side 
+certificates. This require proper configuration of the web server hosting the
+mini-app.
+
+Validation and approval of a relationship MAY be based on three elements:
+1. Root URL of the requesting actor (confirmed by TLS certificate and callback
+verification)
+2. Explicit approval list, static or dynamic, of peer root URL
+3. Manual approval
+
+The use of a bearer token in the http Authorization header is subject to the 
+same security concerns as OAuth2 Bearer tokens. 
+
+Care must be taken to make sure that the bearer token is sufficiently random and 
+long enough for the security level required.
+
+There is no expiry of ActingWeb peer tokens. However, the relationship can be 
+terminated at any time and thus offers a revocation method. Also, a mini-app
+MAY enforce automatic expiry of relationships and thus force a new trust
+establishment flow.
+
+
 
 **Use of HTTP methods**
 
@@ -2093,8 +2139,8 @@ Some firewalls and proxies may filter http methods like PUT and DELETE
 and may only allow GET and POST. Also, some application frameworks or
 browsers may not support other methods. Wherever a method other than GET
 and POST is specified in this document, the parameter
-\_method='true\_method' and the http header X-HTTP-Method-Override:
-'true\_method' MUST be supported as alternative ways to specify the
+\_method='true\_method' MUST be supported and the http header X-HTTP-Method-Override:
+'true\_method' MAY be supported as alternative ways to specify the
 intended http method.
 
 IANA Considerations
