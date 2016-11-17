@@ -9,7 +9,7 @@ This Document
 -----------------------------
 
 *This specification is written in the format of an
-`​IETF <http://www.ietf.org>`_ draft. However, there is currently no
+`IETF <http://www.ietf.org>`_ draft. However, there is currently no
 effort to submit this draft to a working group, nor to make it go
 through the process of becoming an IETF proposed standard or have any
 other official status. This may or may not be appropriate at some point,
@@ -50,7 +50,7 @@ holding small pieces of sensitive data on behalf of a user or "things"
 (as in Internet of Things). These sensitive data can then be used and
 shared in a very granular and controlled way through the secure and
 distributed ActingWeb REST protocol. This allows you to expose e.g. your
-location data from your phone directly on the Internet (protected by a
+location data from your phone directly on the Internet (protected by the ActingWeb
 security framework) and to be used by other services `on your
 choosing`. You can at any time revoke access to your data for one
 particular service without influencing anything else.
@@ -68,7 +68,7 @@ simple as doing a GET
 There is absolutely no way of getting xyz's and yyz's location
 information in one request, and the security model enforces access based
 on user (i.e. actor), so even if you have access to
-`http://mini-app-url/xyz/properties/location`, you may not have
+`http://mini-app-url/xyz/properties/location`, you will not have
 access to `http://mini-app-url/yyz/properties/location`.
 
 Any functionality desired across actors, for example xyz sharing
@@ -118,7 +118,7 @@ type functionality.
 
 ActingWeb assumes a programming model where you can only access data and
 services through individual instances of the mini-application and where
-there is one instance user or entity that is represented. That is, there
+there is one and only one user or entity that is represented. That is, there
 is no concept of “get all instances” of something, only “get this data
 for this specific instance.”
 
@@ -204,7 +204,7 @@ re-used.
 
 ::
 
-  | Actor \| ---- http(s) -----\| Actor \|
+  | Actor | ---- http(s) -----| Actor |
 
 *Figure, http(s) as transport*
 
@@ -225,67 +225,80 @@ subscription can be established, fulfilled, and cancelled.
 Definitions
 -----------
 
-Endpoint: The ActingWeb protocol specifies a set of endpoints directly
-under the root URI of the actor that is used to get access to the
-functionalities offered by an actor
+Endpoint: 
+  The ActingWeb protocol specifies a set of endpoints directly
+  under the root URI of the actor that is used to get access to the
+  functionalities offered by an actor
 
-Actor: A software component that exposes the ActingWeb protocol
-interface and is accessible to other actors or clients
+Actor: 
+  A software component that exposes the ActingWeb protocol
+  interface and is accessible to other actors or clients
 
-Action: An action is a resource exposed by an actor or an agent (see
-definition) that results an in external action like turning a lightbulb
-on or off, to be executed (i.e. external to the actor). The response may
-even be an OK, as in "action executed"
+Action: 
+  An action is a resource exposed by an actor or an agent (see
+  definition) that results an in external action like turning a lightbulb
+  on or off, to be executed (i.e. external to the actor). The response may
+  even be an OK, as in "action executed"
 
-Agent: A software component that implements partial or in whole a
-mini-application according to the ActingWeb Specification and which
-offers not only data, but also resources, actions, or methods that are
-callable. As opposed to an actor, an agent is typically not publicly
-available (could be on and off due to battery limitations or
-connectivity) and often has a Proxy as peer that can receive requests on
-behalf of the Agent
+Agent: 
+  A software component that implements partial or in whole a
+  mini-application according to the ActingWeb Specification and which
+  offers not only data, but also resources, actions, or methods that are
+  callable. As opposed to an actor, an agent is typically not publicly
+  available (could be on and off due to battery limitations or
+  connectivity) and often has a Proxy as peer that can receive requests on
+  behalf of the Agent
 
-Client: A software component that uses the ActingWeb protocol to access
-data, resources, or services from an actor, but which does not implement
-the ActingWeb protocol interface itself and thus cannot be contacted as
-an actor
+Client: 
+  A software component that uses the ActingWeb protocol to access
+  data, resources, or services from an actor, but which does not implement
+  the ActingWeb protocol interface itself and thus cannot be contacted as
+  an actor
 
-Method: A method is an RPC (Remote Procedure Call) style service that is
-accessible through a specific URI
+Method: 
+  A method is an RPC (Remote Procedure Call) style service that is
+  accessible through a specific URI
 
-Mini-application: A set of functionality that can be instantiated to
-many actors. Consists of a set of data, resources, methods, and actions
-that other actors and clients can request and operate on. Defined by the
-mini-application definition.
+Mini-application: 
+  A set of functionality that can be instantiated to
+  many actors. Consists of a set of data, resources, methods, and actions
+  that other actors and clients can request and operate on. Defined by the
+  mini-application definition.
 
-Mini-application definition: Either a human- or machine-readable
-description of the data, resources, methods, and actions a
-mini-application implements. A human-readable format can be of any type,
-as long as it is complete enough for somebody to use the actors
-implementing the mini-application.
+Mini-application definition: 
+  Either a human- or machine-readable
+  description of the data, resources, methods, and actions a
+  mini-application implements. A human-readable format can be of any type,
+  as long as it is complete enough for somebody to use the actors
+  implementing the mini-application.
 
-Mini-application type: A URN string prefixed with ActingWeb that
-uniquely identifies the mini-application, ex.
-urn:actingweb:domain.com:myapp
+Mini-application type: 
+  A URN string prefixed with ActingWeb that
+  uniquely identifies the mini-application, ex.
+  urn:actingweb:domain.com:myapp
 
-Resource: A resource is an entity exposed through a URI and other actors
-or clients can manipulate the resource through commands according to
-RESTful principles
+Resource: 
+  A resource is an entity exposed through a URI and other actors
+  or clients can manipulate the resource through commands according to
+  RESTful principles
 
-Root URI: All actors have a root URI where it can be contacted using
-http type methods, either directly (if the URI is http/https) or encoded
-in the protocol used (i.e. \_method=…)
+Root URI: 
+  All actors have a root URI where it can be contacted using
+  http type methods, either directly (if the URI is http/https) or encoded
+  in the protocol used (i.e. \_method=…)
 
-Peer: An actor that has an established trust relationship with another
-actor. An actor will have many peers
+Peer: 
+  An actor that has an established trust relationship with another
+  actor. An actor will have many peers
 
-Proxy: A software component that implements a mini-application according
-to the ActingWeb Specification, but which does not offer anything beyond
-data and proxying capabilities. A proxy has a peer Agent that implements
-the same mini-application that it is a proxy for. The agent is using the
-proxy as a publicly available storage and proxy for communication with
-other actors. The proxy may store requests for resources, actions, and
-methods and forward these when the agent comes online
+Proxy: 
+  A software component that implements a mini-application according
+  to the ActingWeb Specification, but which does not offer anything beyond
+  data and proxying capabilities. A proxy has a peer Agent that implements
+  the same mini-application that it is a proxy for. The agent is using the
+  proxy as a publicly available storage and proxy for communication with
+  other actors. The proxy may store requests for resources, actions, and
+  methods and forward these when the agent comes online
 
 The Mini-Application Model
 ==========================
@@ -346,31 +359,44 @@ pages and getting callback data from third party services. Third party
 interactions will often be coupled with implementation of /oauth to
 allow use of OAuth to get access.
 
-+--------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **Tag**            | **Description**                                                                                                                                                                                         |
-+--------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| trust              | The trust endpoint is available to request and establish regular, two-way trust relationships between actors. If trust is available, the actor should also be able to receive callbacks on /callbacks   |
-+--------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| onewaytrust        | The version of trust implemented is more restrictive and although one actor A has a trust relationship with another actor B giving A access to B’s functionality, the reverse is not true               |
-+--------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| subscriptions      | The subscriptions endpoint can be used to establish subscriptions on the actor’s data, actions, or resources                                                                                            |
-+--------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| actions            | The actions path is available and offers ways of triggering something to happen. Example:\ * /actions/turn-lights-off*                                                                                  |
-+--------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| resources          | The resources path is available and non-actingweb data, but relevant to the actor can be found under the resources path. Example: GET /resources/lights to get all lights available.                    |
-+--------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| methods            | The methods path is available and offers non-REST based API access. Example: */methods/soap/sendMessage*                                                                                                |
-+--------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| sessions           | The sessions path is available and offers access to session-based functionality. Example: */sessions/SIP/2f2ag-2696f-42gga*                                                                             |
-+--------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| www                | The www path is available for human web-based interaction with the actor                                                                                                                                |
-+--------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| oauth              | The oauth path is available to do an OAuth2 authorisation flow. The /oauth path should give a redirect to the 3\ :sup:`rd` party authorisation web page that can be presented to the user               |
-+--------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| proxy              | The actor implements capabilities to be a proxy                                                                                                                                                         |
-+--------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| nestedproperties   | Announce support for deeper, nested json structures in /properties (beyond the mandatory attribute/value pairs)                                                                                         |
-+--------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
++--------------------+-----------------------------------------------------------------------------------+
+| **Tag**            | **Description**                                                                   |
++--------------------+-----------------------------------------------------------------------------------+
+| trust              | The trust endpoint is available to request and establish regular, two-way trust   |
+relationships between actors. If trust is available, the actor should also be able to receive callbacks  |
+|                    | on /callbacks                                                                     |
++--------------------+-----------------------------------------------------------------------------------+
+| onewaytrust        | The version of trust implemented is more restrictive and although one actor A     |
+|                    | has a trust relationship with another actor B giving A access to B’s              |
+|                    | functionality, the reverse is not true                                            |
++--------------------+-----------------------------------------------------------------------------------+
+| subscriptions      | The subscriptions endpoint can be used to establish subscriptions on the actor’s  |
+|                    | data, actions, or resources                                                       |
++--------------------+-----------------------------------------------------------------------------------+
+| actions            | The actions path is available and offers ways of triggering something to happen.  |
+|                    | Example:\ * /actions/turn-lights-off*                                             |
++--------------------+-----------------------------------------------------------------------------------+
+| resources          | The resources path is available and non-actingweb data, but relevant to the actor |
+|                    | can be found under the resources path. Example: GET /resources/lights to get all  |
+|                    | lights available                                                                  |
++--------------------+-----------------------------------------------------------------------------------+
+| methods            | The methods path is available and offers non-REST based API access.               |
+|                    | Example: */methods/soap/sendMessage*                                              |
++--------------------+-----------------------------------------------------------------------------------+
+| sessions           | The sessions path is available and offers access to session-based functionality.  |
+|                    | Example: */sessions/SIP/2f2ag-2696f-42gga*                                        |
++--------------------+-----------------------------------------------------------------------------------+
+| www                | The www path is available for human web-based interaction with the actor          |
++--------------------+-----------------------------------------------------------------------------------+
+| oauth              | The oauth path is available to do an OAuth2 authorisation flow. The /oauth path   |
+|                    | should give a redirect to the 3\ :sup:`rd` party authorisation web page that can  |
+|                    | be presented to the user                                                          |
++--------------------+-----------------------------------------------------------------------------------+
+| proxy              | The actor implements capabilities to be a proxy                                   |
++--------------------+-----------------------------------------------------------------------------------+
+| nestedproperties   | Announce support for deeper, nested json structures in /properties (beyond the    |
+|                    | mandatory attribute/value pairs)                                                  |
++--------------------+-----------------------------------------------------------------------------------+
 
 The Actor
 ==========

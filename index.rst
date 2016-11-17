@@ -10,9 +10,3 @@ distributed micro-services model. It is both a demo application implementing the
     README
     actingweb-spec
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
