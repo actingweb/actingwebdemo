@@ -160,10 +160,8 @@ class MainPage(webapp2.RequestHandler):
         try:
             orig = json.loads(orig)
             merge_dict(orig, store)
-            blob = json.dumps(orig[resource])
             res = json.dumps(orig)
         except:
-            blob = json.dumps(store[resource])
             res = json.dumps(store)
         logging.debug('Result to store( ' + res + ') in /properties/' + name)
         myself.setProperty(name, res)

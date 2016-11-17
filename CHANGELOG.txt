@@ -1,3 +1,9 @@
+Nov 17, 2016:
+- Renaming of getPeer() and deletePeer() to getPeerTrustee() and deletePeerTrustee() to avoid confusion
+- Support for oauthPUT() (and corresponding putRequest()) and fix to accept 404 without refreshing token
+- aw_proxy support for getResource(), changeResource(), and deleteResource()
+- Support PUT on /resources
+
 Oct 28, 2016:
 - Add support for establishment and tear-down of peer actors as trustee, actor.getPeer() and actor.deletePeer()
   - Add new db storage for peers created as trustee
