@@ -477,7 +477,7 @@ with the following OPTIONAL application/json data:
   {
     “creator”: “username”,
     “passphrase”: “secret”,
-    “trustee”: “uri”
+    “trustee_root”: “uri”
   }
 
 A special creator user with username “creator” and passphrase “secret”
@@ -485,7 +485,7 @@ MUST have full access to manage and access the actor through http basic
 authentication. If “creator” is not supplied, “creator” MUST be the
 default username.
 
-The 'trustee' value is a URI pointing to the root URI of an actor that
+The 'trustee_root' value is a URI pointing to the root URI of an actor that
 will act as a validator and manager of trust relationships for the new
 actor. This is typically used when another actor is instantiating a new
 actor to get access to some new functionality.
@@ -1628,13 +1628,21 @@ A trustee can be assigned either at the instantiation of an actor (by
 specifying trustee root URI on instantiation in the application/json
 body using the attribute 'trustee\_root') or by changing the trustee's
 root URI by PUTing a new URI to /trust/trustee (an admin or creator
-relationship is required). The 'creator' users passphrase/secret can
-then be used as a bearer token to do trustee REST requests. The actor
-MUST validate both the source of the request to verify that trustee root
-URI is correct, as well as validate the bearer token. As a passphrase is
+relationship is required) with application/json content and the URL in
+the attribute 'trustee_root'. The 'creator' user's passphrase/secret MAY
+then be used as a bearer token to do trustee REST requests. As a passphrase is
 supplied at instantiation time for creator, it is RECOMMENDED that the
 passphrase is checked for security strength if the trustee\_root
 attribute is set.
+
+However, the token MUST NOT give access as bearer token in requests unless 
+the 'creator' user is 'trustee' and the bit strength of the passphrase is > 
+80 bits.
+
+A trustee MUST have access to the /trust and /subscription endpoints, as well
+as the root (like creator) using the passphrase as bearer token. It is 
+RECOMMENDED that any other endpoint access is done and accepted only with
+a regular trust relationship.
 
 It is RECOMMENDED that a trustee also establishes a regular relationship
 with the actor (of any type). A mini-application MUST make this a
@@ -1776,8 +1784,8 @@ elements. See the next section for explanation of the sequence
 attribute.
 
 The below example is for a GET to subscriptions. A GET to
-subscriptions/<peerid> would not include the "peerid" attributes for
-each data element.
+subscriptions/<peerid> does not include the "peerid" attributes for
+each data element, but rather on the root level.
 
 ::
 
@@ -1796,7 +1804,7 @@ each data element.
         "subscriptionid": "6f9c496966d35b3b9d3fa2c9efc2934a"
       },
       {
-        "peerid": "f08ce818ea515526adcbd157eeaf0ab0",
+        "peerid": "794edccea3705c0c96defb13857374ae",
         "resource": "45",
         "target": "properties",
         "sequence": 1,
@@ -1806,6 +1814,8 @@ each data element.
       }
     ]
   }
+
+A mini-app MAY support GET search parameters like *?target=<value>&subtarget=<value2>&resource=<value3>*.
 
 Getting Subscription Updates
 -----------------------------
@@ -2115,10 +2125,10 @@ certificates. This require proper configuration of the web server hosting the
 mini-app.
 
 Validation and approval of a relationship MAY be based on three elements:
-1. Root URL of the requesting actor (confirmed by TLS certificate and callback
-verification)
-2. Explicit approval list, static or dynamic, of peer root URL
-3. Manual approval
+1. Root host of the requesting actor (confirmed by TLS certificate)
+2. Callback verification
+3. Explicit approval list, static or dynamic, of peer root URL
+4. Manual approval
 
 The use of a bearer token in the http Authorization header is subject to the 
 same security concerns as OAuth2 Bearer tokens. 
