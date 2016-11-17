@@ -362,9 +362,9 @@ allow use of OAuth to get access.
 +------------------+-----------------------------------------------------------------------------------+
 | **Tag**          | **Description**                                                                   |
 +==================+===================================================================================+
-| trust            | | The trust endpoint is available to request and establish regular, two-way trust |
-|                  | | relationships between actors. If trust is available, the actor should also be   |
-|                  | | able to receive callbacks on /callbacks                                         |
+| trust            ||The trust endpoint is available to request and establish regular, two-way trust   |
+|                  ||relationships between actors. If trust is available, the actor should also be     |
+|                  ||able to receive callbacks on /callbacks                                           |
 +------------------+-----------------------------------------------------------------------------------+
 | onewaytrust      | The version of trust implemented is more restrictive and although one actor A     |
 |                  | has a trust relationship with another actor B giving A access to B’s              |
@@ -672,7 +672,7 @@ These are the paths available:
 |                             |              |                                                                                                                                                                                                                                                                                                                          |
 |                             |              | Note that elements (both OPTIONAL and MUST), but empty, MAY be left out or returned as empty elements.                                                                                                                                                                                                                   |
 +-----------------------------+--------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| /meta/                      | -            | All other meta paths are reserved for future use.                                                                                                                                                                                                                                                                        |
+| /meta/                      | --           | All other meta paths are reserved for future use.                                                                                                                                                                                                                                                                        |
 +-----------------------------+--------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 /properties (MUST)
@@ -759,9 +759,11 @@ to an existing attribute will change the value of that attribute.
 All actors MUST accept PUT requests to change a specific element.
 Successful change of the value MUST result in a 201 Created response.
 
-Example:
+::
 
-PUT /app/78hjh76yug/properties/firstname
+  Example:
+
+  PUT /app/78hjh76yug/properties/firstname
 
 A PUT request to an attribute name not supported by the actor MUST
 result in a 404 Not Found. If the attribute is not writable without a
@@ -889,7 +891,7 @@ callback.
 
 The /resources access path is reserved for an actor's exposure of
 resources according to RESTful principles
-(`*​http://en.wikipedia.org/wiki/Representational\_State\_Transfer* <http://en.wikipedia.org/wiki/Representational_State_Transfer>`__).
+(`http://en.wikipedia.org/wiki/Representational\_State\_Transfer <http://en.wikipedia.org/wiki/Representational_State_Transfer>`_).
 The exposure of resources MUST follow the following rules:
 
 -  Resources and sub-parts of a resources MUST be addressable by a URI
