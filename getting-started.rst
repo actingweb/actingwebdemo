@@ -10,6 +10,9 @@ so it can easily be ported to e.g. running in a Docker container. The
 deployment is then a bit more complex as you need a database container as well.
 Building this into the current python library as an option is a TODO.
 
+Google AppEngine
+----------------
+
 1. Go to https://cloud.google.com/appengine, and log in using your google account. 
 You can go to https://cloud.google.com/appengine/docs to get access to the quick 
 start, however, the tutorial I recommend is here. It covers a lot things in a 
@@ -30,6 +33,9 @@ The first line must be edited to your app name
 
 4. Deploy the app to Google AppEngine and you should get a sign-up form when you go
 to the URL of the app!
+
+Use the library your own projects
+---------------------------------
 
 For how to use and extend the library, you can have a look at an example where
 the ActingWeb library is used for Cisco Spark, the free collaboration service:
