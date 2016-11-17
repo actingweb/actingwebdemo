@@ -92,6 +92,7 @@ class actor():
 
     def delete(self):
         """Deletes an actor and cleans up all relevant stored data in db."""
+        self.deletePeerTrustee(shorttype='*')
         properties = db.Property.query(db.Property.id == self.id).fetch(use_cache=False)
         for prop in properties:
             prop.key.delete(use_cache=False)
@@ -136,6 +137,10 @@ class actor():
         if not peerid and not shorttype:
             return False
         Config = config.config()
+        if shorttype == '*':
+            for t in Config.actors:
+                self.deletePeerTrustee(shorttype=t)
+            return True
         if shorttype and not Config.actors[shorttype]:
             logging.error('Got a request to delete an unknown actor type(' + shorttype + ')')
             return False
@@ -727,6 +732,10 @@ class actor():
             params['resource'] = sub.resource
         if sub.granularity == "high":
             params['data'] = blob
+            try:
+                params['data'] = json.loads(blob)
+            except:
+                params['data'] = blob
         if sub.granularity == "low":
             Config = config.config()
             params['url'] = Config.root + self.id + '/subscriptions/' + \
