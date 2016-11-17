@@ -34,8 +34,8 @@ The first line must be edited to your app name
 4. Deploy the app to Google AppEngine and you should get a sign-up form when you go
 to the URL of the app!
 
-Use the library your own projects
----------------------------------
+Use the library for your own projects
+-------------------------------------
 
 For how to use and extend the library, you can have a look at an example where
 the ActingWeb library is used for Cisco Spark, the free collaboration service:
