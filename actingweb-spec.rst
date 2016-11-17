@@ -362,9 +362,9 @@ allow use of OAuth to get access.
 +------------------+-----------------------------------------------------------------------------------+
 | **Tag**          | **Description**                                                                   |
 +==================+===================================================================================+
-| trust            | The trust endpoint is available to request and establish regular, two-way trust   |
-|                  | relationships between actors. If trust is available, the actor should also be     |
-|                  | able to receive callbacks on /callbacks                                           |
+| trust            | | The trust endpoint is available to request and establish regular, two-way trust |
+|                  | | relationships between actors. If trust is available, the actor should also be   |
+|                  | | able to receive callbacks on /callbacks                                         |
 +------------------+-----------------------------------------------------------------------------------+
 | onewaytrust      | The version of trust implemented is more restrictive and although one actor A     |
 |                  | has a trust relationship with another actor B giving A access to B’s              |
