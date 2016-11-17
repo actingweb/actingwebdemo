@@ -225,22 +225,22 @@ subscription can be established, fulfilled, and cancelled.
 Definitions
 -----------
 
-Endpoint: 
+Endpoint:
   The ActingWeb protocol specifies a set of endpoints directly
   under the root URI of the actor that is used to get access to the
   functionalities offered by an actor
 
-Actor: 
+Actor:
   A software component that exposes the ActingWeb protocol
   interface and is accessible to other actors or clients
 
-Action: 
+Action:
   An action is a resource exposed by an actor or an agent (see
   definition) that results an in external action like turning a lightbulb
   on or off, to be executed (i.e. external to the actor). The response may
   even be an OK, as in "action executed"
 
-Agent: 
+Agent:
   A software component that implements partial or in whole a
   mini-application according to the ActingWeb Specification and which
   offers not only data, but also resources, actions, or methods that are
@@ -249,49 +249,49 @@ Agent:
   connectivity) and often has a Proxy as peer that can receive requests on
   behalf of the Agent
 
-Client: 
+Client:
   A software component that uses the ActingWeb protocol to access
   data, resources, or services from an actor, but which does not implement
   the ActingWeb protocol interface itself and thus cannot be contacted as
   an actor
 
-Method: 
+Method:
   A method is an RPC (Remote Procedure Call) style service that is
   accessible through a specific URI
 
-Mini-application: 
+Mini-application:
   A set of functionality that can be instantiated to
   many actors. Consists of a set of data, resources, methods, and actions
   that other actors and clients can request and operate on. Defined by the
   mini-application definition.
 
-Mini-application definition: 
+Mini-application definition:
   Either a human- or machine-readable
   description of the data, resources, methods, and actions a
   mini-application implements. A human-readable format can be of any type,
   as long as it is complete enough for somebody to use the actors
   implementing the mini-application.
 
-Mini-application type: 
+Mini-application type:
   A URN string prefixed with ActingWeb that
   uniquely identifies the mini-application, ex.
   urn:actingweb:domain.com:myapp
 
-Resource: 
+Resource:
   A resource is an entity exposed through a URI and other actors
   or clients can manipulate the resource through commands according to
   RESTful principles
 
-Root URI: 
+Root URI:
   All actors have a root URI where it can be contacted using
   http type methods, either directly (if the URI is http/https) or encoded
   in the protocol used (i.e. \_method=…)
 
-Peer: 
+Peer:
   An actor that has an established trust relationship with another
   actor. An actor will have many peers
 
-Proxy: 
+Proxy:
   A software component that implements a mini-application according
   to the ActingWeb Specification, but which does not offer anything beyond
   data and proxying capabilities. A proxy has a peer Agent that implements
@@ -359,44 +359,57 @@ pages and getting callback data from third party services. Third party
 interactions will often be coupled with implementation of /oauth to
 allow use of OAuth to get access.
 
-+--------------------+-----------------------------------------------------------------------------------+
-| **Tag**            | **Description**                                                                   |
-+--------------------+-----------------------------------------------------------------------------------+
-| trust              | The trust endpoint is available to request and establish regular, two-way trust   |
-|                    | relationships between actors. If trust is available, the actor should also be     |
-|                    | able to receive callbacks on /callbacks                                           |
-+--------------------+-----------------------------------------------------------------------------------+
-| onewaytrust        | The version of trust implemented is more restrictive and although one actor A     |
-|                    | has a trust relationship with another actor B giving A access to B’s              |
-|                    | functionality, the reverse is not true                                            |
-+--------------------+-----------------------------------------------------------------------------------+
-| subscriptions      | The subscriptions endpoint can be used to establish subscriptions on the actor’s  |
-|                    | data, actions, or resources                                                       |
-+--------------------+-----------------------------------------------------------------------------------+
-| actions            | The actions path is available and offers ways of triggering something to happen.  |
-|                    | Example:\ * /actions/turn-lights-off*                                             |
-+--------------------+-----------------------------------------------------------------------------------+
-| resources          | The resources path is available and non-actingweb data, but relevant to the actor |
-|                    | can be found under the resources path. Example: GET /resources/lights to get all  |
-|                    | lights available                                                                  |
-+--------------------+-----------------------------------------------------------------------------------+
-| methods            | The methods path is available and offers non-REST based API access.               |
-|                    | Example: */methods/soap/sendMessage*                                              |
-+--------------------+-----------------------------------------------------------------------------------+
-| sessions           | The sessions path is available and offers access to session-based functionality.  |
-|                    | Example: */sessions/SIP/2f2ag-2696f-42gga*                                        |
-+--------------------+-----------------------------------------------------------------------------------+
-| www                | The www path is available for human web-based interaction with the actor          |
-+--------------------+-----------------------------------------------------------------------------------+
-| oauth              | The oauth path is available to do an OAuth2 authorisation flow. The /oauth path   |
-|                    | should give a redirect to the 3\ :sup:`rd` party authorisation web page that can  |
-|                    | be presented to the user                                                          |
-+--------------------+-----------------------------------------------------------------------------------+
-| proxy              | The actor implements capabilities to be a proxy                                   |
-+--------------------+-----------------------------------------------------------------------------------+
-| nestedproperties   | Announce support for deeper, nested json structures in /properties (beyond the    |
-|                    | mandatory attribute/value pairs)                                                  |
-+--------------------+-----------------------------------------------------------------------------------+
++------------------+-----------------------------------------------------------------------------------+
+| **Tag**          | **Description**                                                                   |
++==================+===================================================================================+
+| trust            | The trust endpoint is available to request and establish regular, two-way trust   |
++------------------+-----------------------------------------------------------------------------------+
+|                  | relationships between actors. If trust is available, the actor should also be     |
++------------------+-----------------------------------------------------------------------------------+
+|                  | able to receive callbacks on /callbacks                                           |
++------------------+-----------------------------------------------------------------------------------+
+| onewaytrust      | The version of trust implemented is more restrictive and although one actor A     |
++------------------+-----------------------------------------------------------------------------------+
+|                  | has a trust relationship with another actor B giving A access to B’s              |
++------------------+-----------------------------------------------------------------------------------+
+|                  | functionality, the reverse is not true                                            |
++------------------+-----------------------------------------------------------------------------------+
+| subscriptions    | The subscriptions endpoint can be used to establish subscriptions on the actor’s  |
++------------------+-----------------------------------------------------------------------------------+
+|                  | data, actions, or resources                                                       |
++------------------+-----------------------------------------------------------------------------------+
+| actions          | The actions path is available and offers ways of triggering something to happen.  |
++------------------+-----------------------------------------------------------------------------------+
+|                  | Example:\ * /actions/turn-lights-off*                                             |
++------------------+-----------------------------------------------------------------------------------+
+| resources        | The resources path is available and non-actingweb data, but relevant to the actor |
++------------------+-----------------------------------------------------------------------------------+
+|                  | can be found under the resources path. Example: GET /resources/lights to get all  |
++------------------+-----------------------------------------------------------------------------------+
+|                  | lights available                                                                  |
++------------------+-----------------------------------------------------------------------------------+
+| methods          | The methods path is available and offers non-REST based API access.               |
++------------------+-----------------------------------------------------------------------------------+
+|                  | Example: */methods/soap/sendMessage*                                              |
++------------------+-----------------------------------------------------------------------------------+
+| sessions         | The sessions path is available and offers access to session-based functionality.  |
++------------------+-----------------------------------------------------------------------------------+
+|                  | Example: */sessions/SIP/2f2ag-2696f-42gga*                                        |
++------------------+-----------------------------------------------------------------------------------+
+| www              | The www path is available for human web-based interaction with the actor          |
++------------------+-----------------------------------------------------------------------------------+
+| oauth            | The oauth path is available to do an OAuth2 authorisation flow. The /oauth path   |
++------------------+-----------------------------------------------------------------------------------+
+|                  | should give a redirect to the 3\ :sup:`rd` party authorisation web page that can  |
++------------------+-----------------------------------------------------------------------------------+
+|                  | be presented to the user                                                          |
++------------------+-----------------------------------------------------------------------------------+
+| proxy            | The actor implements capabilities to be a proxy                                   |
++------------------+-----------------------------------------------------------------------------------+
+| nestedproperties | Announce support for deeper, nested json structures in /properties (beyond the    |
++------------------+-----------------------------------------------------------------------------------+
+|                  | mandatory attribute/value pairs)                                                  |
++------------------+-----------------------------------------------------------------------------------+
 
 The Actor
 ==========
@@ -875,7 +888,7 @@ callback.
   POST
     http://www.actingweb.net/myapp/f81d4fae-7dec-11d0-a765-00a0c91e6bf/callbacks/subscriptions/9f1c331a3e3b5cf38d4c3600a2ab5d54/afb343f3edfe
     ​
-  Bob 
+  Bob
 
   204 No content
 
@@ -1114,7 +1127,7 @@ Not found MUST be returned.
 
   Example:
 
-  Request to server *​*\ http://actingweb.net/ 
+  Request to server *​*\ http://actingweb.net/
   GET /myapp/f81d4fae-7dec-11d0-a765-00a0c91e6bf6/trust/friend
 
   200 OK
