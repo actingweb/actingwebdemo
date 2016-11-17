@@ -363,51 +363,38 @@ allow use of OAuth to get access.
 | **Tag**          | **Description**                                                                   |
 +==================+===================================================================================+
 | trust            | The trust endpoint is available to request and establish regular, two-way trust   |
-+------------------+-----------------------------------------------------------------------------------+
 |                  | relationships between actors. If trust is available, the actor should also be     |
-+------------------+-----------------------------------------------------------------------------------+
 |                  | able to receive callbacks on /callbacks                                           |
 +------------------+-----------------------------------------------------------------------------------+
 | onewaytrust      | The version of trust implemented is more restrictive and although one actor A     |
-+------------------+-----------------------------------------------------------------------------------+
 |                  | has a trust relationship with another actor B giving A access to B’s              |
-+------------------+-----------------------------------------------------------------------------------+
 |                  | functionality, the reverse is not true                                            |
 +------------------+-----------------------------------------------------------------------------------+
 | subscriptions    | The subscriptions endpoint can be used to establish subscriptions on the actor’s  |
-+------------------+-----------------------------------------------------------------------------------+
 |                  | data, actions, or resources                                                       |
 +------------------+-----------------------------------------------------------------------------------+
 | actions          | The actions path is available and offers ways of triggering something to happen.  |
-+------------------+-----------------------------------------------------------------------------------+
 |                  | Example:\ * /actions/turn-lights-off*                                             |
 +------------------+-----------------------------------------------------------------------------------+
 | resources        | The resources path is available and non-actingweb data, but relevant to the actor |
-+------------------+-----------------------------------------------------------------------------------+
 |                  | can be found under the resources path. Example: GET /resources/lights to get all  |
 +------------------+-----------------------------------------------------------------------------------+
 |                  | lights available                                                                  |
-+------------------+-----------------------------------------------------------------------------------+
 | methods          | The methods path is available and offers non-REST based API access.               |
-+------------------+-----------------------------------------------------------------------------------+
 |                  | Example: */methods/soap/sendMessage*                                              |
 +------------------+-----------------------------------------------------------------------------------+
 | sessions         | The sessions path is available and offers access to session-based functionality.  |
-+------------------+-----------------------------------------------------------------------------------+
 |                  | Example: */sessions/SIP/2f2ag-2696f-42gga*                                        |
 +------------------+-----------------------------------------------------------------------------------+
 | www              | The www path is available for human web-based interaction with the actor          |
 +------------------+-----------------------------------------------------------------------------------+
 | oauth            | The oauth path is available to do an OAuth2 authorisation flow. The /oauth path   |
-+------------------+-----------------------------------------------------------------------------------+
 |                  | should give a redirect to the 3\ :sup:`rd` party authorisation web page that can  |
-+------------------+-----------------------------------------------------------------------------------+
 |                  | be presented to the user                                                          |
 +------------------+-----------------------------------------------------------------------------------+
 | proxy            | The actor implements capabilities to be a proxy                                   |
 +------------------+-----------------------------------------------------------------------------------+
 | nestedproperties | Announce support for deeper, nested json structures in /properties (beyond the    |
-+------------------+-----------------------------------------------------------------------------------+
 |                  | mandatory attribute/value pairs)                                                  |
 +------------------+-----------------------------------------------------------------------------------+
 
