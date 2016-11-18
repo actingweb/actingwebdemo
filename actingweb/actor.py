@@ -42,6 +42,9 @@ def getPeerInfo(url):
 
 class actor():
 
+    def __init__(self, id=''):
+        self.get(id)
+
     def get(self, id):
         """Retrieves an actor from db or initialises if does not exist."""
         result = db.Actor.query(db.Actor.id == id).get(use_cache=False)
@@ -49,6 +52,7 @@ class actor():
             self.id = id
             self.creator = result.creator
             self.passphrase = result.passphrase
+            self.actor = result
         else:
             self.id = None
             self.creator = None
@@ -90,6 +94,16 @@ class actor():
                          passphrase=self.passphrase,
                          id=self.id)
         actor.put(use_cache=False)
+        self.actor = actor
+
+    def modify(self, creator=None):
+        if not self.actor or not creator:
+            return False
+        self.actor.creator = creator
+        self.creator = creator
+        self.actor.put(use_cache=False)
+        return True
+
 
     def delete(self):
         """Deletes an actor and cleans up all relevant stored data in db."""
@@ -895,5 +909,3 @@ class actor():
                 deferred.defer(self.callbackSubscription, peerid=sub.peerid,
                                sub=subObj, diff=diff, blob=finblob)
 
-    def __init__(self, id=''):
-        self.get(id)
