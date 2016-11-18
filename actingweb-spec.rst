@@ -1629,8 +1629,11 @@ specifying trustee root URI on instantiation in the application/json
 body using the attribute 'trustee\_root') or by changing the trustee's
 root URI by PUTing a new URI to /trust/trustee (an admin or creator
 relationship is required) with application/json content and the URL in
-the attribute 'trustee_root'. The 'creator' user's passphrase/secret MAY
-then be used as a bearer token to do trustee REST requests. As a passphrase is
+the attribute 'trustee_root'. In the same PUT, the 'creator' attribute
+MUST also be available to allow changing creator to 'trustee'.
+The 'creator' user's passphrase/secret MAY
+then be used as a bearer token to do trustee REST requests if 'creator' is
+set to 'trustee'. As a passphrase is
 supplied at instantiation time for creator, it is RECOMMENDED that the
 passphrase is checked for security strength if the trustee\_root
 attribute is set.
