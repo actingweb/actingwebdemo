@@ -15,6 +15,7 @@ class config():
         # Basic settings for this app
         #########
         self.ui = True                                      # Turn on the /www path
+        self.devtest = True                                 # Enable /devtest path for test purposes, MUST be False in production
         self.www_auth = "basic"                             # basic or oauth: basic for creator + bearer tokens
         self.fqdn = "actingwebdemo-dev.appspot.com"         # The host and domain, i.e. FQDN, of the URL
         self.proto = "https://"                             # http or https
