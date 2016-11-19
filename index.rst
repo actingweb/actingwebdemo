@@ -8,6 +8,7 @@ distributed micro-services model. It is both a demo application implementing the
     :maxdepth: 2
 
     README
+    CHANGELOG
     getting-started
     actingweb-spec
 
