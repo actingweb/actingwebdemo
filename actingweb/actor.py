@@ -22,6 +22,7 @@ def getPeerInfo(url):
     """Contacts an another actor over http/s to retrieve meta information."""
     try:
         logging.debug('Getting peer info at url(' + url + ')')
+        urlfetch.set_default_fetch_deadline(20)
         response = urlfetch.fetch(url=url + '/meta',
                                   method=urlfetch.GET
                                   )
@@ -41,6 +42,9 @@ def getPeerInfo(url):
 
 class actor():
 
+    def __init__(self, id=''):
+        self.get(id)
+
     def get(self, id):
         """Retrieves an actor from db or initialises if does not exist."""
         result = db.Actor.query(db.Actor.id == id).get(use_cache=False)
@@ -48,6 +52,7 @@ class actor():
             self.id = id
             self.creator = result.creator
             self.passphrase = result.passphrase
+            self.actor = result
         else:
             self.id = None
             self.creator = None
@@ -89,9 +94,20 @@ class actor():
                          passphrase=self.passphrase,
                          id=self.id)
         actor.put(use_cache=False)
+        self.actor = actor
+
+    def modify(self, creator=None):
+        if not self.actor or not creator:
+            return False
+        self.actor.creator = creator
+        self.creator = creator
+        self.actor.put(use_cache=False)
+        return True
+
 
     def delete(self):
         """Deletes an actor and cleans up all relevant stored data in db."""
+        self.deletePeerTrustee(shorttype='*')
         properties = db.Property.query(db.Property.id == self.id).fetch(use_cache=False)
         for prop in properties:
             prop.key.delete(use_cache=False)
@@ -136,6 +152,10 @@ class actor():
         if not peerid and not shorttype:
             return False
         Config = config.config()
+        if shorttype == '*':
+            for t in Config.actors:
+                self.deletePeerTrustee(shorttype=t)
+            return True
         if shorttype and not Config.actors[shorttype]:
             logging.error('Got a request to delete an unknown actor type(' + shorttype + ')')
             return False
@@ -153,6 +173,7 @@ class actor():
                    base64.b64encode('trustee:' + new_peer.passphrase),
                    }
         try:
+            urlfetch.set_default_fetch_deadline(20)
             response = urlfetch.fetch(url=new_peer.baseuri,
                                       method=urlfetch.DELETE,
                                       headers=headers
@@ -214,6 +235,7 @@ class actor():
                 'Creating peer actor at factory(' + factory + ') with data(' +
                 str(data) + ')')
             try:
+                urlfetch.set_default_fetch_deadline(20)
                 response = urlfetch.fetch(url=factory,
                                         method=urlfetch.POST,
                                         payload=data
@@ -268,6 +290,7 @@ class actor():
                        }
             data = json.dumps(params)
             try:
+                urlfetch.set_default_fetch_deadline(20)
                 response = urlfetch.fetch(url=new_peer.baseuri +
                                           '/trust/' +
                                           Config.actors[shorttype]['relationship'] +
@@ -360,6 +383,7 @@ class actor():
             logging.debug(
                 'Trust relationship has been approved, notifying peer at url(' + requrl + ')')
             try:
+                urlfetch.set_default_fetch_deadline(20)
                 response = urlfetch.fetch(url=requrl,
                                           method=urlfetch.POST,
                                           payload=data,
@@ -428,6 +452,7 @@ class actor():
         logging.debug('Creating reciprocal trust at url(' +
                       requrl + ') and body (' + str(data) + ')')
         try:
+            urlfetch.set_default_fetch_deadline(20)
             response = urlfetch.fetch(url=requrl,
                                       method=urlfetch.POST,
                                       payload=data,
@@ -477,6 +502,7 @@ class actor():
             logging.debug('Verifying trust at requesting peer(' + peerid +
                           ') at url (' + requrl + ') and secret(' + secret + ')')
             try:
+                urlfetch.set_default_fetch_deadline(20)
                 response = urlfetch.fetch(url=requrl,
                                           method=urlfetch.GET,
                                           headers=headers)
@@ -523,6 +549,7 @@ class actor():
                 logging.debug(
                     'Deleting reciprocal relationship at url(' + url + ')')
                 try:
+                    urlfetch.set_default_fetch_deadline(20)
                     response = urlfetch.fetch(url=url,
                                               method=urlfetch.DELETE,
                                               headers=headers)
@@ -577,6 +604,7 @@ class actor():
         try:
             logging.debug('Creating remote subscription at url(' +
                           requrl + ') with body (' + str(data) + ')')
+            urlfetch.set_default_fetch_deadline(20)
             response = urlfetch.fetch(url=requrl,
                                       method=urlfetch.POST,
                                       payload=data,
@@ -682,6 +710,7 @@ class actor():
                    }
         try:
             logging.debug('Deleting remote subscription at url(' + url + ')')
+            urlfetch.set_default_fetch_deadline(20)
             response = urlfetch.fetch(url=url,
                                       method=urlfetch.DELETE,
                                       headers=headers)
@@ -742,6 +771,7 @@ class actor():
         try:
             logging.debug('Doing a callback on subscription at url(' +
                           requrl + ') with body(' + str(data) + ')')
+            urlfetch.set_default_fetch_deadline(20)
             response = urlfetch.fetch(url=requrl,
                                       method=urlfetch.POST,
                                       payload=data.encode('utf-8'),
@@ -758,7 +788,10 @@ class actor():
             self.last_response_message = 'No response from peer for subscription callback'
 
     def registerDiffs(self, target=None, subtarget=None, resource=None, blob=None):
-        """Registers a blob diff against all subscriptions with the correct target, subtarget, and resource."""
+        """Registers a blob diff against all subscriptions with the correct target, subtarget, and resource.
+
+            If resource is set, the blob is expected to be the FULL resource object, not a diff.
+            """
         if blob is None or not target:
             return
         # Get all subscriptions, both with the specific subtarget/resource and those
@@ -814,14 +847,23 @@ class actor():
             # The diff is on the resource, but the subscription is on a 
             # higher level
             elif resource and not subObj.resource:
-                # Create a data["subtarget"]["resource"] = blob diff to give correct level
-                # of diff to subscriber
+                # Since we have a resource, we know the blob is the entire resource, not a diff
+                # If the subscription is for a sub-target, send [resource] = blob
+                # If the subscription is for a target, send [subtarget][resource] = blob
                 upblob = {}
                 try:
                     jsonblob = json.loads(blob)
-                    upblob[subtarget][resource] = jsonblob
+                    if not subObj.subtarget:
+                        upblob[subtarget] = {}
+                        upblob[subtarget][resource] = jsonblob
+                    else:
+                        upblob[resource] = jsonblob
                 except:
-                    upblob[subtarget][resource] = blob
+                    if not subObj.subtarget:
+                        upblob[subtarget] = {}
+                        upblob[subtarget][resource] = blob
+                    else:
+                        upblob[resource] = blob
                 finblob = json.dumps(upblob)
                 logging.debug("         - diff has resource(" + resource +
                               "), subscription has not, adding diff(" + finblob + ")")
@@ -866,5 +908,3 @@ class actor():
                 deferred.defer(self.callbackSubscription, peerid=sub.peerid,
                                sub=subObj, diff=diff, blob=finblob)
 
-    def __init__(self, id=''):
-        self.get(id)
