@@ -15,6 +15,7 @@ class config():
         # Basic settings for this app
         #########
         self.ui = True                                      # Turn on the /www path
+        self.devtest = True                                 # Enable /devtest path for test purposes, MUST be False in production
         self.www_auth = "basic"                             # basic or oauth: basic for creator + bearer tokens
         self.fqdn = "actingwebdemo.appspot.com"         # The host and domain, i.e. FQDN, of the URL
         self.proto = "https://"                             # http or https
@@ -91,7 +92,7 @@ class config():
             ('partner', 'properties', '', 'a'),
             ('admin', 'properties', '', 'a'),
             ('creator', 'resources', '', 'a'),
-            ('friend', 'resources', '', 'a'),              # Allow friend/partner/admin all
+            ('friend', 'resources', '', 'a'),               # Allow friend/partner/admin all
             ('partner', 'resources', '', 'a'),
             ('admin', 'resources', '', 'a'),
             ('', 'trust/<type>', 'POST', 'a'),              # Allow unauthenticated POST
@@ -102,7 +103,8 @@ class config():
             ('owner', 'subscriptions', '', 'a'),             # Owner can create++ own subscriptions
             ('creator', 'subscriptions', '', 'a'),           # Creator can do everything
             ('trustee', 'subscriptions', '', 'a'),           # Trustee can do everything
-            ('creator', '/', '', 'a'),                      # Root access for actor
+            ('creator', '/', '', 'a'),                       # Root access for actor
+            ('trustee', '/', '', 'a'),
             ('admin', '/', '', 'a'),
         ]
         #########
