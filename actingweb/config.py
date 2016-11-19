@@ -41,13 +41,12 @@ class config():
                 'relationship': 'friend',                   # associate, friend, partner, admin
                 },
             'myself': {
-                'type': 'urn:actingweb:actingweb.org:gae-demo',
+                'type': self.type,
                 'factory': self.proto + self.fqdn + '/',
                 'relationship': 'friend',                   # associate, friend, partner, admin
                 },
         }
         #########
-
         # OAuth settings for this app, fill in if OAuth is used
         #########
         self.oauth = {
