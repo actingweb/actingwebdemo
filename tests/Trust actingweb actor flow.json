@@ -2,7 +2,7 @@
   "trigger_url": "https://api.runscope.com/radar/9399c9f4-7814-43ae-a987-8ec755beb05a/trigger", 
   "name": "Trust actingweb actor flow", 
   "version": "1.0", 
-  "exported_at": 1470375395, 
+  "exported_at": 1479626549, 
   "steps": [
     {
       "body": "{\r\n\"creator\":  \"trust1@actingweb.net\"\r\n}", 
@@ -138,7 +138,7 @@
       "assertions": [
         {
           "comparison": "equal_number", 
-          "value": "201", 
+          "value": "202", 
           "source": "response_status"
         }, 
         {
@@ -162,7 +162,7 @@
         {
           "comparison": "equal", 
           "property": "approved", 
-          "value": "true", 
+          "value": "false", 
           "source": "response_json"
         }, 
         {
@@ -216,6 +216,57 @@
       "scripts": [], 
       "before_scripts": [], 
       "method": "GET"
+    }, 
+    {
+      "url": "{{trusturl1}}", 
+      "variables": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "fragment": "", 
+      "note": "Get the new trust relationship as peer", 
+      "headers": {
+        "Authorization": "Bearer {{secret1}}"
+      }, 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "403", 
+          "source": "response_status"
+        }
+      ], 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "GET"
+    }, 
+    {
+      "body": "{\r\n\"approved\": \"true\"\r\n}", 
+      "form": {}, 
+      "url": "{{trusturl1}}", 
+      "variables": [], 
+      "step_type": "request", 
+      "auth": {
+        "username": "trust1@actingweb.net", 
+        "auth_type": "basic", 
+        "password": "{{passphrase1}}"
+      }, 
+      "fragment": "", 
+      "note": "Approve the new trust relationship ", 
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      }, 
+      "auth.password": "{{passphrase1}}", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "PUT", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "204", 
+          "source": "response_status"
+        }
+      ]
     }, 
     {
       "url": "{{trusturl1}}", 
@@ -305,7 +356,7 @@
       "step_type": "request", 
       "auth": {}, 
       "fragment": "", 
-      "note": "Create another trust relationship", 
+      "note": "Create another trust relationship (trust2)", 
       "headers": {
         "Content-Type": [
           "application/json"
@@ -314,7 +365,7 @@
       "assertions": [
         {
           "comparison": "equal_number", 
-          "value": "201", 
+          "value": "202", 
           "source": "response_status"
         }
       ], 
@@ -451,7 +502,7 @@
       ]
     }, 
     {
-      "body": "{\r\n\"baseuri\": \"{{actorurl1}}\",\r\n\"secret\": \"newsecret\",\r\n\"desc\": \"Changed\"\r\n}", 
+      "body": "{\r\n\"baseuri\": \"{{actorurl1}}\",\r\n\"desc\": \"Changed\"\r\n}", 
       "form": {}, 
       "url": "{{trusturl2}}", 
       "variables": [], 
@@ -499,7 +550,7 @@
       "assertions": [
         {
           "comparison": "equal_number", 
-          "value": "200", 
+          "value": "202", 
           "source": "response_status"
         }, 
         {
@@ -523,13 +574,7 @@
         {
           "comparison": "equal", 
           "property": "approved", 
-          "value": "true", 
-          "source": "response_json"
-        }, 
-        {
-          "comparison": "equal", 
-          "property": "secret", 
-          "value": "newsecret", 
+          "value": "false", 
           "source": "response_json"
         }, 
         {
@@ -611,6 +656,11 @@
           "source": "response_headers", 
           "property": "Location", 
           "name": "trusturl3"
+        }, 
+        {
+          "source": "response_json", 
+          "property": "secret", 
+          "name": "secret3"
         }
       ], 
       "step_type": "request", 
@@ -711,7 +761,7 @@
       "assertions": [
         {
           "comparison": "equal_number", 
-          "value": "200", 
+          "value": "202", 
           "source": "response_status"
         }, 
         {
@@ -729,7 +779,7 @@
         {
           "comparison": "equal", 
           "property": "secret", 
-          "value": "mysecret", 
+          "value": "{{secret3}}", 
           "source": "response_json"
         }, 
         {
@@ -741,7 +791,7 @@
         {
           "comparison": "equal", 
           "property": "approved", 
-          "value": "true", 
+          "value": "false", 
           "source": "response_json"
         }
       ]
@@ -829,6 +879,11 @@
           "source": "response_headers", 
           "property": "Location", 
           "name": "trusturl4"
+        }, 
+        {
+          "source": "response_json", 
+          "property": "secret", 
+          "name": "secret4"
         }
       ], 
       "step_type": "request", 
@@ -911,7 +966,7 @@
         {
           "comparison": "equal", 
           "property": "secret", 
-          "value": "mysecret", 
+          "value": "{{secret4}}", 
           "source": "response_json"
         }, 
         {
@@ -971,7 +1026,7 @@
         {
           "comparison": "equal", 
           "property": "secret", 
-          "value": "mysecret", 
+          "value": "{{secret4}}", 
           "source": "response_json"
         }, 
         {
@@ -1061,7 +1116,7 @@
         {
           "comparison": "equal", 
           "property": "secret", 
-          "value": "mysecret", 
+          "value": "{{secret4}}", 
           "source": "response_json"
         }, 
         {
@@ -1121,7 +1176,7 @@
         {
           "comparison": "equal", 
           "property": "secret", 
-          "value": "mysecret", 
+          "value": "{{secret4}}", 
           "source": "response_json"
         }, 
         {
@@ -1141,6 +1196,188 @@
           "property": "peer_approved", 
           "value": "true", 
           "source": "response_json"
+        }
+      ]
+    }, 
+    {
+      "body": "{\r\n  \"test1\": \"value1\"\r\n}", 
+      "form": {}, 
+      "url": "{{actorurl1}}/devtest/proxy/create", 
+      "variables": [
+        {
+          "source": "response_headers", 
+          "property": "Location", 
+          "name": "proxyurl1"
+        }
+      ], 
+      "step_type": "request", 
+      "auth": {
+        "username": "trust1@actingweb.net", 
+        "auth_type": "basic", 
+        "password": "{{passphrase1}}"
+      }, 
+      "fragment": "", 
+      "note": "Create selfproxy with test1 value on /properties", 
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      }, 
+      "auth.password": "{{passphrase1}}", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "POST", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "200", 
+          "source": "response_status"
+        }, 
+        {
+          "comparison": "equal", 
+          "property": "trustee_root", 
+          "value": "{{actorurl1}}", 
+          "source": "response_json"
+        }
+      ]
+    }, 
+    {
+      "url": "{{actorurl1}}/devtest/proxy/properties", 
+      "variables": [], 
+      "step_type": "request", 
+      "auth": {
+        "username": "trust1@actingweb.net", 
+        "auth_type": "basic", 
+        "password": "{{passphrase1}}"
+      }, 
+      "fragment": "", 
+      "note": "Get /properties from selfproxy", 
+      "headers": {}, 
+      "auth.password": "{{passphrase1}}", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "GET", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "200", 
+          "source": "response_status"
+        }, 
+        {
+          "comparison": "equal", 
+          "property": "test1", 
+          "value": "value1", 
+          "source": "response_json"
+        }
+      ]
+    }, 
+    {
+      "body": "{\r\n  \"var1\": \"value1\",\r\n  \"var2\": \"value2\"\r\n}", 
+      "form": {}, 
+      "url": "{{actorurl1}}/devtest/proxy/properties/test1", 
+      "variables": [], 
+      "step_type": "request", 
+      "auth": {
+        "username": "trust1@actingweb.net", 
+        "auth_type": "basic", 
+        "password": "{{passphrase1}}"
+      }, 
+      "fragment": "", 
+      "note": "Change test1 value on selfproxy /properties", 
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      }, 
+      "auth.password": "{{passphrase1}}", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "PUT", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "204", 
+          "source": "response_status"
+        }
+      ]
+    }, 
+    {
+      "url": "{{actorurl1}}/devtest/proxy/properties", 
+      "variables": [], 
+      "step_type": "request", 
+      "auth": {
+        "username": "trust1@actingweb.net", 
+        "auth_type": "basic", 
+        "password": "{{passphrase1}}"
+      }, 
+      "fragment": "", 
+      "note": "Get /properties from selfproxy", 
+      "headers": {}, 
+      "auth.password": "{{passphrase1}}", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "GET", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "200", 
+          "source": "response_status"
+        }, 
+        {
+          "comparison": "equal", 
+          "property": "test1[\"var1\"]", 
+          "value": "value1", 
+          "source": "response_json"
+        }
+      ]
+    }, 
+    {
+      "body": "", 
+      "form": {}, 
+      "url": "{{actorurl1}}/devtest/proxy/properties", 
+      "variables": [], 
+      "step_type": "request", 
+      "auth": {
+        "username": "trust1@actingweb.net", 
+        "auth_type": "basic", 
+        "password": "{{passphrase1}}"
+      }, 
+      "fragment": "", 
+      "note": "Delete /properties from selfproxy", 
+      "headers": {}, 
+      "auth.password": "{{passphrase1}}", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "DELETE", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "204", 
+          "source": "response_status"
+        }
+      ]
+    }, 
+    {
+      "url": "{{actorurl1}}/devtest/proxy/properties", 
+      "variables": [], 
+      "step_type": "request", 
+      "auth": {
+        "username": "trust1@actingweb.net", 
+        "auth_type": "basic", 
+        "password": "{{passphrase1}}"
+      }, 
+      "fragment": "", 
+      "note": "Get /properties from selfproxy", 
+      "headers": {}, 
+      "auth.password": "{{passphrase1}}", 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "GET", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "404", 
+          "source": "response_status"
         }
       ]
     }, 

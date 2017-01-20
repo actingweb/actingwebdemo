@@ -72,7 +72,7 @@ class aw_proxy():
         logging.debug('Get trust peer resource POST response:(' +
                       str(response.status_code) + ') ' + response.content)
         if response.status_code < 200 or response.status_code > 299:
-            logging.warn('Not able to get trust peer resource.')
+            logging.info('Not able to get trust peer resource.')
         try:
             result = json.loads(response.content)
         except:
