@@ -1,4 +1,4 @@
-from db import db
+from db_gae import db_models as db
 import datetime
 import time
 import base64
@@ -44,6 +44,7 @@ class actor():
 
     def __init__(self, id=''):
         self.get(id)
+        self.property_list = None
 
     def get(self, id):
         """Retrieves an actor from db or initialises if does not exist."""
@@ -72,7 +73,8 @@ class actor():
             self.id = None
             self.creator = None
             self.passphrase = None
-        self.get(prop.actorId)  
+            return
+        self.get(prop.actorId)
 
     def create(self, url, creator, passphrase):
         """"Creates a new actor and persists it to db."""
@@ -108,9 +110,9 @@ class actor():
     def delete(self):
         """Deletes an actor and cleans up all relevant stored data in db."""
         self.deletePeerTrustee(shorttype='*')
-        properties = db.Property.query(db.Property.id == self.id).fetch(use_cache=False)
-        for prop in properties:
-            prop.key.delete(use_cache=False)
+        if not self.property_list:
+            self.property_list = property.properties(actorId=self.id)
+        self.property_list.delete()
         diffs = db.SubscriptionDiff.query(
             db.SubscriptionDiff.id == self.id).fetch(use_cache=False)
         for diff in diffs:
@@ -129,24 +131,29 @@ class actor():
 
     def setProperty(self, name, value):
         """Sets an actor's property name to value."""
-        prop = property.property(self, name)
+        prop = property.property(self.id, name)
         prop.set(value)
 
     def getProperty(self, name):
-        """Retrieves a property name."""
-        prop = property.property(self, name)
+        """Retrieves a property object named name."""
+        prop = property.property(self.id, name)
         return prop
 
     def deleteProperty(self, name):
         """Deletes a property name."""
-        prop = property.property(self, name)
-        if prop:
-            prop.delete()
+        prop = property.property(self.id, name)
+        prop.delete()
+
+    def deleteProperties(self):
+        """Deletes all properties."""
+        if not self.property_list:
+            self.property_list = property.properties(actorId=self.id)
+        return self.property_list.delete()
 
     def getProperties(self):
-        """Retrieves properties from db."""
-        properties = db.Property.query(db.Property.id == self.id).fetch(use_cache=False)
-        return properties
+        """Retrieves properties from db and returns a dict."""
+        self.property_list = property.properties(actorId=self.id)
+        return self.property_list.props
 
     def deletePeerTrustee(self, shorttype=None, peerid=None):
         if not peerid and not shorttype:

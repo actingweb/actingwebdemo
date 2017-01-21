@@ -1,64 +1,82 @@
-import actor
-from db import db
-import datetime
-import uuid
+from db_gae import db_property
 
 __all__ = [
     'property',
+    'properties',
 ]
 
 
 class property():
+    """
+        property is the main entity keeping a property
+    """
 
     def get(self):
-        result = db.Property.query(db.Property.id == self.actor.id,
-                                   db.Property.name == self.name).get(use_cache=False)
-        if result:
-            self.dbprop = result
-            self.value = result.value
-        else:
-            self.dbprop = None
-            self.value = None
-
-    def get_from_property(self):
-        """ Initialises a property based on the value of a property.
-
-        Note that this is a costly operation as all properties of this type
-        must be retrieved and processed as value is TextProperty and cannot
-        be indexed.
-        """
-        results = db.Property.query(db.Property.name == self.name).fetch(use_cache=False)
-        result = None
-        for res in results:
-            if res.value != self.value:
-                continue
-            result = res
-            break
-        if not result:
-            self.value = None
-            return None
-        self.dbprop = result
-        return result.id
+        """ Retrieves the property from the database """
+        if not self.dbprop:
+            return
+        self.value = self.dbprop.get(actorId=self. actorId, name=self.name)
+        return self.value
 
     def set(self, value):
-        if self.dbprop:
-            self.dbprop.value = value
-        else:
-            self.dbprop = db.Property(id=self.actor.id, name=self.name, value=value)
-        self.dbprop.put(use_cache=False)
+        """ Sets a new value for this property """
+        if not self.dbprop:
+            return
+        self.value = value
+        return self.dbprop.set(actorId=self. actorId, name=self.name, value=value)
 
     def delete(self):
-        if self.dbprop:
-            self.dbprop.key.delete(use_cache=False)
-
-    def __init__(self, actor=None, name=None, value = None):
-        self.dbprop = None
-        self.name = name
-        self.value = value
-        self.actorId = None
-        if not value and actor and actor.id:
-            self.actor = actor
-            self.get()
+        """ Deletes the property in the database """
+        if not self.dbprop:
+            return
+        if self.dbprop.delete():
+            self.value = None
+            self.dbprop = None
+            return True
         else:
-            self.actor = None
-            self.actorId = self.get_from_property()
+            return False
+
+    def __init__(self,  actorId=None, name=None, value=None):
+        """ A property must be initialised with actorId and name or
+            name and value (to find an actor's property of a certain value)
+        """
+        self.dbprop = db_property.db_property()
+        if not actorId and len(name) > 0 and value and len(value) > 0:
+            self. actorId = self.dbprop.get_actorId_from_property(name=name,
+                                                                   value=value)
+            if not self. actorId:
+                return
+            self.name = name
+            self.value = value
+        self. actorId = actorId
+        if name and len(name) > 0:
+            self.name = name
+            self.get()
+
+
+class properties():
+    """ Handles all properties of a specific actor_id
+    
+        Access the indvidual dbprops in .dbprops and the properties
+        in .props as a dictionary
+    """
+
+    def delete(self):
+        if not self.dbprops:
+            return False
+        self.dbprops.delete()
+        return True
+
+    def __init__(self,  actorId=None):
+        """ Properties must always be initialised with an actorId """
+        if not actorId:
+            self.dbprops = None
+            return False
+        self.dbprops = db_property.db_property_list()
+        properties = self.dbprops.fetch(actorId=actorId)
+        self.props = {}
+        if not properties:
+            return
+        for d in properties:
+            self.props[d.name] = d.value
+

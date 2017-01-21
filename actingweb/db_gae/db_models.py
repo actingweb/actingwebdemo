@@ -1,23 +1,9 @@
 from google.appengine.ext import ndb
 
-__all__ = [
-    'Actor',
-    'Property',
-    'Trust',
-    'Subscription',
-]
-
-
 class Actor(ndb.Model):
     id = ndb.StringProperty(required=True)
     creator = ndb.StringProperty()
     passphrase = ndb.StringProperty()
-
-
-class Property(ndb.Model):
-    id = ndb.StringProperty(required=True)
-    name = ndb.StringProperty(required=True)
-    value = ndb.TextProperty()
 
 
 class PeerTrustee(ndb.Model):

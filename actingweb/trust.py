@@ -1,5 +1,5 @@
 import actor
-from db import db
+from db_gae import db_models as db
 import datetime
 import config
 import logging
