@@ -1,4 +1,5 @@
 from db_gae import db_models as db
+from db_gae import db_actor
 import datetime
 import time
 import base64
@@ -42,22 +43,37 @@ def getPeerInfo(url):
 
 class actor():
 
-    def __init__(self, id=''):
-        self.get(id)
-        self.property_list = None
+    ###################
+    # Basic operations
+    ###################
 
-    def get(self, id):
-        """Retrieves an actor from db or initialises if does not exist."""
-        result = db.Actor.query(db.Actor.id == id).get(use_cache=False)
-        if result:
-            self.id = id
-            self.creator = result.creator
-            self.passphrase = result.passphrase
-            self.actor = result
+    def __init__(self, id=None):
+        self.property_list = None
+        self.actor = None
+        self.passphrase = None
+        self.creator = None
+        self.id = id
+        self.handle = db_actor.db_actor()
+        self.get(id=id)
+
+    def get(self, id=None):
+        """Retrieves an actor from storage or initialises if it does not exist."""
+        if not id and not self.id:
+            return None
+        elif not id:
+            id = self.id
+        if self.handle and self.actor and len(self.actor) > 0:
+            return self.actor
+        self.actor = self.handle.get(actorId=id)
+        if self.actor and len(self.actor) > 0:
+            self.id = self.actor["id"]
+            self.creator = self.actor["creator"]
+            self.passphrase = self.actor["passphrase"]
         else:
             self.id = None
             self.creator = None
             self.passphrase = None
+        return self.actor
 
     def get_from_property(self, name='oauthId', value=None):
         """ Initialise an actor by matching on a stored property.
@@ -68,16 +84,16 @@ class actor():
         Also note that this is a costly operation as all properties
         of this type will be retrieved and proceessed.
         """
-        prop = property.property(name=name, value=value)
-        if not prop.actorId:
+        actorId = property.property(name=name, value=value).getActorId()
+        if not actorId:
             self.id = None
             self.creator = None
             self.passphrase = None
             return
-        self.get(prop.actorId)
+        self.get(actorId=actorId)
 
     def create(self, url, creator, passphrase):
-        """"Creates a new actor and persists it to db."""
+        """"Creates a new actor and persists it"""
         seed = url
         now = datetime.datetime.now()
         seed += now.strftime("%Y%m%dT%H%M%S%f")
@@ -92,22 +108,25 @@ class actor():
         else:
             self.passphrase = Config.newToken()
         self.id = Config.newUUID(seed)
-        actor = db.Actor(creator=self.creator,
-                         passphrase=self.passphrase,
-                         id=self.id)
-        actor.put(use_cache=False)
-        self.actor = actor
+        if not self.handle:
+            self.handle = db_actor.db_actor()
+        self.handle.create(creator=self.creator,
+                           passphrase=self.passphrase,
+                           actorId=self.id)
 
     def modify(self, creator=None):
-        if not self.actor or not creator:
+        if not self.handle or not creator:
+            logging.debug("Attempted modify of actor with no handle or no param changed")
             return False
-        self.actor.creator = creator
         self.creator = creator
-        self.actor.put(use_cache=False)
+        self.handle.modify(creator=creator)
         return True
 
     def delete(self):
-        """Deletes an actor and cleans up all relevant stored data in db."""
+        """Deletes an actor and cleans up all relevant stored data"""
+        if not self.handle:
+            logging.debug("Attempted delete of actor with no handle")
+            return False
         self.deletePeerTrustee(shorttype='*')
         if not self.property_list:
             self.property_list = property.properties(actorId=self.id)
@@ -125,9 +144,11 @@ class actor():
         for rel in relationships:
             self.deleteReciprocalTrust(peerid=rel["peerid"], deletePeer=True)
         trusts.delete()
-        result = db.Actor.query(db.Actor.id == self.id).get(use_cache=False)
-        if result:
-            result.key.delete(use_cache=False)
+        self.handle.delete()
+
+    ######################
+    # Advanced operations
+    ######################
 
     def setProperty(self, name, value):
         """Sets an actor's property name to value."""

@@ -5,4 +5,6 @@
 __all__ = [
     "db_models",
     "db_property",
+    "db_actor",
+    "db_trust",
     ]

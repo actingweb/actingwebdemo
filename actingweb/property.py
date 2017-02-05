@@ -49,6 +49,9 @@ class property():
         else:
             return False
 
+    def getActorId(self):
+        return self.actorId
+
     def __init__(self,  actorId=None, name=None, value=None):
         """ A property must be initialised with actorId and name or
             name and value (to find an actor's property of a certain value)
