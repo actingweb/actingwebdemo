@@ -35,8 +35,8 @@ class db_trust():
     """
 
     def get(self,  actorId=None, peerid=None, token=None):
-        """ Retrieves the property from the database 
-        
+        """ Retrieves the property from the database
+
             Either peerid or token must be set.
             If peerid is set, token will be ignored.
         """

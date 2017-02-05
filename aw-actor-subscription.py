@@ -36,20 +36,9 @@ class rootHandler(webapp2.RequestHandler):
         if not subscriptions:
             self.response.set_status(404, 'Not found')
             return
-        pairs = []
-        for sub in subscriptions:
-            pairs.append({
-                'peerid': sub.peerid,
-                'subscriptionid': sub.subid,
-                'target': sub.target,
-                'subtarget': sub.subtarget,
-                'resource': sub.resource,
-                'granularity': sub.granularity,
-                'sequence': sub.seqnr,
-            })
         data = {
                 'id': myself.id,
-                'data': pairs,
+                'data': subscriptions,
                 }
         out = json.dumps(data)
         self.response.write(out)
@@ -126,19 +115,10 @@ class relationshipHandler(webapp2.RequestHandler):
             self.response.set_status(404, 'Not found')
             return
         pairs = []
-        for sub in subscriptions:
-            pairs.append({
-                'subscriptionid': sub.subid,
-                'target': sub.target,
-                'subtarget': sub.subtarget,
-                'resource': sub.resource,
-                'granularity': sub.granularity,
-                'sequence': sub.seqnr,
-            })
         data = {
                 'id': myself.id,
                 'peerid': peerid,
-                'data': pairs,
+                'data': subscriptions,
                 }
         out = json.dumps(data)
         self.response.write(out)
@@ -190,14 +170,14 @@ class relationshipHandler(webapp2.RequestHandler):
             self.response.set_status(500, 'Unable to create new subscription')
             return
         self.response.headers.add_header(
-            "Location", str(Config.root + myself.id + '/subscriptions/' + new_sub.peerid + '/' + new_sub.subid))
+            "Location", str(Config.root + myself.id + '/subscriptions/' + new_sub["peerid"] + '/' + new_sub["subscriptionid"]))
         pair = {
-            'subscriptionid': new_sub.subid,
-            'target': new_sub.target,
-            'subtarget': new_sub.subtarget,
-            'resource': new_sub.resource,
-            'granularity': new_sub.granularity,
-            'sequence': new_sub.seqnr,
+            'subscriptionid': new_sub["subscriptionid"],
+            'target': new_sub["target"],
+            'subtarget': new_sub["subtarget"],
+            'resource': new_sub["resource"],
+            'granularity': new_sub["granularity"],
+            'sequence': new_sub["sequence"],
         }
         out = json.dumps(pair)
         self.response.write(out)
@@ -222,7 +202,8 @@ class subscriptionHandler(webapp2.RequestHandler):
         if not check.checkAuthorisation(path='subscriptions', subpath='<id>/<id>', method='GET', peerid=peerid):
             self.response.set_status(403)
             return
-        sub = myself.getSubscription(peerid=peerid, subid=subid)
+        sub = myself.getSubscriptionObj(peerid=peerid, subid=subid)
+        subData = sub.get()
         if not sub:
             self.response.set_status(404, "Subscription does not exist")
             return
@@ -245,9 +226,9 @@ class subscriptionHandler(webapp2.RequestHandler):
                 'id': myself.id,
                 'peerid': peerid,
                 'subscriptionid': subid,
-                'target': sub.target,
-                'subtarget': sub.subtarget,
-                'resource': sub.resource,
+                'target': subData["target"],
+                'subtarget': subData["subtarget"],
+                'resource': subData["resource"],
                 'data': pairs,
                 }
         out = json.dumps(data)
@@ -283,7 +264,7 @@ class subscriptionHandler(webapp2.RequestHandler):
         except ValueError:
             self.response.set_status(405, "Sequence does not contain a number")
             return
-        sub = myself.getSubscription(peerid=peerid, subid=subid)
+        sub = myself.getSubscriptionObj(peerid=peerid, subid=subid)
         if not sub:
             self.response.set_status(404, "Subscription does not exist")
             return
@@ -320,7 +301,8 @@ class diffHandler(webapp2.RequestHandler):
         if not check.checkAuthorisation(path='subscriptions', subpath='<id>/<id>', method='GET', peerid=peerid):
             self.response.set_status(403)
             return
-        sub = myself.getSubscription(peerid=peerid, subid=subid)
+        sub = myself.getSubscriptionObj(peerid=peerid, subid=subid)
+        subData = sub.get()
         if not sub:
             self.response.set_status(404, "Subscription does not exist")
             return
@@ -339,9 +321,9 @@ class diffHandler(webapp2.RequestHandler):
             'peerid': peerid,
             'subscriptionid': subid,
             'timestamp': diff.timestamp.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
-            'target': sub.target,
-            'subtarget': sub.subtarget,
-            'resource': sub.resource,
+            'target': subData["target"],
+            'subtarget': subData["subtarget"],
+            'resource': subData["resource"],
             'sequence': seqid,
             'data': d,
         }

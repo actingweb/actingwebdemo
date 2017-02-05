@@ -7,4 +7,5 @@ __all__ = [
     "db_property",
     "db_actor",
     "db_trust",
+    "db_subscription",
     ]

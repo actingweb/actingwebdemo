@@ -8,18 +8,6 @@ class PeerTrustee(ndb.Model):
     passphrase = ndb.StringProperty(required=True)
 
 
-class Subscription(ndb.Model):
-    id = ndb.StringProperty(required=True)
-    peerid = ndb.StringProperty(required=True)
-    subid = ndb.StringProperty(required=True)
-    granularity = ndb.StringProperty()
-    target = ndb.StringProperty()
-    subtarget = ndb.StringProperty()
-    resource = ndb.StringProperty()
-    seqnr = ndb.IntegerProperty(default=1)
-    callback = ndb.BooleanProperty()
-
-
 class SubscriptionDiff(ndb.Model):
     id = ndb.StringProperty(required=True)
     subid = ndb.StringProperty(required=True)
