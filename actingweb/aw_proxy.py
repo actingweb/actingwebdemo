@@ -35,8 +35,8 @@ class aw_proxy():
             self.actorid = peer_target.actor.id
             self.trust = None
             if peer_target.peerid:
-                self.trust = trust.trust(id=self.actorid, peerid=peer_target.peerid)
-                if not self.trust or not self.trust.trust:
+                self.trust = trust.trust(actorId=self.actorid, peerid=peer_target.peerid).get()
+                if not self.trust or len(self.trust) == 0:
                     self.trust = None
 
     def getResource(self, path=None, params=None):
@@ -44,12 +44,12 @@ class aw_proxy():
             return None
         if not params:
             params = {}
-        if not self.trust or not self.trust.baseuri or not self.trust.secret:
+        if not self.trust or not self.trust["baseuri"] or not self.trust["secret"]:
             return None
-        url = self.trust.baseuri.strip('/') + '/' + path.strip('/')
+        url = self.trust["baseuri"].strip('/') + '/' + path.strip('/')
         if params:
             url = url + '?' + urllib.urlencode(params)
-        headers = {'Authorization': 'Bearer ' + self.trust.secret,
+        headers = {'Authorization': 'Bearer ' + self.trust["secret"],
                    }
         logging.debug(
             'Getting trust peer resource at (' + url + ')')
@@ -85,13 +85,13 @@ class aw_proxy():
             return None
         if not params:
             params = {}
-        if not self.trust or not self.trust.baseuri or not self.trust.secret:
+        if not self.trust or not self.trust["baseuri"] or not self.trust["secret"]:
             return None
         data = json.dumps(params)
-        headers = {'Authorization': 'Bearer ' + self.trust.secret,
+        headers = {'Authorization': 'Bearer ' + self.trust["secret"],
                    'Content-Type': 'application/json',
                    }
-        url = self.trust.baseuri.strip('/') + '/' + path.strip('/')
+        url = self.trust["baseuri"].strip('/') + '/' + path.strip('/')
         logging.debug(
             'Creating trust peer resource at (' + url + ') with data(' +
             str(data) + ')')
@@ -132,13 +132,13 @@ class aw_proxy():
             return None
         if not params:
             params = {}
-        if not self.trust or not self.trust.baseuri or not self.trust.secret:
+        if not self.trust or not self.trust["baseuri"] or not self.trust["secret"]:
             return None
         data = json.dumps(params)
-        headers = {'Authorization': 'Bearer ' + self.trust.secret,
+        headers = {'Authorization': 'Bearer ' + self.trust["secret"],
                    'Content-Type': 'application/json',
                    }
-        url = self.trust.baseuri.strip('/') + '/' + path.strip('/')
+        url = self.trust["baseuri"].strip('/') + '/' + path.strip('/')
         logging.debug(
             'Changing trust peer resource at (' + url + ') with data(' +
             str(data) + ')')
@@ -173,11 +173,11 @@ class aw_proxy():
     def deleteResource(self, path=None):
         if not path or len(path) == 0:
             return None
-        if not self.trust or not self.trust.baseuri or not self.trust.secret:
+        if not self.trust or not self.trust["baseuri"] or not self.trust["secret"]:
             return None
-        headers = {'Authorization': 'Bearer ' + self.trust.secret,
+        headers = {'Authorization': 'Bearer ' + self.trust["secret"],
                    }
-        url = self.trust.baseuri.strip('/') + '/' + path.strip('/')
+        url = self.trust["baseuri"].strip('/') + '/' + path.strip('/')
         logging.debug(
             'Deleting trust peer resource at (' + url + ')')
         try:

@@ -97,7 +97,7 @@ class MainPage(webapp2.RequestHandler):
 
     def listall(self, myself):
         properties = myself.getProperties()
-        if len(properties) == 0:
+        if not properties or len(properties) == 0:
             self.response.set_status(404, "No properties")
             return
         pair = dict()

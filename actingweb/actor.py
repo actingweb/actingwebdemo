@@ -106,7 +106,6 @@ class actor():
         self.actor.put(use_cache=False)
         return True
 
-
     def delete(self):
         """Deletes an actor and cleans up all relevant stored data in db."""
         self.deletePeerTrustee(shorttype='*')
@@ -121,10 +120,11 @@ class actor():
         for sub in subs:
             self.deleteRemoteSubscription(peerid=sub.peerid, subid=sub.subid)
             sub.key.delete(use_cache=False)
-        relationships = db.Trust.query(db.Trust.id == self.id).fetch(use_cache=False)
+        trusts = trust.trusts(actorId=self.id)
+        relationships = trusts.fetch()
         for rel in relationships:
-            self.deleteReciprocalTrust(peerid=rel.peerid, deletePeer=True)
-            rel.key.delete(use_cache=False)
+            self.deleteReciprocalTrust(peerid=rel["peerid"], deletePeer=True)
+        trusts.delete()
         result = db.Actor.query(db.Actor.id == self.id).get(use_cache=False)
         if result:
             result.key.delete(use_cache=False)
@@ -153,7 +153,7 @@ class actor():
     def getProperties(self):
         """Retrieves properties from db and returns a dict."""
         self.property_list = property.properties(actorId=self.id)
-        return self.property_list.props
+        return self.property_list.fetch()
 
     def deletePeerTrustee(self, shorttype=None, peerid=None):
         if not peerid and not shorttype:
@@ -222,8 +222,9 @@ class actor():
             new_peer = peer.peerTrustee(actor=self, shorttype=shorttype)
         if new_peer.peer:
             logging.debug('Found peer in getPeer, now checking existing trust...')
-            new_trust = trust.trust(id=self.id, peerid=new_peer.peerid)
-            if new_trust.trust:
+            db_trust = trust.trust(actorId=self.id, peerid=new_peer.peerid)
+            new_trust = db_trust.get()
+            if new_trust and len(new_trust) > 0:
                 return new_peer
             logging.debug('Did not find existing trust, will create a new one')
         factory = Config.actors[shorttype]['factory']
@@ -283,7 +284,7 @@ class actor():
                         desc='Trust from trustee to ' + shorttype,
                         relationship=Config.actors[shorttype]['relationship']
                         )
-        if not new_trust:
+        if not new_trust or len(new_trust) == 0:
             logging.warn("Not able to establish trust relationship with peer at factory(" +
                          factory + ")")
         else:
@@ -318,50 +319,21 @@ class actor():
     def getTrustRelationship(self, peerid=None):
         if not peerid:
             return None
-        return db.Trust.query(db.Trust.id == self.id,
-                              db.Trust.peerid == peerid).get(use_cache=False)
-
-    def getTrustRelationshipByType(self, type=None):
-        if not type:
-            return None
-        return db.Trust.query(db.Trust.id == self.id,
-                              db.Trust.type == type).fetch(use_cache=False)
+        return trust.trust(actorId=self.id, peerid=peerid).get()
 
     def getTrustRelationships(self, relationship='', peerid='', type=''):
         """Retrieves all trust relationships or filtered."""
-        if len(relationship) > 0 and len(peerid) > 0 and len(type) > 0:
-            relationships = db.Trust.query(
-                db.Trust.id == self.id,
-                db.Trust.relationship == relationship,
-                db.Trust.peerid == peerid,
-                db.Trust.type == type).fetch(use_cache=False)
-        elif len(peerid) > 0 and len(type) > 0:
-            relationships = db.Trust.query(
-                db.Trust.id == self.id,
-                db.Trust.peerid == peerid,
-                db.Trust.type == type).fetch(use_cache=False)
-        elif len(relationship) > 0 and len(peerid) > 0:
-            relationships = db.Trust.query(
-                db.Trust.id == self.id,
-                db.Trust.relationship == relationship,
-                db.Trust.peerid == peerid).fetch(use_cache=False)
-        elif len(relationship) > 0:
-            relationships = db.Trust.query(
-                db.Trust.id == self.id,
-                db.Trust.relationship == relationship).fetch(use_cache=False)
-        elif len(peerid) > 0:
-            relationships = db.Trust.query(
-                db.Trust.id == self.id,
-                db.Trust.peerid == peerid).fetch(use_cache=False)
-        elif len(type) > 0:
-            relationships = db.Trust.query(
-                db.Trust.id == self.id,
-                db.Trust.type == type).fetch(use_cache=False)
-        else:
-            relationships = db.Trust.query(db.Trust.id == self.id).fetch(use_cache=False)
+        list = trust.trusts(actorId=self.id)
+        relationships = list.fetch()
         rels = []
         for rel in relationships:
-            rels.append(trust.trust(self.id, rel.peerid))
+            if len(relationship) > 0 and relationship != rel["relationship"]:
+                continue
+            if len(peerid) > 0 and peerid != rel["peerid"]:
+                continue
+            if len(type) > 0 and type != rel["type"]:
+                continue
+            rels.append(rel)
         return rels
 
     def modifyTrustAndNotify(self, relationship=None, peerid=None, baseuri='', secret='', desc='', approved=None, verified=None, verificationToken=None, peer_approved=None):
@@ -372,15 +344,15 @@ class actor():
             relationship=relationship, peerid=peerid)
         if not relationships:
             return False
-        trust = relationships[0]
+        this_trust = relationships[0]
         # If we change approval status, send the changed status to our peer
-        if approved is True and trust.approved is False:
+        if approved is True and this_trust["approved"] is False:
             params = {
                 'approved': True,
             }
-            requrl = trust.baseuri + '/trust/' + relationship + '/' + self.id
-            if trust.secret:
-                headers = {'Authorization': 'Bearer ' + trust.secret,
+            requrl = this_trust["baseuri"] + '/trust/' + relationship + '/' + self.id
+            if this_trust["secret"]:
+                headers = {'Authorization': 'Bearer ' + this_trust["secret"],
                            'Content-Type': 'application/json',
                            }
             data = json.dumps(params)
@@ -401,8 +373,8 @@ class actor():
             except:
                 logging.debug('Not able to notify peer at url(' + requrl + ')')
                 self.last_response_code = 500
-
-        return relationships[0].modify(baseuri=baseuri,
+        db_trust = trust.trust(actorId=self.id, peerid=peerid)
+        return db_trust.modify(baseuri=baseuri,
                                        secret=secret,
                                        desc=desc,
                                        approved=approved,
@@ -434,25 +406,22 @@ class actor():
             relationship = Config.default_relationship
         # Create trust, so that peer can do a verify on the relationship (using
         # verificationToken) when we request the relationship
-        new_trust = trust.trust(self.id, peer["id"])
-        if new_trust.trust:
+        db_trust = trust.trust(actorId=self.id, peerid=peer["id"])
+        if not db_trust.create(baseuri=url, secret=secret, type=peer["type"],
+                         relationship=relationship, approved=True,
+                         verified=False, desc=desc):
             logging.warn("Trying to establish a new Reciprocal trust when peer relationship already exists (" + peer["id"] + ")")
             return False
         # Since we are initiating the relationship, we implicitly approve it
         # It is not verified until the peer has verified us
-        new_trust.create(baseuri=url, secret=secret, type=peer["type"],
-                         relationship=relationship, approved=True,
-                         verified=False, desc=desc)
-        # Add a sleep here to make sure that appengine has time to write the new
-        # relationship to datastore before we try to create the new trust with peer
-        # time.sleep(0.4)
+        new_trust = db_trust.get()
         params = {
             'baseuri': Config.root + self.id,
             'id': self.id,
             'type': Config.type,
             'secret': secret,
             'desc': desc,
-            'verify': new_trust.verificationToken,
+            'verify': new_trust["verificationToken"],
         }
         requrl = url + '/trust/' + relationship
         data = json.dumps(params)
@@ -471,13 +440,13 @@ class actor():
         except:
             logging.debug(
                 "Not able to create trust with peer, deleting my trust.")
-            new_trust.delete()
+            db_trust.delete()
             return False
-
         if self.last_response_code == 201 or self.last_response_code == 202:
             # Reload the trust to check if approval was done
-            mod_trust = trust.trust(self.id, peer["id"])
-            if not mod_trust.trust:
+            mod_trust = trust.trust(actorId=self.id, peerid=peer["id"])
+            mod_trust_data = mod_trust.get()
+            if not mod_trust_data or len(mod_trust_data) == 0:
                 logging.error(
                     "Couldn't find trust relationship after peer POST and verification")
                 return False
@@ -486,14 +455,16 @@ class actor():
                 # Do it direct on the trust (and not self.modifyTrustAndNotify) to avoid a callback
                 # to the peer
                 mod_trust.modify(peer_approved=True)
-            return mod_trust
+            return mod_trust.get()
         else:
             logging.debug(
                 "Not able to create trust with peer, deleting my trust.")
-            new_trust.delete()
+            db_trust.delete()
             return False
 
-    def createVerifiedTrust(self, baseuri='', peerid=None, approved=False, secret=None, verificationToken=None, type=None, peer_approved=None, relationship=None, desc=''):
+    def createVerifiedTrust(self, baseuri='', peerid=None, approved=False,
+                            secret=None, verificationToken=None, type=None,
+                            peer_approved=None, relationship=None, desc=''):
         """Creates a new trust when requested and call backs to initiating actor to verify relationship."""
         if not peerid or len(baseuri) == 0 or not relationship:
             return False
@@ -531,12 +502,12 @@ class actor():
                 logging.debug(
                     'No response when verifying trust at url' + requrl + ')')
                 verified = False
-        new_trust = trust.trust(self.id, peerid)
+        new_trust = trust.trust(actorId=self.id, peerid=peerid)
         if not new_trust.create(baseuri=baseuri, secret=secret, type=type, approved=approved, peer_approved=peer_approved,
                                 relationship=relationship, verified=verified, desc=desc):
             return False
         else:
-            return new_trust
+            return new_trust.get()
 
     def deleteReciprocalTrust(self, peerid=None, deletePeer=False):
         """Deletes a trust relationship and requests deletion of peer's relationship as well."""
@@ -548,10 +519,10 @@ class actor():
             rels = self.getTrustRelationships(peerid=peerid)
         for rel in rels:
             if deletePeer:
-                url = rel.baseuri + '/trust/' + rel.relationship + '/' + self.id
+                url = rel["baseuri"] + '/trust/' + rel["relationship"] + '/' + self.id
                 headers = {}
-                if rel.secret:
-                    headers = {'Authorization': 'Bearer ' + rel.secret,
+                if rel["secret"]:
+                    headers = {'Authorization': 'Bearer ' + rel["secret"],
                                }
                 logging.debug(
                     'Deleting reciprocal relationship at url(' + url + ')')
@@ -572,7 +543,8 @@ class actor():
                     continue
                 else:
                     successOnce = True
-            rel.trust.key.delete(use_cache=False)
+            db_trust = trust.trust(actorId=self.id, peerid=rel["peerid"])
+            db_trust.delete()
         if deletePeer and (not successOnce or failedOnce):
             return False
         return True
@@ -603,9 +575,9 @@ class actor():
             params['resource'] = resource
         if granularity and len(granularity) > 0:
             params['granularity'] = granularity
-        requrl = peer.baseuri + '/subscriptions/' + self.id
+        requrl = peer["baseuri"] + '/subscriptions/' + self.id
         data = json.dumps(params)
-        headers = {'Authorization': 'Bearer ' + peer.secret,
+        headers = {'Authorization': 'Bearer ' + peer["secret"],
                    'Content-Type': 'application/json',
                    }
         try:
@@ -710,10 +682,10 @@ class actor():
         if not sub:
             sub = self.getSubscription(peerid=peerid, subid=subid, callback=True)
         if not sub.callback:
-            url = trust.baseuri + '/subscriptions/' + self.id + '/' + subid
+            url = trust["baseuri"] + '/subscriptions/' + self.id + '/' + subid
         else:
-            url = trust.baseuri + '/callbacks/subscriptions/' + self.id + '/' + subid
-        headers = {'Authorization': 'Bearer ' + trust.secret,
+            url = trust["baseuri"] + '/callbacks/subscriptions/' + self.id + '/' + subid
+        headers = {'Authorization': 'Bearer ' + trust["secret"],
                    }
         try:
             logging.debug('Deleting remote subscription at url(' + url + ')')
@@ -769,10 +741,10 @@ class actor():
         if sub.granularity == "low":
             Config = config.config()
             params['url'] = Config.root + self.id + '/subscriptions/' + \
-                trust.peerid + '/' + sub.subid + '/' + str(diff.seqnr)
-        requrl = trust.baseuri + '/callbacks/subscriptions/' + self.id + '/' + sub.subid
+                trust["peerid"] + '/' + sub.subid + '/' + str(diff.seqnr)
+        requrl = trust["baseuri"] + '/callbacks/subscriptions/' + self.id + '/' + sub.subid
         data = json.dumps(params)
-        headers = {'Authorization': 'Bearer ' + trust.secret,
+        headers = {'Authorization': 'Bearer ' + trust["secret"],
                    'Content-Type': 'application/json',
                    }
         try:

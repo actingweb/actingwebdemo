@@ -14,20 +14,6 @@ class PeerTrustee(ndb.Model):
     passphrase = ndb.StringProperty(required=True)
 
 
-class Trust(ndb.Model):
-    id = ndb.StringProperty(required=True)
-    peerid = ndb.StringProperty(required=True)
-    baseuri = ndb.StringProperty(required=True)
-    type = ndb.StringProperty(required=True)
-    relationship = ndb.StringProperty(required=True)
-    secret = ndb.StringProperty(required=True)
-    desc = ndb.TextProperty()
-    approved = ndb.BooleanProperty()
-    peer_approved = ndb.BooleanProperty()
-    verified = ndb.BooleanProperty()
-    verificationToken = ndb.StringProperty()
-
-
 class Subscription(ndb.Model):
     id = ndb.StringProperty(required=True)
     peerid = ndb.StringProperty(required=True)
