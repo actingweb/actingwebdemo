@@ -12,7 +12,7 @@ import config
 import trust
 import subscription
 import logging
-import peer
+import peertrustee
 
 __all__ = [
     'actor',
@@ -188,11 +188,11 @@ class actor():
             logging.error('Got a request to delete an unknown actor type(' + shorttype + ')')
             return False
         if peerid:
-            new_peer = peer.peerTrustee(actor=self, peerid=peerid)
+            new_peer = peertrustee.peertrustee(actor=self, peerid=peerid)
             if not new_peer.peer:
                 return False
         elif shorttype:
-            new_peer = peer.peerTrustee(actor=self, shorttype=shorttype)
+            new_peer = peertrustee.peertrustee(actor=self, shorttype=shorttype)
             if not new_peer.peer:
                 return False
         logging.debug(
@@ -238,9 +238,9 @@ class actor():
             logging.error('Got a request to create an unknown actor type(' + shorttype + ')')
             return None
         if peerid:
-            new_peer = peer.peerTrustee(actor=self, peerid=peerid)
+            new_peer = peertrustee.peertrustee(actor=self, peerid=peerid)
         else:
-            new_peer = peer.peerTrustee(actor=self, shorttype=shorttype)
+            new_peer = peertrustee.peertrustee(actor=self, shorttype=shorttype)
         if new_peer.peer:
             logging.debug('Found peer in getPeer, now checking existing trust...')
             db_trust = trust.trust(actorId=self.id, peerid=new_peer.peerid)
@@ -254,7 +254,7 @@ class actor():
             if len(factory) == 0:
                 logging.error('Peer actor of shorttype(' + 
                             shorttype + ') does not have factory set.')
-            new_peer = peer.peerTrustee(actor=self)
+            new_peer = peertrustee.peertrustee(actor=self)
             params = {
                 'creator': 'trustee',
                 'trustee_root': Config.root + self.id

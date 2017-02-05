@@ -9,11 +9,11 @@ import config
 import logging
 
 __all__ = [
-    'peerTrustee',
+    'peertrustee',
 ]
 
 
-class peerTrustee():
+class peertrustee():
 
     def __init__(self, actor=None, shorttype=None, peerid=None):
         if actor and actor.id:
