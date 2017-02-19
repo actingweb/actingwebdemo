@@ -132,10 +132,6 @@ class actor():
         if not self.property_list:
             self.property_list = property.properties(actorId=self.id)
         self.property_list.delete()
-        diffs = db.SubscriptionDiff.query(
-            db.SubscriptionDiff.id == self.id).fetch(use_cache=False)
-        for diff in diffs:
-            diff.key.delete(use_cache=False)
         subs = subscription.subscriptions(actorId=self.id)
         subs.fetch()
         subs.delete()
@@ -714,8 +710,8 @@ class actor():
             'id': self.id,
             'subscriptionid': sub["subscriptionid"],
             'target': sub["target"],
-            'sequence': diff.seqnr,
-            'timestamp': str(diff.timestamp),
+            'sequence': diff["sequence"],
+            'timestamp': str(diff["timestamp"]),
             'granularity': sub["granularity"],
         }
         if sub["subtarget"]:

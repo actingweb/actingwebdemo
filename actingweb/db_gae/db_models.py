@@ -7,10 +7,3 @@ class PeerTrustee(ndb.Model):
     type = ndb.StringProperty(required=True)
     passphrase = ndb.StringProperty(required=True)
 
-
-class SubscriptionDiff(ndb.Model):
-    id = ndb.StringProperty(required=True)
-    subid = ndb.StringProperty(required=True)
-    timestamp = ndb.DateTimeProperty(auto_now_add=True)
-    diff = ndb.TextProperty()
-    seqnr = ndb.IntegerProperty()

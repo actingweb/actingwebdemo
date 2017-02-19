@@ -204,19 +204,19 @@ class subscriptionHandler(webapp2.RequestHandler):
             return
         sub = myself.getSubscriptionObj(peerid=peerid, subid=subid)
         subData = sub.get()
-        if not sub:
+        if not subData or len(subData) == 0:
             self.response.set_status(404, "Subscription does not exist")
             return
         diffs = sub.getDiffs()
         pairs = []
         for diff in diffs:
             try:
-                d = json.loads(diff.diff)
+                d = json.loads(diff["diff"])
             except:
-                d = diff.diff
+                d = diff["diff"]
             pairs.append({
-                'sequence': diff.seqnr,
-                'timestamp': diff.timestamp.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+                'sequence': diff["sequence"],
+                'timestamp': diff["timestamp"].strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
                 'data': d,
             })
         if len(pairs) == 0:
@@ -293,9 +293,9 @@ class subscriptionHandler(webapp2.RequestHandler):
 class diffHandler(webapp2.RequestHandler):
     """ Handling requests to specific diffs for one subscription and clears it, e.g. /subscriptions/<peerid>/<subid>/112"""
 
-    def get(self, id, peerid, subid, seqid):
+    def get(self, id, peerid, subid, seqnr):
         (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='subscriptions', subpath=peerid + '/' + subid + '/' + seqid)
+                                                      id=id, path='subscriptions', subpath=peerid + '/' + subid + '/' + seqnr)
         if not myself or check.response["code"] != 200:
             return
         if not check.checkAuthorisation(path='subscriptions', subpath='<id>/<id>', method='GET', peerid=peerid):
@@ -306,28 +306,28 @@ class diffHandler(webapp2.RequestHandler):
         if not sub:
             self.response.set_status(404, "Subscription does not exist")
             return
-        if not isinstance(seqid, int):
-            seqid = int(seqid)
-        diff = sub.getDiff(seqid)
+        if not isinstance(seqnr, int):
+            seqnr = int(seqnr)
+        diff = sub.getDiff(seqnr=seqnr)
         if not diff:
             self.response.set_status(404, 'No diffs available')
             return
         try:
-            d = json.loads(diff.diff)
+            d = json.loads(diff["data"])
         except:
-            d = diff.diff
+            d = diff["data"]
         pairs = {
             'id': myself.id,
             'peerid': peerid,
             'subscriptionid': subid,
-            'timestamp': diff.timestamp.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+            'timestamp': diff["timestamp"].strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
             'target': subData["target"],
             'subtarget': subData["subtarget"],
             'resource': subData["resource"],
-            'sequence': seqid,
+            'sequence': seqnr,
             'data': d,
         }
-        sub.clearDiff(seqid)
+        sub.clearDiff(seqnr)
         out = json.dumps(pairs)
         self.response.write(out)
         self.response.headers["Content-Type"] = "application/json"
@@ -340,6 +340,6 @@ application = webapp2.WSGIApplication([
                   relationshipHandler, name='relationshipHandler'),
     webapp2.Route(r'/<id>/subscriptions/<peerid>/<subid><:/?>',
                   subscriptionHandler, name='subscriptionHandler'),
-    webapp2.Route(r'/<id>/subscriptions/<peerid>/<subid>/<seqid><:/?>',
+    webapp2.Route(r'/<id>/subscriptions/<peerid>/<subid>/<seqnr><:/?>',
                   diffHandler, name='diffHandler'),
 ], debug=True)
