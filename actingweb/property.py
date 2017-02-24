@@ -73,7 +73,7 @@ class property():
 
 class properties():
     """ Handles all properties of a specific actor_id
-    
+
         Access the properties
         in .props as a dictionary
     """

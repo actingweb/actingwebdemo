@@ -1,4 +1,4 @@
-from db_gae import db_models as db
+from db_gae import db_peertrustee
 import datetime
 import time
 import urllib
@@ -15,72 +15,53 @@ __all__ = [
 
 class peertrustee():
 
-    def __init__(self, actor=None, shorttype=None, peerid=None):
-        if actor and actor.id:
-            self.actor = actor
-        else:
-            self.actor = None
-        self.shorttype = shorttype
-        self.fresh = False
-        self.peerid = peerid
-        self.get(peerid=peerid, shorttype=shorttype)
+    def get(self):
+        if self.peertrustee and len(self.peertrustee) > 0:
+            return self.peertrustee
+        self.peertrustee = self.handle.get(actorId=self.actorId,
+                                           peerid=self.peerid,
+                                           type=self.type)
+        return self.peertrustee
 
-    def get(self, peerid=None, shorttype=None):
-        result = None
-        if peerid:
-            result = db.PeerTrustee.query(db.PeerTrustee.id == self.actor.id,
-                                   db.PeerTrustee.peerid == peerid).get(use_cache=False)
-        elif shorttype:
-            Config = config.config()
-            if not Config.actors[shorttype]:
-                logging.error('Got request to get peer with unknown shorttype(' + shorttype + ')')
-                return False
-            result = db.PeerTrustee.query(db.PeerTrustee.id == self.actor.id,
-                                   db.PeerTrustee.type == Config.actors[shorttype]['type']).fetch(use_cache=False)
-            if len(result) > 1:
-                logging.error('Found more than one peer of this type(' + 
-                              shorttype + '). Unable to determine which, need peerid lookup.')
-                return False
-            if len(result) == 1:
-                result = result[0]
-        if result:
-            self.peer = result
-            self.peerid = result.peerid
-            self.baseuri = result.baseuri
-            self.type = result.type
-            self.passphrase = result.passphrase
-        else:
-            self.peer = None
-            self.peerid = None
-            self.baseuri = None
-            self.type = None
-            self.passphrase = None
-
-    def create(self, peerid='', baseuri='', type='', passphrase=''):
-        if len(peerid) == 0 or len(baseuri) == 0 or len(type) == 0:
+    def create(self, baseuri=None, passphrase=None):
+        if not self.handle:
+            self.handle = db_peertrustee.db_peertrustee()
+        if not self.actorId or not self.peerid:
+            logging.debug("Attempt to create new peer trustee without actorId or peerid set")
             return False
-        if self.peer:
-            self.peer.id = self.actor.id
-            self.peer.peerid = peerid
-            self.peer.baseuri = baseuri
-            self.peer.type = type
-            self.passphrase = passphrase
-        else:
-            self.peer = db.PeerTrustee(id=self.actor.id,
-                                       peerid=peerid,
-                                       baseuri=baseuri,
-                                       type=type,
-                                       passphrase=passphrase)
-        self.peer.put(use_cache=False)
-        self.fresh = True
-        self.peerid = peerid
-        self.baseuri = baseuri
-        self.type = type
-        self.passphrase = passphrase
-        return True
+        if not self.type or len(self.type) == 0:
+            logging.debug("Attempt to create peer trustee without type set.")
+            return False
+        return self.handle.create(actorId=self.actorId,
+                                  peerid=self.peerid,
+                                  type=self.type,
+                                  baseuri=baseuri,
+                                  passphrase=passphrase)
 
     def delete(self):
-        if not self.peer:
+        if not self.handle:
+            logging.debug("Attempt to delete peertrustee without db handle")
             return False
-        self.peer.key.delete(use_cache=False)
-        return True
+        return self.handle.delete()
+
+    def __init__(self, actorId=None, peerid=None, shorttype=None, type=None):
+        self.handle = db_peertrustee.db_peertrustee()
+        self.peertrustee = {}
+        self.type = None
+        if not actorId or len(actorId) == 0:
+            logging.debug("No actorid set in initialisation of peertrust")
+            return
+        if type:
+            self.type = type
+        elif not type and shorttype:
+            Config = config.config()
+            if not Config.actors[shorttype]:
+                logging.error('Got request to initialise peer trustee with unknown shorttype(' + shorttype + ')')
+                return
+            self.type = Config.actors[shorttype]["type"]
+        elif not peerid:
+            logging.debug("Peerid and shorttype are not set in initialisation of peertrustee. One is required")
+            return
+        self.actorId = actorId
+        self.peerid = peerid
+        self.get()

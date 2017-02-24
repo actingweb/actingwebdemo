@@ -31,11 +31,11 @@ class aw_proxy():
         if trust_target and trust_target.trust:
             self.trust = trust_target
             self.actorid = trust_target.id
-        elif peer_target and peer_target.actor:
-            self.actorid = peer_target.actor.id
+        elif peer_target and peer_target["id"]:
+            self.actorid = peer_target["id"]
             self.trust = None
-            if peer_target.peerid:
-                self.trust = trust.trust(actorId=self.actorid, peerid=peer_target.peerid).get()
+            if peer_target["peerid"]:
+                self.trust = trust.trust(actorId=self.actorid, peerid=peer_target["peerid"]).get()
                 if not self.trust or len(self.trust) == 0:
                     self.trust = None
 

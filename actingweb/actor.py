@@ -1,4 +1,3 @@
-from db_gae import db_models as db
 from db_gae import db_actor
 import datetime
 import time
@@ -184,21 +183,23 @@ class actor():
             logging.error('Got a request to delete an unknown actor type(' + shorttype + ')')
             return False
         if peerid:
-            new_peer = peertrustee.peertrustee(actor=self, peerid=peerid)
-            if not new_peer.peer:
+            new_peer = peertrustee.peertrustee(actorId=self.id, peerid=peerid)
+            peerData = new_peer.get()
+            if not peerData or len(peerData) == 0:
                 return False
         elif shorttype:
-            new_peer = peertrustee.peertrustee(actor=self, shorttype=shorttype)
-            if not new_peer.peer:
+            new_peer = peertrustee.peertrustee(actorId=self.id, shorttype=shorttype)
+            peerData = new_peer.get()
+            if not peerData or len(peerData) == 0:
                 return False
         logging.debug(
-            'Deleting peer actor at baseuri(' + new_peer.baseuri + ')')
+            'Deleting peer actor at baseuri(' + peerData["baseuri"] + ')')
         headers = {'Authorization': 'Basic ' +
-                   base64.b64encode('trustee:' + new_peer.passphrase),
+                   base64.b64encode('trustee:' + peerData["passphrase"]),
                    }
         try:
             urlfetch.set_default_fetch_deadline(20)
-            response = urlfetch.fetch(url=new_peer.baseuri,
+            response = urlfetch.fetch(url=peerData["baseuri"],
                                       method=urlfetch.DELETE,
                                       headers=headers
                                       )
@@ -212,7 +213,7 @@ class actor():
             logging.debug('Not able to delete peer actor remotely')
             return False
         # Delete trust, peer is already deleted remotely
-        if not self.deleteReciprocalTrust(peerid=new_peer.peerid, deletePeer=False):
+        if not self.deleteReciprocalTrust(peerid=peerData["peerid"], deletePeer=False):
             logging.debug('Not able to delete peer actor trust in db')
         if not new_peer.delete():
             logging.debug('Not able to delete peer actor in db')
@@ -234,23 +235,23 @@ class actor():
             logging.error('Got a request to create an unknown actor type(' + shorttype + ')')
             return None
         if peerid:
-            new_peer = peertrustee.peertrustee(actor=self, peerid=peerid)
+            new_peer = peertrustee.peertrustee(actorId=self.id, peerid=peerid)
         else:
-            new_peer = peertrustee.peertrustee(actor=self, shorttype=shorttype)
-        if new_peer.peer:
+            new_peer = peertrustee.peertrustee(actorId=self.id, shorttype=shorttype)
+        peerData = new_peer.get()
+        if peerData and len(peerData) > 0:
             logging.debug('Found peer in getPeer, now checking existing trust...')
-            db_trust = trust.trust(actorId=self.id, peerid=new_peer.peerid)
+            db_trust = trust.trust(actorId=self.id, peerid=peerData["peerid"])
             new_trust = db_trust.get()
             if new_trust and len(new_trust) > 0:
-                return new_peer
+                return peerData
             logging.debug('Did not find existing trust, will create a new one')
         factory = Config.actors[shorttype]['factory']
         # If peer did not exist, create it as trustee
-        if not new_peer.peer:
+        if not peerData or len(peerData) == 0:
             if len(factory) == 0:
                 logging.error('Peer actor of shorttype(' + 
                             shorttype + ') does not have factory set.')
-            new_peer = peertrustee.peertrustee(actor=self)
             params = {
                 'creator': 'trustee',
                 'trustee_root': Config.root + self.id
@@ -289,14 +290,15 @@ class actor():
                 logging.info(
                     "Received invalid peer info when trying to create peer actor at: " + factory)
                 return None
-            if not new_peer.create(peerid=info["id"], baseuri=baseuri, 
-                                type=info["type"], passphrase=data["passphrase"]):
+            new_peer = peertrustee.peertrustee(actorId=self.id, peerid=info["id"], type=info["type"])
+            if not new_peer.create(baseuri=baseuri, passphrase=data["passphrase"]):
                 logging.error('Failed to create in db new peer actor(' + 
                             peer["id"] + ') at ' + baseuri)
                 return None
         # Now peer exists, create trust
+        newPeerData = new_peer.get()
         new_trust = self.createReciprocalTrust(
-                        url=new_peer.baseuri,
+                        url=newPeerData["baseuri"],
                         secret=Config.newToken(),
                         desc='Trust from trustee to ' + shorttype,
                         relationship=Config.actors[shorttype]['relationship']
@@ -310,13 +312,13 @@ class actor():
                 'approved': True,
             }
             headers = {'Authorization': 'Basic ' +
-                       base64.b64encode('trustee:' + new_peer.passphrase),
+                       base64.b64encode('trustee:' + newPeerData["passphrase"]),
                        'Content-Type': 'application/json',
                        }
             data = json.dumps(params)
             try:
                 urlfetch.set_default_fetch_deadline(20)
-                response = urlfetch.fetch(url=new_peer.baseuri +
+                response = urlfetch.fetch(url=newPeerData["baseuri"] +
                                           '/trust/' +
                                           Config.actors[shorttype]['relationship'] +
                                           '/' + self.id,
@@ -331,7 +333,7 @@ class actor():
                 self.last_response_message = 'Not able to approve peer actor trust remotely'
             if response.status_code < 200 or response.status_code > 299:
                 logging.debug('Not able to delete peer actor remotely')
-        return new_peer
+        return newPeerData
 
     def getTrustRelationship(self, peerid=None):
         if not peerid:

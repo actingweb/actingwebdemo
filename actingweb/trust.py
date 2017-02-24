@@ -1,5 +1,4 @@
 import actor
-from db_gae import db_models as db
 from db_gae import db_trust
 import datetime
 import config
