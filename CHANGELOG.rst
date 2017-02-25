@@ -2,6 +2,29 @@
 CHANGELOG
 =========
 
+Feb 25, 2016
+------------
+- Major refactoring of all database code 
+  - All db entities are now accessible only from the actingweb/* libraries
+  - Each entity can be accessed one by one (e.g. trust.py exposes trust class)
+    and as a list (e.g. trust.py exposes trusts class)
+  - actorId and any parameters that identify the entity must be set when the class is
+    instantiated  
+  - get() must be called on the object to retrieve it from the database and the object
+    is returned as a dictionary
+  - Subsequent calls to get() will return the dictionary without database access, but
+    any changes will be synced to database immediately
+  - The actingweb/* libraries do not contain any database-specific code, but imports
+    a db library that exposes the barebone db operations per object
+  - The google datastore code can be found in actingweb/db_gae
+  - Each database entity has its own .py file exposing get(), modify(), create(), delete()
+    and some additional search/utility functions where needed
+  - These db classes do not do anything at init, and get() and create() must include all parameters
+  - The database handles are kept in the object, so modify() and delete() require a get() or create()
+    before they can be called
+- Currently, Google Datastore is the only supported db backend, but the db_* code can now fairly
+  easily be adapted to new databases
+
 Nov 19, 2016
 -------------
 - Create a better README in rst
