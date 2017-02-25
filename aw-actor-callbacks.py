@@ -72,7 +72,7 @@ class MainPage(webapp2.RequestHandler):
             peerid = path[1]
             subid = path[2]
             sub = myself.getSubscription(peerid=peerid, subid=subid, callback=True)
-            if sub:
+            if sub and len(sub) > 0:
                 if not check.checkAuthorisation(path='callbacks', subpath='subscriptions', method='POST', peerid=peerid):
                     self.response.set_status(403, 'Forbidden')
                     return
