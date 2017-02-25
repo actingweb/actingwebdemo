@@ -31,7 +31,7 @@ class MainPage(webapp2.RequestHandler):
         paths = path.split('/')
         if paths[0] == 'proxy':
             mytwin = myself.getPeerTrustee(shorttype='myself')
-            if mytwin:
+            if mytwin and len(mytwin) > 0:
                 if paths[1] == 'properties' and paths[2] and len(paths[2]) > 0:
                         proxy = aw_proxy.aw_proxy(peer_target=mytwin)
                         if params:
@@ -58,7 +58,7 @@ class MainPage(webapp2.RequestHandler):
         paths = path.split('/')
         if paths[0] == 'proxy':
             mytwin = myself.getPeerTrustee(shorttype='myself')
-            if mytwin:
+            if mytwin and len(mytwin) > 0:
                 if paths[1] == 'properties':
                     proxy = aw_proxy.aw_proxy(peer_target=mytwin)
                     prop = proxy.deleteResource(path='/properties')
@@ -84,7 +84,7 @@ class MainPage(webapp2.RequestHandler):
         paths = path.split('/')
         if paths[0] == 'proxy':
             mytwin = myself.getPeerTrustee(shorttype='myself')
-            if mytwin:
+            if mytwin and len(mytwin) > 0:
                 if paths[1] == 'properties':
                     proxy = aw_proxy.aw_proxy(peer_target=mytwin)
                     prop = proxy.getResource(path='/properties')
@@ -120,7 +120,7 @@ class MainPage(webapp2.RequestHandler):
         paths = path.split('/')
         if paths[0] == 'proxy':
             mytwin = myself.getPeerTrustee(shorttype='myself')
-            if mytwin:
+            if mytwin and len(mytwin) > 0:
                 if paths[1] == 'create':
                         proxy = aw_proxy.aw_proxy(peer_target=mytwin)
                         meta = proxy.getResource(path='/meta')
@@ -129,7 +129,7 @@ class MainPage(webapp2.RequestHandler):
                         out = json.dumps(meta)
                         self.response.write(out.encode('utf-8'))
                         self.response.headers["Content-Type"] = "application/json"
-                        self.response.headers["Location"] = mytwin.baseuri
+                        self.response.headers["Location"] = str(mytwin["baseuri"])
                         self.response.set_status(200)
                         return
         elif paths[0] == 'ping':

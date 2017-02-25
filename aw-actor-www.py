@@ -81,26 +81,14 @@ class MainPage(webapp2.RequestHandler):
             return
         if path == 'trust':
             relationships = myself.getTrustRelationships()
-            if not relationships:
+            if not relationships or len(relationships) == 0:
                 self.response.set_status(404, 'Not found')
                 return
-            trusts = []
             for t in relationships:
-                trusts.append({
-                    "peerid": t.peerid,
-                    "relationship": t.relationship,
-                    "type": t.type,
-                    "approved": t.approved,
-                    "approveuri": Config.root + myself.id + '/trust/' + t.relationship + '/' + t.peerid,
-                    "peer_approved": t.peer_approved,
-                    "baseuri": t.baseuri,
-                    "desc": t.desc,
-                    "verified": t.verified,
-                }
-                )
+                t["approveuri"] = Config.root + myself.id + '/trust/' + t.relationship + '/' + t.peerid
             template_values = {
                 'id': myself.id,
-                'trusts': trusts,
+                'trusts': relationships,
             }
             template_path = os.path.join(os.path.dirname(
                 __file__), 'templates/aw-actor-www-trust.html')

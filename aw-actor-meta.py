@@ -5,7 +5,6 @@ import wsgiref.handlers
 from actingweb import actor
 from actingweb import auth
 from actingweb import config
-from actingweb.db import db
 
 import webapp2
 import json
@@ -21,7 +20,9 @@ class MainPage(webapp2.RequestHandler):
 
     def get(self, id, path):
         (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='meta', subpath=path, add_response=False)
+                                                      id=id, path='meta',
+                                                      subpath=path,
+                                                      add_response=False)
         # We accept no auth here, so don't check response code
         if not myself:
             return
