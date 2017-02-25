@@ -36,20 +36,9 @@ class rootHandler(webapp2.RequestHandler):
         if not subscriptions:
             self.response.set_status(404, 'Not found')
             return
-        pairs = []
-        for sub in subscriptions:
-            pairs.append({
-                'peerid': sub.peerid,
-                'subscriptionid': sub.subid,
-                'target': sub.target,
-                'subtarget': sub.subtarget,
-                'resource': sub.resource,
-                'granularity': sub.granularity,
-                'sequence': sub.seqnr,
-            })
         data = {
                 'id': myself.id,
-                'data': pairs,
+                'data': subscriptions,
                 }
         out = json.dumps(data)
         self.response.write(out)
@@ -126,19 +115,10 @@ class relationshipHandler(webapp2.RequestHandler):
             self.response.set_status(404, 'Not found')
             return
         pairs = []
-        for sub in subscriptions:
-            pairs.append({
-                'subscriptionid': sub.subid,
-                'target': sub.target,
-                'subtarget': sub.subtarget,
-                'resource': sub.resource,
-                'granularity': sub.granularity,
-                'sequence': sub.seqnr,
-            })
         data = {
                 'id': myself.id,
                 'peerid': peerid,
-                'data': pairs,
+                'data': subscriptions,
                 }
         out = json.dumps(data)
         self.response.write(out)
@@ -190,14 +170,14 @@ class relationshipHandler(webapp2.RequestHandler):
             self.response.set_status(500, 'Unable to create new subscription')
             return
         self.response.headers.add_header(
-            "Location", str(Config.root + myself.id + '/subscriptions/' + new_sub.peerid + '/' + new_sub.subid))
+            "Location", str(Config.root + myself.id + '/subscriptions/' + new_sub["peerid"] + '/' + new_sub["subscriptionid"]))
         pair = {
-            'subscriptionid': new_sub.subid,
-            'target': new_sub.target,
-            'subtarget': new_sub.subtarget,
-            'resource': new_sub.resource,
-            'granularity': new_sub.granularity,
-            'sequence': new_sub.seqnr,
+            'subscriptionid': new_sub["subscriptionid"],
+            'target': new_sub["target"],
+            'subtarget': new_sub["subtarget"],
+            'resource': new_sub["resource"],
+            'granularity': new_sub["granularity"],
+            'sequence': new_sub["sequence"],
         }
         out = json.dumps(pair)
         self.response.write(out)
@@ -222,20 +202,21 @@ class subscriptionHandler(webapp2.RequestHandler):
         if not check.checkAuthorisation(path='subscriptions', subpath='<id>/<id>', method='GET', peerid=peerid):
             self.response.set_status(403)
             return
-        sub = myself.getSubscription(peerid=peerid, subid=subid)
-        if not sub:
+        sub = myself.getSubscriptionObj(peerid=peerid, subid=subid)
+        subData = sub.get()
+        if not subData or len(subData) == 0:
             self.response.set_status(404, "Subscription does not exist")
             return
         diffs = sub.getDiffs()
         pairs = []
         for diff in diffs:
             try:
-                d = json.loads(diff.diff)
+                d = json.loads(diff["diff"])
             except:
-                d = diff.diff
+                d = diff["diff"]
             pairs.append({
-                'sequence': diff.seqnr,
-                'timestamp': diff.timestamp.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+                'sequence': diff["sequence"],
+                'timestamp': diff["timestamp"].strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
                 'data': d,
             })
         if len(pairs) == 0:
@@ -245,9 +226,9 @@ class subscriptionHandler(webapp2.RequestHandler):
                 'id': myself.id,
                 'peerid': peerid,
                 'subscriptionid': subid,
-                'target': sub.target,
-                'subtarget': sub.subtarget,
-                'resource': sub.resource,
+                'target': subData["target"],
+                'subtarget': subData["subtarget"],
+                'resource': subData["resource"],
                 'data': pairs,
                 }
         out = json.dumps(data)
@@ -283,7 +264,7 @@ class subscriptionHandler(webapp2.RequestHandler):
         except ValueError:
             self.response.set_status(405, "Sequence does not contain a number")
             return
-        sub = myself.getSubscription(peerid=peerid, subid=subid)
+        sub = myself.getSubscriptionObj(peerid=peerid, subid=subid)
         if not sub:
             self.response.set_status(404, "Subscription does not exist")
             return
@@ -312,40 +293,41 @@ class subscriptionHandler(webapp2.RequestHandler):
 class diffHandler(webapp2.RequestHandler):
     """ Handling requests to specific diffs for one subscription and clears it, e.g. /subscriptions/<peerid>/<subid>/112"""
 
-    def get(self, id, peerid, subid, seqid):
+    def get(self, id, peerid, subid, seqnr):
         (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='subscriptions', subpath=peerid + '/' + subid + '/' + seqid)
+                                                      id=id, path='subscriptions', subpath=peerid + '/' + subid + '/' + seqnr)
         if not myself or check.response["code"] != 200:
             return
         if not check.checkAuthorisation(path='subscriptions', subpath='<id>/<id>', method='GET', peerid=peerid):
             self.response.set_status(403)
             return
-        sub = myself.getSubscription(peerid=peerid, subid=subid)
+        sub = myself.getSubscriptionObj(peerid=peerid, subid=subid)
+        subData = sub.get()
         if not sub:
             self.response.set_status(404, "Subscription does not exist")
             return
-        if not isinstance(seqid, int):
-            seqid = int(seqid)
-        diff = sub.getDiff(seqid)
+        if not isinstance(seqnr, int):
+            seqnr = int(seqnr)
+        diff = sub.getDiff(seqnr=seqnr)
         if not diff:
             self.response.set_status(404, 'No diffs available')
             return
         try:
-            d = json.loads(diff.diff)
+            d = json.loads(diff["data"])
         except:
-            d = diff.diff
+            d = diff["data"]
         pairs = {
             'id': myself.id,
             'peerid': peerid,
             'subscriptionid': subid,
-            'timestamp': diff.timestamp.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
-            'target': sub.target,
-            'subtarget': sub.subtarget,
-            'resource': sub.resource,
-            'sequence': seqid,
+            'timestamp': diff["timestamp"].strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+            'target': subData["target"],
+            'subtarget': subData["subtarget"],
+            'resource': subData["resource"],
+            'sequence': seqnr,
             'data': d,
         }
-        sub.clearDiff(seqid)
+        sub.clearDiff(seqnr)
         out = json.dumps(pairs)
         self.response.write(out)
         self.response.headers["Content-Type"] = "application/json"
@@ -358,6 +340,6 @@ application = webapp2.WSGIApplication([
                   relationshipHandler, name='relationshipHandler'),
     webapp2.Route(r'/<id>/subscriptions/<peerid>/<subid><:/?>',
                   subscriptionHandler, name='subscriptionHandler'),
-    webapp2.Route(r'/<id>/subscriptions/<peerid>/<subid>/<seqid><:/?>',
+    webapp2.Route(r'/<id>/subscriptions/<peerid>/<subid>/<seqnr><:/?>',
                   diffHandler, name='diffHandler'),
 ], debug=True)

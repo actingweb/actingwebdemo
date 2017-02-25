@@ -97,16 +97,16 @@ class MainPage(webapp2.RequestHandler):
 
     def listall(self, myself):
         properties = myself.getProperties()
-        if not properties:
+        if not properties or len(properties) == 0:
             self.response.set_status(404, "No properties")
             return
         pair = dict()
-        for property in properties:
+        for name, value in properties.items():
             try:
-                js = json.loads(property.value)
-                pair[property.name] = js
+                js = json.loads(value)
+                pair[name] = js
             except ValueError:
-                pair[property.name] = property.value
+                pair[name] = value
         out = json.dumps(pair)
         self.response.write(out.encode('utf-8'))
         self.response.headers["Content-Type"] = "application/json"
@@ -221,9 +221,7 @@ class MainPage(webapp2.RequestHandler):
             self.response.set_status(403)
             return
         if not name:
-            props = myself.getProperties()
-            for p in props:
-                myself.deleteProperty(p.name)
+            myself.deleteProperties()
             myself.registerDiffs(target='properties', subtarget=None, blob='')
             self.response.set_status(204)
             return

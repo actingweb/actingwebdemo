@@ -60,6 +60,6 @@ def on_post_callbacks(myself, req, auth, name):
 
 def on_post_subscriptions(myself, req, auth, sub, peerid, data):
     """Customizible function to process incoming callbacks/subscriptions/ callback with json body, return True if processed, False if not."""
-    logging.debug("Got callback and processed " + sub.subid +
+    logging.debug("Got callback and processed " + sub["subscriptionid"] +
                   " subscription from peer " + peerid + " with json blob: " + json.dumps(data))
     return True

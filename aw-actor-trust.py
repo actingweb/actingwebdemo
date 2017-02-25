@@ -52,25 +52,11 @@ class rootHandler(webapp2.RequestHandler):
         type = self.request.get('type')
         peerid = self.request.get('peerid')
 
-        relationships = myself.getTrustRelationships(
+        pairs = myself.getTrustRelationships(
             relationship=relationship, peerid=peerid, type=type)
-        if not relationships:
+        if not pairs or len(pairs) == 0:
             self.response.set_status(404, 'Not found')
             return
-        pairs = []
-        for rel in relationships:
-            pairs.append({
-                'baseuri': rel.baseuri,
-                'id': myself.id,
-                'peerid': rel.peerid,
-                'relationship': rel.relationship,
-                'approved': rel.approved,
-                'peer_approved': rel.peer_approved,
-                'verified': rel.verified,
-                'type': rel.type,
-                'desc': rel.desc,
-                'secret': rel.secret,
-            })
         out = json.dumps(pairs)
         self.response.write(out)
         self.response.headers["Content-Type"] = "application/json"
@@ -110,25 +96,17 @@ class rootHandler(webapp2.RequestHandler):
         secret = Config.newToken()
 
         new_trust = myself.createReciprocalTrust(
-            url=url, secret=secret, desc=desc, relationship=relationship, type=type)
+            url=url, secret=secret, desc=desc, relationship=relationship,
+            type=type)
         if not new_trust:
             self.response.set_status(408, 'Unable to create trust relationship')
             return
-        self.response.headers.add_header(
-            "Location", str(Config.root + myself.id + '/trust/' + new_trust.relationship + '/' + new_trust.peerid))
-        pair = {
-            'baseuri': new_trust.baseuri,
-            'id': myself.id,
-            'peerid': new_trust.peerid,
-            'relationship': new_trust.relationship,
-            'approved': new_trust.approved,
-            'peer_approved': new_trust.peer_approved,
-            'verified': new_trust.verified,
-            'type': new_trust.type,
-            'desc': new_trust.desc,
-            'secret': new_trust.secret,
-        }
-        out = json.dumps(pair)
+        self.response.headers.add_header("Location",
+                                         str(Config.root + myself.id +
+                                             '/trust/' +
+                                             new_trust["relationship"] +
+                                             '/' + new_trust["peerid"]))
+        out = json.dumps(new_trust)
         self.response.write(out)
         self.response.headers["Content-Type"] = "application/json"
         self.response.set_status(201, 'Created')
@@ -239,26 +217,16 @@ class relationshipHandler(webapp2.RequestHandler):
         else:
             approved = False
         # Since we received a request for a relationship, assume that peer has approved
-        new_trust = myself.createVerifiedTrust(baseuri=baseuri, peerid=peerid, approved=approved, secret=secret,
-                                               verificationToken=verificationToken, type=type, peer_approved=True, relationship=relationship, desc=desc)
+        new_trust = myself.createVerifiedTrust(
+            baseuri=baseuri, peerid=peerid, approved=approved, secret=secret,
+            verificationToken=verificationToken, type=type, peer_approved=True,
+            relationship=relationship, desc=desc)
         if not new_trust:
             self.response.set_status(403, 'Forbidden')
             return
         self.response.headers.add_header(
-            "Location", str(Config.root + myself.id + '/trust/' + new_trust.relationship + "/" + new_trust.peerid))
-        pair = {
-            'baseuri': new_trust.baseuri,
-            'id': myself.id,
-            'peerid': new_trust.peerid,
-            'relationship': new_trust.relationship,
-            'approved': new_trust.approved,
-            'peer_approved': new_trust.peer_approved,
-            'verified': new_trust.verified,
-            'type': new_trust.type,
-            'desc': new_trust.desc,
-            'secret': new_trust.secret,
-        }
-        out = json.dumps(pair)
+            "Location", str(Config.root + myself.id + '/trust/' + new_trust["relationship"] + "/" + new_trust["peerid"]))
+        out = json.dumps(new_trust)
         self.response.write(out)
         self.response.headers["Content-Type"] = "application/json"
         if approved:
@@ -287,33 +255,21 @@ class trustHandler(webapp2.RequestHandler):
             return
         relationships = myself.getTrustRelationships(
             relationship=relationship, peerid=peerid)
-        if not relationships:
+        if not relationships or len(relationships) == 0:
             self.response.set_status(404, 'Not found')
             return
         my_trust = relationships[0]
         # If the peer did a GET to verify
-        if check.trust and check.trust.peerid == peerid and not my_trust.verified:
-            my_trust.modify(verified=True)
-            verificationToken = my_trust.verificationToken
+        if check.trust and check.trust["peerid"] == peerid and not my_trust["verified"]:
+            db_trust = trust.trust(actorId=id, peerid=peerid)
+            db_trust.modify(verified=True)
+            verificationToken = my_trust["verificationToken"]
         else:
             verificationToken = ''
-        pair = {
-            'baseuri': my_trust.baseuri,
-            'id': myself.id,
-            'peerid': my_trust.peerid,
-            'relationship': my_trust.relationship,
-            'approved': my_trust.approved,
-            'peer_approved': my_trust.peer_approved,
-            'verified': my_trust.verified,
-            'verificationToken': verificationToken,
-            'type': my_trust.type,
-            'desc': my_trust.desc,
-            'secret': my_trust.secret,
-        }
-        out = json.dumps(pair)
+        out = json.dumps(my_trust)
         self.response.write(out)
         self.response.headers["Content-Type"] = "application/json"
-        if my_trust.approved:
+        if my_trust["approved"]:
             self.response.set_status(200, 'Ok')
         else:
             self.response.set_status(202, 'Accepted')
@@ -396,7 +352,7 @@ class trustHandler(webapp2.RequestHandler):
             self.response.set_status(403)
             return
         isPeer = False
-        if check.trust and check.trust.peerid == peerid:
+        if check.trust and check.trust["peerid"] == peerid:
             isPeer = True
         else:
             # Use of GET param peer=true is a way of forcing no deletion of a peer
@@ -407,7 +363,7 @@ class trustHandler(webapp2.RequestHandler):
         Config = config.config()
         relationships = myself.getTrustRelationships(
             relationship=relationship, peerid=peerid)
-        if not relationships:
+        if not relationships or len(relationships) == 0:
             self.response.set_status(404, 'Not found')
             return
         my_trust = relationships[0]

@@ -113,8 +113,8 @@ class auth():
         self.cookie_redirect = None
         self.cookie = None
         self.type = type
-        self.oauth = None
         self.trust = None
+        self.oauth = None
         # Proposed response code after checkAuthentication() or authorise() have been called
         self.response = {
             'code': 403,                # Result code (http)
@@ -434,20 +434,22 @@ class auth():
                     self.acl["approved"] = True
                     self.acl["authenticated"] = True
                     self.response['code'] = 200
-                    self.trust = None
                     self.token = self.actor.passphrase
                     return True
             else:
-                logging.debug('Attempted trustee bearer token auth with <80 bit strength token.')
-        new_trust = trust.trust(id=self.actor.id, token=token)
-        if new_trust.trust:
-            self.acl["relationship"] = new_trust.relationship
-            self.acl["peerid"] = new_trust.peerid
-            self.acl["approved"] = new_trust.approved
+                logging.warn('Attempted trustee bearer token auth with <80 bit strength token.')
+        tru = trust.trust(actorId=self.actor.id, token=token)
+        new_trust = tru.get()
+        if new_trust:
+            logging.debug('Found trust with token: (' + str(new_trust) + ')')
+        if new_trust and len(new_trust) > 0:
+            self.acl["relationship"] = new_trust["relationship"]
+            self.acl["peerid"] = new_trust["peerid"]
+            self.acl["approved"] = new_trust["approved"]
             self.acl["authenticated"] = True
             self.response['code'] = 200
+            self.token = new_trust["secret"]
             self.trust = new_trust
-            self.token = new_trust.secret
             return True
         else:
             return False
