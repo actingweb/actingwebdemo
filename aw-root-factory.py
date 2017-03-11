@@ -48,8 +48,9 @@ class MainPage(webapp2.RequestHandler):
             creator = self.request.get('creator')
             trustee_root = self.request.get('trustee_root')
             passphrase = self.request.get('passphrase')
-        myself.create(url=self.request.url, creator=creator,
-                      passphrase=passphrase)
+        if not myself.create(url=self.request.url, creator=creator, passphrase=passphrase):
+            self.response.set_status(400, 'Not created')
+            return
         if len(trustee_root) > 0:
             myself.setProperty('trustee_root', trustee_root)
         self.response.headers.add_header("Location", Config.root + myself.id)

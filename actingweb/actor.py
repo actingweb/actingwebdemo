@@ -69,6 +69,11 @@ class actor():
             self.id = self.actor["id"]
             self.creator = self.actor["creator"]
             self.passphrase = self.actor["passphrase"]
+            Config = config.config()
+            if Config.force_email_prop_as_creator:
+                em = self.getProperty("email").value
+                if em and len(em) > 0:
+                    self.modify(creator=em)
         else:
             self.id = None
             self.creator = None
@@ -101,8 +106,23 @@ class actor():
             self.creator = creator
         else:
             self.creator = "creator"
-
         Config = config.config()
+        if Config.unique_creator:
+            in_db = db_actor.db_actor()
+            exists = in_db.getByCreator(creator=self.creator)
+            if Config.force_email_prop_as_creator and exists:
+                # If uniqueness is turned on at a later point, we may have multiple accounts
+                # with creator as "creator". Check if we have a property "email" and then
+                # set creator to the email address.
+                if self.creator == "creator":
+                    for c in exists:
+                        anactor = actor(id=c["id"])
+                        em = anactor.getProperty("email").value
+                        if em and len(em) > 0:
+                            anactor.modify(creator=em)
+                if len(exists) == 1:
+                    self.handle = in_db
+                return None
         if passphrase and len(passphrase) > 0:
             self.passphrase = passphrase
         else:
@@ -113,12 +133,15 @@ class actor():
         self.handle.create(creator=self.creator,
                            passphrase=self.passphrase,
                            actorId=self.id)
+        return True
 
     def modify(self, creator=None):
         if not self.handle or not creator:
             logging.debug("Attempted modify of actor with no handle or no param changed")
             return False
         self.creator = creator
+        if self.actor:
+            self.actor["creator"] = creator
         self.handle.modify(creator=creator)
         return True
 
