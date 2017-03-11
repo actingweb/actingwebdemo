@@ -179,7 +179,11 @@ class MainPage(webapp2.RequestHandler):
         if len(name) > 0:
             self.response.set_status(405)
         pair = dict()
-        if len(self.request.arguments()) > 0:
+        # Handle the simple form
+        if self.request.get("property") and self.request.get("value"):
+            pair[self.request.get("property")] = self.request.get("value")
+            myself.setProperty(self.request.get("property"), self.request.get("value"))
+        elif len(self.request.arguments()) > 0:
             for name in self.request.arguments():
                 pair[name] = self.request.get(name)
                 myself.setProperty(name, self.request.get(name))
