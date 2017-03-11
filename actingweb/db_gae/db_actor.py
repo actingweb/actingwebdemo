@@ -1,4 +1,5 @@
 from google.appengine.ext import ndb
+import logging
 
 """
     db_actor handles all db operations for an actor
@@ -40,8 +41,27 @@ class db_actor():
         else:
             return None
 
-    def modify(self, creator=None,
-               passphrase=None):
+    def getByCreator(self, creator=None):
+        """ Retrieves the actor from db based on creator field
+
+            Returns None if none was found.
+        """
+        if not creator:
+            return None
+        self.handle = Actor.query(Actor.creator == creator).fetch(use_cache=False)
+        if not self.handle or len(self.handle) == 0:
+            return None
+        ret = []
+        if len(self.handle) == 1:
+            ret.append(self.get(actorId=self.handle[0].id))
+            return ret
+        logging.warn("Found multiple actors with creator(" + creator + "):")
+        for c in self.handle:
+            logging.warn("    id (" + c.id + ")")
+            ret.append(self.get(actorId=c.id))
+        return ret
+
+    def modify(self, creator=None, passphrase=None):
         """ Modify an actor """
         if not self.handle:
             logging.debug("Attempted modification of db_actor without db handle")

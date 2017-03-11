@@ -2,6 +2,18 @@
 CHANGELOG
 =========
 
+Mar 11, 2017
+------------
+- Fix bug in aw_actor_callbacks.py on does exist test after db refactoring
+- Fix bug in handling of www/init form to set properties
+- Add support to enforce that creator (in actor) is unique (Config.unique_creator bool)
+- Add support to enforce that a creator field set to "creator" is overwritten if property "email" is set 
+  (Config.force_email_prop_as_creator bool, default True). Note that username for basic login then changes from
+  creator to the value of email property. 
+  This functionality can be useful if actor is created by trustee and email is set later
+- Add new db_actor.py function getByCreator() to allow retrieving an actor based on the creator value
+
+
 Feb 25, 2016
 ------------
 - Major refactoring of all database code 

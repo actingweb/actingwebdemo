@@ -16,6 +16,8 @@ class config():
         #########
         self.ui = True                                      # Turn on the /www path
         self.devtest = True                                 # Enable /devtest path for test purposes, MUST be False in production
+        self.unique_creator = False                          # Will enforce unique creator field across all actors
+        self.force_email_prop_as_creator = True             # Use "email" property to set creator value (after creation and property set)
         self.www_auth = "basic"                             # basic or oauth: basic for creator + bearer tokens
         self.fqdn = "actingwebdemo.appspot.com"         # The host and domain, i.e. FQDN, of the URL
         self.proto = "https://"                             # http or https
