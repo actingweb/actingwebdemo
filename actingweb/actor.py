@@ -585,6 +585,14 @@ class actor():
                     continue
                 else:
                     successOnce = True
+            if not self.subs_list:
+                self.subs_list = subscription.subscriptions(actorId=self.id).fetch()
+            # Delete this peer's subscriptions
+            for sub in self.subs_list:
+                if sub["peerid"] == rel["peerid"]:
+                    logging.debug("Deleting subscription(" + sub["subscriptionid"] + ") as part of trust deletion.")
+                    subObj = self.getSubscriptionObj(peerid=sub["peerid"], subid=sub["subscriptionid"], callback=sub["callback"])
+                    subObj.delete()
             db_trust = trust.trust(actorId=self.id, peerid=rel["peerid"])
             db_trust.delete()
         if deletePeer and (not successOnce or failedOnce):
