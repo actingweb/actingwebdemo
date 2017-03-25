@@ -134,6 +134,7 @@ class db_subscription():
     def delete(self):
         """ Deletes the subscription in the database """
         if not self.handle:
+            logging.debug("Attempted delete of db_subscription with no handle set.")
             return False
         self.handle.key.delete(use_cache=False)
         self.handle = None
@@ -147,7 +148,7 @@ class db_subscription_list():
     """
         db_trust_list does all the db operations for list of trust objects
 
-        The  actorId must always be set. 
+        The  actorId must always be set.
     """
 
     def fetch(self, actorId):
@@ -175,7 +176,7 @@ class db_subscription_list():
             return []
 
     def delete(self):
-        """ Deletes all the subsriptions for an actor in the database """
+        """ Deletes all the subscriptions for an actor in the database """
         if not self.handle:
             return False
         for p in self.handle:

@@ -73,6 +73,7 @@ class MainPage(webapp2.RequestHandler):
             subid = path[2]
             sub = myself.getSubscription(peerid=peerid, subid=subid, callback=True)
             if sub and len(sub) > 0:
+                logging.debug("Found subscription (" + str(sub) + ")")
                 if not check.checkAuthorisation(path='callbacks', subpath='subscriptions', method='POST', peerid=peerid):
                     self.response.set_status(403, 'Forbidden')
                     return
