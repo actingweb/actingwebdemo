@@ -334,6 +334,9 @@ class auth():
         if self.token:
             now = time.time()
             auth = appreq.request.cookies.get(self.cookie)
+            if appreq.request.get('refresh') and appreq.request.get('refresh').lower() == 'true':
+                # Clear cookie and do a refresh if refresh=True is in GET param
+                auth = ''
             if auth == self.token and now < (float(self.expiry) - 20.0):
                 logging.debug('Authorization cookie header matches a valid token')
                 self.acl["relationship"] = "creator"

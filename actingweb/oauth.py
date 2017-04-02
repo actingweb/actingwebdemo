@@ -203,7 +203,7 @@ class oauth():
             self.last_response_code = 0
             self.last_response_message = 'No response'
             return None
-        if response.status_code < 200 and response.status_code > 299:
+        if response.status_code < 200 or response.status_code > 299:
             logging.info('Error when sending DELETE request to Oauth: ' +
                          str(response.status_code) + response.content)
             return None
