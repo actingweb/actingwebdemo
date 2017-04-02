@@ -95,7 +95,7 @@ class actor():
             self.creator = None
             self.passphrase = None
             return
-        self.get(actorId=actorId)
+        self.get(id=actorId)
 
     def create(self, url, creator, passphrase):
         """"Creates a new actor and persists it"""
