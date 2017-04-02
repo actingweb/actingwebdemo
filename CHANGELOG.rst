@@ -2,6 +2,13 @@
 CHANGELOG
 =========
 
+Apr 2, 2017
+-----------
+- Changed license to BSD after approval from Cisco Systems
+- Fix bug in deletion of trust relationship that would not delete subscription
+- Add support for GET param ?refresh=true for web-based sessions to ignore set cookie and do oauth
+- Fix bug in oauth.oauthDELETE() returning success when >299 is returned from upstream
+
 Mar 11, 2017
 ------------
 - Fix bug in aw_actor_callbacks.py on does exist test after db refactoring
