@@ -44,7 +44,8 @@ class db_actor():
     def getByCreator(self, creator=None):
         """ Retrieves the actor from db based on creator field
 
-            Returns None if none was found.
+            Returns None if none was found. If one is found, that one is
+            loaded in the object. If more, the last one found is loaded.
         """
         if not creator:
             return None

@@ -97,8 +97,12 @@ class actor():
             return
         self.get(id=actorId)
 
-    def create(self, url, creator, passphrase):
-        """"Creates a new actor and persists it"""
+    def create(self, url, creator, passphrase, delete=False):
+        """"Creates a new actor and persists it.
+
+            If delete is True, any existing actors with same creator value
+            will be deleted.
+        """
         seed = url
         now = datetime.datetime.now()
         seed += now.strftime("%Y%m%dT%H%M%S%f")
@@ -110,19 +114,23 @@ class actor():
         if Config.unique_creator:
             in_db = db_actor.db_actor()
             exists = in_db.getByCreator(creator=self.creator)
-            if Config.force_email_prop_as_creator and exists:
+            if exists:
                 # If uniqueness is turned on at a later point, we may have multiple accounts
                 # with creator as "creator". Check if we have a property "email" and then
                 # set creator to the email address.
-                if self.creator == "creator":
+                if delete:
                     for c in exists:
                         anactor = actor(id=c["id"])
-                        em = anactor.getProperty("email").value
-                        if em and len(em) > 0:
-                            anactor.modify(creator=em)
-                if len(exists) == 1:
+                        anactor.delete()
+                else:
+                    if Config.force_email_prop_as_creator and self.creator == "creator":
+                        for c in exists:
+                            anactor = actor(id=c["id"])
+                            em = anactor.getProperty("email").value
+                            if em and len(em) > 0:
+                                anactor.modify(creator=em)
                     self.handle = in_db
-                return None
+                    return True
         if passphrase and len(passphrase) > 0:
             self.passphrase = passphrase
         else:
