@@ -53,7 +53,7 @@ class MainPage(webapp2.RequestHandler):
             return
         if len(trustee_root) > 0:
             myself.setProperty('trustee_root', trustee_root)
-        self.response.headers.add_header("Location", Config.root + myself.id)
+        self.response.headers.add_header("Location", str(Config.root + myself.id))
         if Config.www_auth == 'oauth' and not is_json:
             self.redirect(Config.root + myself.id + '/www')
             return

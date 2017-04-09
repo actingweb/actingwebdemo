@@ -101,7 +101,8 @@ class actor():
         """"Creates a new actor and persists it.
 
             If delete is True, any existing actors with same creator value
-            will be deleted.
+            will be deleted. If it is False, the one with the correct passphrase
+            will be chosen (if any)
         """
         seed = url
         now = datetime.datetime.now()
@@ -129,8 +130,14 @@ class actor():
                             em = anactor.getProperty("email").value
                             if em and len(em) > 0:
                                 anactor.modify(creator=em)
-                    self.handle = in_db
-                    return True
+                    for c in exists:
+                        if c['passphrase'] == passphrase:
+                            self.handle = in_db
+                            self.id = c['id']
+                            self.passphrase = c['passphrase']
+                            self.creator = c['creator']
+                            return True
+                        return False
         if passphrase and len(passphrase) > 0:
             self.passphrase = passphrase
         else:
