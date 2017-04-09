@@ -36,6 +36,7 @@ def add_auth_response(appreq=None, auth_obj=None):
     """Called after init_actingweb() if add_response was set to False, and now responses should be added."""
     if not appreq or not auth_obj:
         return False
+    logging.debug("add_auth_response: " + str(auth_obj.response['code']) + ":" + auth_obj.response['text'])
     appreq.response.set_status(auth_obj.response['code'], auth_obj.response['text'])
     if auth_obj.response['code'] == 302:
         appreq.redirect(auth_obj.redirect)
@@ -161,7 +162,7 @@ class auth():
                         self.actor.getProperty('cookie_redirect').value
                 else:
                     self.cookie_redirect = None
-                self.redirect = Config.root + self.actor.id + '/oauth'
+                self.redirect = str(Config.root + self.actor.id + '/oauth')
             else:
                 self.type = 'none'
 

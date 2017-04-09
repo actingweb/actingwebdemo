@@ -64,7 +64,7 @@ class MainPage(webapp2.RequestHandler):
     def post(self, id, name):
         """Handles POST callbacks"""
         (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='callbacks')
+                                                      id=id, path='callbacks', add_response=False)
         # Allow unauthenticated requests to /callbacks/subscriptions, so
         # do the auth check further below
         path = name.split('/')
