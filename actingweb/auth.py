@@ -200,20 +200,28 @@ class auth():
         self.__processOAuthAccept(result)
         return True
 
-    def validateOAuthToken(self):
+    def validateOAuthToken(self, lazy=False):
         """ Called to validate the token as part of a web-based flow.
 
             Returns the redirect URI to send back to the browser or empty string.
+            If lazy is true, refresh_token is used only if < 24h until expiry.
         """
         if not self.token or not self.expiry:
             return self.oauth.oauthRedirectURI(state=self.actor.id)
         now = time.time()
-        if now > (float(self.expiry) - 20.0):
-            if now > (float(self.refresh_expiry) - 20.0):
-                return self.oauth.oauthRedirectURI(state=self.actor.id)
-        else:
+        # Is the token still valid?
+        if now < (float(self.expiry) - 20.0):
             return ""
+        # Has refresh_token expired?
+        if now > (float(self.refresh_expiry) - 20.0):
+            return self.oauth.oauthRedirectURI(state=self.actor.id)
+        # Do we have more than a day until refresh token expiry?
+        if lazy and now < (float(self.refresh_expiry) - (3600.0 * 24)):
+            return ""
+        # Refresh the token
         result = self.oauth.oauthRefreshToken(self.refresh_token)
+        if not result:
+            return self.oauth.oauthRedirectURI(state=self.actor.id)
         self.__processOAuthAccept(result)
         return ""
 
