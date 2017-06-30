@@ -746,7 +746,7 @@ class actor():
             actorId=self.id, peerid=peerid, subid=subid, callback=callback)
         return sub.delete()
 
-    def callbackSubscription(self, peerid=None, sub=None, diff=None, blob=None):
+    def callbackSubscription(self, peerid=None, subObj=None, sub=None, diff=None, blob=None):
         if not peerid or not diff or not sub or not blob:
             logging.warn("Missing parameters in callbackSubscription")
             return
@@ -790,15 +790,19 @@ class actor():
                                       payload=data.encode('utf-8'),
                                       headers=headers
                                       )
-            self.last_response_code = response.status_code
-            self.last_response_message = response.content
-            if response.status_code == 204 and sub["granularity"] == "high":
-                sub.clearDiff(diff.seqnr)
         except:
             logging.debug(
                 'Peer did not respond to callback on url(' + requrl + ')')
             self.last_response_code = 0
             self.last_response_message = 'No response from peer for subscription callback'
+            return
+        self.last_response_code = response.status_code
+        self.last_response_message = response.content
+        if response.status_code == 204 and sub["granularity"] == "high":
+            if not subObj:
+                logging.warn("About to clear diff without having subobj set")
+            else:
+                subObj.clearDiff(diff["sequence"])
 
     def registerDiffs(self, target=None, subtarget=None, resource=None, blob=None):
         """Registers a blob diff against all subscriptions with the correct target, subtarget, and resource.
@@ -918,7 +922,7 @@ class actor():
                 logging.warn("Failed when registering a diff to subscription (" +
                              sub["subscriptionid"] + "). Will not send callback.")
             else:
-                deferred.defer(self.callbackSubscription, peerid=sub["peerid"],
+                deferred.defer(self.callbackSubscription, peerid=sub["peerid"], subObj=subObj,
                                sub=subObjData, diff=diff, blob=finblob)
 
 
