@@ -8,6 +8,7 @@ import logging
 
 __all__ = [
     'db_actor',
+    'db_actor_list',
 ]
 
 
@@ -101,3 +102,25 @@ class db_actor():
     def __init__(self):
         self.handle = None
 
+
+class db_actor_list():
+    """
+        db_actor_list does all the db operations for list of actor objects
+    """
+
+    def fetch(self):
+        """ Retrieves the actors in the database """
+        self.handle = Actor.query().fetch(use_cache=False)
+        if self.handle:
+            ret = []
+            for t in self.handle:
+                ret.append({
+                    "id": t.id,
+                    "creator": t.creator,
+                    })
+            return ret
+        else:
+            return False
+
+    def __init__(self):
+        self.handle = None

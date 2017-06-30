@@ -15,6 +15,7 @@ import peertrustee
 
 __all__ = [
     'actor',
+    'actors',
 ]
 
 
@@ -920,3 +921,20 @@ class actor():
                 deferred.defer(self.callbackSubscription, peerid=sub["peerid"],
                                sub=subObjData, diff=diff, blob=finblob)
 
+
+class actors():
+    """ Handles all actors
+    """
+
+    def fetch(self):
+        if not self.list:
+            return False
+        if self.actors is not None:
+            return self.actors
+        self.actors = self.list.fetch()
+        return self.actors
+
+    def __init__(self, filter=None):
+        self.list = db_actor.db_actor_list()
+        self.actors = None
+        self.fetch()
