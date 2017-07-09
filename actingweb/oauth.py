@@ -258,6 +258,6 @@ class oauth():
                                   'token_uri'], params=params, urlencode=True)
         if not result:
             self.token = None
-            return False
+            return None
         self.token = result['access_token']
         return result

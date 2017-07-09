@@ -15,6 +15,7 @@ import peertrustee
 
 __all__ = [
     'actor',
+    'actors',
 ]
 
 
@@ -97,8 +98,13 @@ class actor():
             return
         self.get(id=actorId)
 
-    def create(self, url, creator, passphrase):
-        """"Creates a new actor and persists it"""
+    def create(self, url, creator, passphrase, delete=False):
+        """"Creates a new actor and persists it.
+
+            If delete is True, any existing actors with same creator value
+            will be deleted. If it is False, the one with the correct passphrase
+            will be chosen (if any)
+        """
         seed = url
         now = datetime.datetime.now()
         seed += now.strftime("%Y%m%dT%H%M%S%f")
@@ -110,19 +116,29 @@ class actor():
         if Config.unique_creator:
             in_db = db_actor.db_actor()
             exists = in_db.getByCreator(creator=self.creator)
-            if Config.force_email_prop_as_creator and exists:
+            if exists:
                 # If uniqueness is turned on at a later point, we may have multiple accounts
                 # with creator as "creator". Check if we have a property "email" and then
                 # set creator to the email address.
-                if self.creator == "creator":
+                if delete:
                     for c in exists:
                         anactor = actor(id=c["id"])
-                        em = anactor.getProperty("email").value
-                        if em and len(em) > 0:
-                            anactor.modify(creator=em)
-                if len(exists) == 1:
-                    self.handle = in_db
-                return None
+                        anactor.delete()
+                else:
+                    if Config.force_email_prop_as_creator and self.creator == "creator":
+                        for c in exists:
+                            anactor = actor(id=c["id"])
+                            em = anactor.getProperty("email").value
+                            if em and len(em) > 0:
+                                anactor.modify(creator=em)
+                    for c in exists:
+                        if c['passphrase'] == passphrase:
+                            self.handle = in_db
+                            self.id = c['id']
+                            self.passphrase = c['passphrase']
+                            self.creator = c['creator']
+                            return True
+                        return False
         if passphrase and len(passphrase) > 0:
             self.passphrase = passphrase
         else:
@@ -699,7 +715,7 @@ class actor():
         sub = self.getSubscription(peerid=peerid, subid=subid)
         if not sub:
             sub = self.getSubscription(peerid=peerid, subid=subid, callback=True)
-        if not sub["callback"]:
+        if 'callback' not in sub or not sub["callback"]:
             url = trust["baseuri"] + '/subscriptions/' + self.id + '/' + subid
         else:
             url = trust["baseuri"] + '/callbacks/subscriptions/' + self.id + '/' + subid
@@ -730,7 +746,7 @@ class actor():
             actorId=self.id, peerid=peerid, subid=subid, callback=callback)
         return sub.delete()
 
-    def callbackSubscription(self, peerid=None, sub=None, diff=None, blob=None):
+    def callbackSubscription(self, peerid=None, subObj=None, sub=None, diff=None, blob=None):
         if not peerid or not diff or not sub or not blob:
             logging.warn("Missing parameters in callbackSubscription")
             return
@@ -759,7 +775,7 @@ class actor():
         if sub["granularity"] == "low":
             Config = config.config()
             params['url'] = Config.root + self.id + '/subscriptions/' + \
-                trust["peerid"] + '/' + sub["subscriptionid"] + '/' + str(diff.seqnr)
+                trust["peerid"] + '/' + sub["subscriptionid"] + '/' + str(diff["sequence"])
         requrl = trust["baseuri"] + '/callbacks/subscriptions/' + self.id + '/' + sub["subscriptionid"]
         data = json.dumps(params)
         headers = {'Authorization': 'Bearer ' + trust["secret"],
@@ -774,15 +790,19 @@ class actor():
                                       payload=data.encode('utf-8'),
                                       headers=headers
                                       )
-            self.last_response_code = response.status_code
-            self.last_response_message = response.content
-            if response.status_code == 204 and sub["granularity"] == "high":
-                sub.clearDiff(diff.seqnr)
         except:
             logging.debug(
                 'Peer did not respond to callback on url(' + requrl + ')')
             self.last_response_code = 0
             self.last_response_message = 'No response from peer for subscription callback'
+            return
+        self.last_response_code = response.status_code
+        self.last_response_message = response.content
+        if response.status_code == 204 and sub["granularity"] == "high":
+            if not subObj:
+                logging.warn("About to clear diff without having subobj set")
+            else:
+                subObj.clearDiff(diff["sequence"])
 
     def registerDiffs(self, target=None, subtarget=None, resource=None, blob=None):
         """Registers a blob diff against all subscriptions with the correct target, subtarget, and resource.
@@ -795,6 +815,8 @@ class actor():
         # without
         subs = self.getSubscriptions(
             target=target, subtarget=None, resource=None, callback=False)
+        if not subs:
+            subs = []
         if subtarget and resource:
             logging.debug("registerDiffs() - blob(" + blob + "), target(" +
                           target + "), subtarget(" + subtarget + "), resource(" +
@@ -902,6 +924,23 @@ class actor():
                 logging.warn("Failed when registering a diff to subscription (" +
                              sub["subscriptionid"] + "). Will not send callback.")
             else:
-                deferred.defer(self.callbackSubscription, peerid=sub["peerid"],
+                deferred.defer(self.callbackSubscription, peerid=sub["peerid"], subObj=subObj,
                                sub=subObjData, diff=diff, blob=finblob)
 
+
+class actors():
+    """ Handles all actors
+    """
+
+    def fetch(self):
+        if not self.list:
+            return False
+        if self.actors is not None:
+            return self.actors
+        self.actors = self.list.fetch()
+        return self.actors
+
+    def __init__(self, filter=None):
+        self.list = db_actor.db_actor_list()
+        self.actors = None
+        self.fetch()
