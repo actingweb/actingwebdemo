@@ -2,6 +2,16 @@
 CHANGELOG
 =========
 
+Jul 9, 2017
+-----------
+- Fix bug with unique actor setting and actor already exists
+- Improve handling of enforce use of email property as creator
+- Fix auth bug for callbacks (401 when no auth is expected)
+- Add support for "lazy refresh" of oauth token, i.e. refresh if expired or refresh token has <24h to expiry
+- Add support for actors() class in actor.py to get a list of all actors with id and creator (ONLY for admin usage)
+- Fix various bugs when subscriptions don't exist
+- Improve logging when actor cannot be created
+
 Apr 2, 2017
 -----------
 - Changed license to BSD after approval from Cisco Systems
