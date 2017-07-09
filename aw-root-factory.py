@@ -6,6 +6,7 @@ from actingweb import config
 import webapp2
 
 import os
+import logging
 from google.appengine.ext.webapp import template
 import json
 
@@ -50,6 +51,8 @@ class MainPage(webapp2.RequestHandler):
             passphrase = self.request.get('passphrase')
         if not myself.create(url=self.request.url, creator=creator, passphrase=passphrase):
             self.response.set_status(400, 'Not created')
+            logging.warn("Was not able to create new actor("+str(self.request.url) + " " +
+                         str(creator) + ")")
             return
         if len(trustee_root) > 0:
             myself.setProperty('trustee_root', trustee_root)
