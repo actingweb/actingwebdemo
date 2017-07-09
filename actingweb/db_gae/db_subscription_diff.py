@@ -31,15 +31,15 @@ class db_subscription_diff():
 
     def get(self,  actorId=None, subid=None, seqnr=None):
         """ Retrieves the subscriptiondiff from the database """
-        if not actorId:
+        if not actorId and not self.handle:
             return None
-        if not subid:
+        if not subid and not self.handle:
             logging.debug("Attempt to get subscriptiondiff without subid")
             return None
         if not self.handle:
             if not seqnr:
                 self.handle = SubscriptionDiff.query(SubscriptionDiff.id == actorId,
-                                                     SubscriptionDiff.subid == subnr
+                                                     SubscriptionDiff.subid == subid
                                                      ).get(use_cache=False)
             else:
                 self.handle = SubscriptionDiff.query(SubscriptionDiff.id == actorId,
