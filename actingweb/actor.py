@@ -715,7 +715,7 @@ class actor():
         sub = self.getSubscription(peerid=peerid, subid=subid)
         if not sub:
             sub = self.getSubscription(peerid=peerid, subid=subid, callback=True)
-        if not sub["callback"]:
+        if 'callback' not in sub or not sub["callback"]:
             url = trust["baseuri"] + '/subscriptions/' + self.id + '/' + subid
         else:
             url = trust["baseuri"] + '/callbacks/subscriptions/' + self.id + '/' + subid
@@ -775,7 +775,7 @@ class actor():
         if sub["granularity"] == "low":
             Config = config.config()
             params['url'] = Config.root + self.id + '/subscriptions/' + \
-                trust["peerid"] + '/' + sub["subscriptionid"] + '/' + str(diff.seqnr)
+                trust["peerid"] + '/' + sub["subscriptionid"] + '/' + str(diff["sequence"])
         requrl = trust["baseuri"] + '/callbacks/subscriptions/' + self.id + '/' + sub["subscriptionid"]
         data = json.dumps(params)
         headers = {'Authorization': 'Bearer ' + trust["secret"],
@@ -815,6 +815,8 @@ class actor():
         # without
         subs = self.getSubscriptions(
             target=target, subtarget=None, resource=None, callback=False)
+        if not subs:
+            subs = []
         if subtarget and resource:
             logging.debug("registerDiffs() - blob(" + blob + "), target(" +
                           target + "), subtarget(" + subtarget + "), resource(" +
