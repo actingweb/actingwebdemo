@@ -175,6 +175,8 @@ class relationshipHandler(webapp2.RequestHandler):
                                                       subpath=relationship,
                                                       add_response=False)
         if not myself:
+            self.response.set_status(404)
+            logging.debug("Got trust creation request for unknown actor(" + id + ")")
             return
         if not check.checkAuthorisation(path='trust', subpath='<type>', method='POST'):
             self.response.set_status(403)
