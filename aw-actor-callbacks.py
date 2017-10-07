@@ -48,7 +48,7 @@ class MainPage(webapp2.RequestHandler):
             if not check.checkAuthorisation(path='callbacks', subpath='subscriptions', method='DELETE', peerid=peerid):
                 self.response.set_status(403, 'Forbidden')
                 return
-            sub = myself.getSubscription(peerid=peerid, subid=subid, callback=True)
+            sub = myself.getSubscriptionObj(peerid=peerid, subid=subid, callback=True)
             if sub:
                 sub.delete()
                 self.response.set_status(204, 'Deleted')
