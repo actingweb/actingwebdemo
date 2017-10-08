@@ -1,34 +1,24 @@
-#!/usr/bin/env python
-#
-from actingweb import actor
-from actingweb import config
+from flask import Flask
 
-import webapp2
+# EB looks for an 'application' callable by default.
+application = Flask(__name__)
 
-import os
-import logging
-from google.appengine.ext.webapp import template
-import json
+@application.route('/')
+def welcome():
+    return 'Hello World!'
 
 
-class MainPage(webapp2.RequestHandler):
+# run the app.
+if __name__ == "__main__":
+    # Setting debug to True enables debug output. This line should be
+    # removed before deploying a production app.
+    application.debug = True
+    application.run(host='0.0.0.0')
 
-    def get(self):
-        if self.request.get('_method') == 'POST':
-            self.post()
-            return
-        Config = config.config()
-        if Config.ui:
-            template_values = {
-            }
-            path = os.path.join(os.path.dirname(__file__), 'templates/aw-root-factory.html')
-            self.response.write(template.render(path, template_values).encode('utf-8'))
-        else:
-            self.response.set_status(404)
+
 
     def post(self):
         myself = actor.actor()
-        Config = config.config()
         try:
             params = json.loads(self.request.body.decode('utf-8', 'ignore'))
             is_json = True
@@ -68,14 +58,10 @@ class MainPage(webapp2.RequestHandler):
         if len(trustee_root) > 0:
             pair['trustee_root'] = trustee_root
         if Config.ui and not is_json:
-            path = os.path.join(os.path.dirname(__file__), 'templates/aw-root-created.html')
-            self.response.write(template.render(path, pair).encode('utf-8'))
+            template = Template_env.get_template('aw-root-created.html')
+            self.response.write(template.render(pair).encode('utf-8'))
             return
         out = json.dumps(pair)
         self.response.write(out)
         self.response.headers["Content-Type"] = "application/json"
         self.response.set_status(201, 'Created')
-
-application = webapp2.WSGIApplication([
-    ('/', MainPage)
-], debug=True)
