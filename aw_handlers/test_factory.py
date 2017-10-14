@@ -7,7 +7,7 @@ import logging
 
 import json
 
-from actingweb.db_dynamodb import db_property
+from actingweb import property
 
 
 class test_factory(webapp2.RequestHandler):
@@ -16,27 +16,8 @@ class test_factory(webapp2.RequestHandler):
         if self.request.get('_method') == 'POST':
             self.post()
             return
-        prop = db_property.db_property()
-        prop.set(actorId='Greger', name='prop1', value='init')
-        prop = db_property.db_property()
-        prop.set(actorId='Greger', name='prop1', value='test1')
-        prop = db_property.db_property()
-        prop.set(actorId='Greger', name='prop2', value='test2')
-        prop = db_property.db_property()
-        prop.set(actorId='Greger', name='prop3', value='test3')
-        prop = db_property.db_property()
-        prop.set(actorId='Greger2', name='prop2', value='G2test2')
-        props = db_property.db_property_list()
-        props.fetch(actorId='Gre')
-        props.fetch(actorId='Greger')
-        prop2 = db_property.db_property()
-        prop2.get(actorId='Greger', name='prop1')
-        prop2.delete()
-        props = db_property.db_property_list()
-        props.fetch(actorId='Greger')
-        prop3 = db_property.db_property()
-        prop3.get_actorId_from_property(name='prop2', value='sdsd')
-        prop3.get_actorId_from_property(name='prop2', value='test2')
+        prop = property.property(actorId='Greger', name='prop2', config=self.app.registry.get('config'))
+
         if self.app.registry.get('config').ui:
             template_values = {
                 'prop': prop2.get(actorId='Greger', name='prop3')
