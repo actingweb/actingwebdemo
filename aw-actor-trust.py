@@ -15,7 +15,7 @@ import datetime
 import time
 
 
-# /trust aw_handlers
+# /trust handlers
 #
 # GET /trust with query parameters (relationship, type, and peerid) to retrieve trust relationships (auth: only creator and admins allowed)
 # POST /trust with json body to initiate a trust relationship between this
