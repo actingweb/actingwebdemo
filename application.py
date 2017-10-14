@@ -1,12 +1,11 @@
 import webapp2
 from jinja2 import Environment, PackageLoader, select_autoescape
-from actingweb import config
 
-from aw_handlers import *
+from aw_handlers import test_factory
 
 
 app = webapp2.WSGIApplication([
-    ('/', root_factory.root_factory)
+    ('/', test_factory.test_factory)
 ], debug=True)
 
 
@@ -15,8 +14,7 @@ def set_config():
         # Import the class lazily.
         config = webapp2.import_string('actingweb.config')
         # Register the instance in the registry.
-        app.registry['config'] = config.config()
-
+        app.registry['config'] = config.config(database='dynamodb')
     return
 
 

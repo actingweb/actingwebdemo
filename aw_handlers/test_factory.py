@@ -1,22 +1,52 @@
-from flask import Flask
+#!/usr/bin/env python
+#
 
-# EB looks for an 'application' callable by default.
-application = Flask(__name__)
+import webapp2
 
-@application.route('/')
-def welcome():
-    return 'Hello World!'
+import logging
 
+import json
 
-# run the app.
-if __name__ == "__main__":
-    # Setting debug to True enables debug output. This line should be
-    # removed before deploying a production app.
-    application.debug = True
-    application.run(host='0.0.0.0')
+from actingweb.db_dynamodb import db_property
 
 
+class test_factory(webapp2.RequestHandler):
 
+    def get(self):
+        if self.request.get('_method') == 'POST':
+            self.post()
+            return
+        prop = db_property.db_property()
+        prop.set(actorId='Greger', name='prop1', value='init')
+        prop = db_property.db_property()
+        prop.set(actorId='Greger', name='prop1', value='test1')
+        prop = db_property.db_property()
+        prop.set(actorId='Greger', name='prop2', value='test2')
+        prop = db_property.db_property()
+        prop.set(actorId='Greger', name='prop3', value='test3')
+        prop = db_property.db_property()
+        prop.set(actorId='Greger2', name='prop2', value='G2test2')
+        props = db_property.db_property_list()
+        props.fetch(actorId='Gre')
+        props.fetch(actorId='Greger')
+        prop2 = db_property.db_property()
+        prop2.get(actorId='Greger', name='prop1')
+        prop2.delete()
+        props = db_property.db_property_list()
+        props.fetch(actorId='Greger')
+        prop3 = db_property.db_property()
+        prop3.get_actorId_from_property(name='prop2', value='sdsd')
+        prop3.get_actorId_from_property(name='prop2', value='test2')
+        if self.app.registry.get('config').ui:
+            template_values = {
+                'prop': prop2.get(actorId='Greger', name='prop3')
+            }
+            template = self.app.registry.get('template').get_template('test-factory.html')
+            self.response.write(template.render(template_values).encode('utf-8'))
+        else:
+            self.response.set_status(404)
+
+# TODO: post has not been adapted to aws
     def post(self):
         myself = actor.actor()
         try:
