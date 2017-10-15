@@ -1,12 +1,16 @@
 import webapp2
 from jinja2 import Environment, PackageLoader, select_autoescape
 
-from aw_handlers import root_factory, actor_root
+from aw_handlers import root_factory, actor_root, actor_www, actor_properties, actor_meta, bot
 
 
 app = webapp2.WSGIApplication([
     ('/', root_factory.root_factory),
-    webapp2.Route(r'/<id><:/?>', actor_root.actor_root)
+    webapp2.Route(r'/bot<:/?><path:(.*)>', bot.bot),
+    (r'/(.*)/meta/?(.*)', actor_meta.actor_meta),
+    webapp2.Route(r'/<id><:/?>', actor_root.actor_root),
+    webapp2.Route(r'/<id>/www<:/?><path:(.*)>', actor_www.actor_www),
+    webapp2.Route(r'/<id>/properties<:/?><name:(.*)>', actor_properties.actor_properties),
 ], debug=True)
 
 
@@ -14,8 +18,12 @@ def set_config():
     if not app.registry.get('config'):
         # Import the class lazily.
         config = webapp2.import_string('actingweb.config')
+        config = config.config(
+            database='dynamodb',
+            fqdn="ad112387.ngrok.io",
+            proto="http://")
         # Register the instance in the registry.
-        app.registry['config'] = config.config(database='dynamodb')
+        app.registry['config'] = config
     return
 
 

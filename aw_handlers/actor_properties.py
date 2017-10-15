@@ -1,10 +1,5 @@
-#!/usr/bin/env python
-#
-import cgi
-import wsgiref.handlers
 import json
 import logging
-from actingweb import actor
 from actingweb import auth
 
 import webapp2
@@ -48,7 +43,7 @@ def delete_dict(d1, path):
     return False
 
 
-class MainPage(webapp2.RequestHandler):
+class actor_properties(webapp2.RequestHandler):
 
     def get(self, id, name):
         if self.request.get('_method') == 'PUT':
@@ -57,8 +52,9 @@ class MainPage(webapp2.RequestHandler):
         if self.request.get('_method') == 'DELETE':
             self.delete(id, name)
             return
-        (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='properties', subpath=name)
+        (myself, check) = auth.init_actingweb(appreq=self,
+                                              id=id, path='properties', subpath=name,
+                                              config=self.app.registry.get('config'))
         if not myself or check.response["code"] != 200:
             return
         if not name:
@@ -113,8 +109,9 @@ class MainPage(webapp2.RequestHandler):
         return
 
     def put(self, id, name):
-        (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='properties', subpath=name)
+        (myself, check) = auth.init_actingweb(appreq=self,
+                                              id=id, path='properties', subpath=name,
+                                              config=self.app.registry.get('config'))
         if not myself or check.response["code"] != 200:
             return
         if not name:
@@ -169,8 +166,9 @@ class MainPage(webapp2.RequestHandler):
         self.response.set_status(204)
 
     def post(self, id, name):
-        (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='properties', subpath=name)
+        (myself, check) = auth.init_actingweb(appreq=self,
+                                              id=id, path='properties', subpath=name,
+                                              config=self.app.registry.get('config'))
         if not myself or check.response["code"] != 200:
             return
         if not check.checkAuthorisation(path='properties', subpath=name, method='POST'):
@@ -207,8 +205,9 @@ class MainPage(webapp2.RequestHandler):
         self.response.set_status(201, 'Created')
 
     def delete(self, id, name):
-        (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='properties', subpath=name)
+        (myself, check) = auth.init_actingweb(appreq=self,
+                                              id=id, path='properties', subpath=name,
+                                              config=self.app.registry.get('config'))
         if not myself or check.response["code"] != 200:
             return
         if not name:
@@ -251,7 +250,3 @@ class MainPage(webapp2.RequestHandler):
         myself.setProperty(name, res)
         myself.registerDiffs(target='properties', subtarget=name, resource = resource, blob='')
         self.response.set_status(204)
-
-application = webapp2.WSGIApplication([
-    webapp2.Route(r'/<id>/properties<:/?><name:(.*)>', MainPage, name='MainPage'),
-], debug=True)

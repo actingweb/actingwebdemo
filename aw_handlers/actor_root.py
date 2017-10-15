@@ -11,8 +11,8 @@ class actor_root(webapp2.RequestHandler):
         if self.request.get('_method') == 'DELETE':
             self.delete(id)
             return
-        (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='', subpath='', config=self.app.registry.get('config'))
+        (myself, check) = auth.init_actingweb(appreq=self, id=id, path='', subpath='',
+                                              config=self.app.registry.get('config'))
         if not myself or check.response["code"] != 200:
             return
         if not check.checkAuthorisation(path='/', method='GET'):
@@ -32,8 +32,8 @@ class actor_root(webapp2.RequestHandler):
         self.response.set_status(200)
 
     def delete(self, id):
-        (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='', subpath='')
+        (myself, check) = auth.init_actingweb(appreq=self,
+                                              id=id, path='', subpath='', config=self.app.registry.get('config'))
         if not myself or check.response["code"] != 200:
             return
         if not check.checkAuthorisation(path='/', method='DELETE'):
