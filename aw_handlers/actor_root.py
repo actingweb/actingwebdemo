@@ -1,24 +1,18 @@
-#!/usr/bin/env python
-#
-import cgi
-import wsgiref.handlers
-from actingweb import actor
 from actingweb import auth
-from actingweb import config
 
 import webapp2
 from on_aw import on_aw_delete
 import json
 
 
-class MainPage(webapp2.RequestHandler):
+class actor_root(webapp2.RequestHandler):
 
     def get(self, id):
         if self.request.get('_method') == 'DELETE':
             self.delete(id)
             return
         (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='', subpath='')
+                                                      id=id, path='', subpath='', config=self.app.registry.get('config'))
         if not myself or check.response["code"] != 200:
             return
         if not check.checkAuthorisation(path='/', method='GET'):
@@ -49,7 +43,3 @@ class MainPage(webapp2.RequestHandler):
         myself.delete()
         self.response.set_status(204)
         return
-
-application = webapp2.WSGIApplication([
-    webapp2.Route(r'/<id><:/?>', MainPage, name='MainPage'),
-], debug=True)

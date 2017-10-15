@@ -1,14 +1,3 @@
-#!/usr/bin/env python
-#
-import cgi
-import wsgiref.handlers
-from actingweb import actor
-from actingweb import oauth
-from actingweb import config
-
-import webapp2
-from google.appengine.ext import deferred
-
 __all__ = [
     'on_aw_delete_actor',
 ]

@@ -1,14 +1,3 @@
-#!/usr/bin/env python
-#
-from actingweb import actor
-from actingweb import oauth
-from actingweb import config
-
-import logging
-
-import os
-from google.appengine.ext.webapp import template
-
 __all__ = [
     'on_www_paths',
 ]

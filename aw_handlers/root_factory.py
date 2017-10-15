@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-#
 from actingweb import actor
 
 import webapp2
@@ -23,9 +21,8 @@ class root_factory(webapp2.RequestHandler):
         else:
             self.response.set_status(404)
 
-# TODO: post has not been adapted to aws
     def post(self):
-        myself = actor.actor()
+        myself = actor.actor(config=self.app.registry.get('config'))
         try:
             params = json.loads(self.request.body.decode('utf-8', 'ignore'))
             is_json = True
@@ -53,9 +50,9 @@ class root_factory(webapp2.RequestHandler):
             return
         if len(trustee_root) > 0:
             myself.setProperty('trustee_root', trustee_root)
-        self.response.headers.add_header("Location", str(Config.root + myself.id))
-        if Config.www_auth == 'oauth' and not is_json:
-            self.redirect(Config.root + myself.id + '/www')
+        self.response.headers.add_header("Location", str(self.app.registry.get('config').root + myself.id))
+        if self.app.registry.get('config').www_auth == 'oauth' and not is_json:
+            self.redirect(self.app.registry.get('config').root + myself.id + '/www')
             return
         pair = {
             'id': myself.id,
@@ -64,8 +61,8 @@ class root_factory(webapp2.RequestHandler):
         }
         if len(trustee_root) > 0:
             pair['trustee_root'] = trustee_root
-        if Config.ui and not is_json:
-            template = Template_env.get_template('aw-root-created.html')
+        if self.app.registry.get('config').ui and not is_json:
+            template = self.app.registry.get('template').get_template('aw-root-created.html')
             self.response.write(template.render(pair).encode('utf-8'))
             return
         out = json.dumps(pair)

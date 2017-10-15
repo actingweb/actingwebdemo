@@ -1,11 +1,12 @@
 import webapp2
 from jinja2 import Environment, PackageLoader, select_autoescape
 
-from aw_handlers import test_factory
+from aw_handlers import root_factory, actor_root
 
 
 app = webapp2.WSGIApplication([
-    ('/', test_factory.test_factory)
+    ('/', root_factory.root_factory),
+    webapp2.Route(r'/<id><:/?>', actor_root.actor_root)
 ], debug=True)
 
 
@@ -21,7 +22,7 @@ def set_config():
 def set_template_env():
     if not app.registry.get('template'):
         # Import the class lazily.
-        config = webapp2.import_string('jinja2.Environment')
+        webapp2.import_string('jinja2.Environment')
         # Register the instance in the registry.
         app.registry['template'] = Environment(
             loader=PackageLoader('application', 'templates'),

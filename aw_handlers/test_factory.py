@@ -20,7 +20,6 @@ class test_factory(webapp2.RequestHandler):
 
         if self.app.registry.get('config').ui:
             template_values = {
-                'prop': prop2.get(actorId='Greger', name='prop3')
             }
             template = self.app.registry.get('template').get_template('test-factory.html')
             self.response.write(template.render(template_values).encode('utf-8'))

@@ -1,12 +1,3 @@
-#!/usr/bin/env python
-import webapp2
-import logging
-import time
-from google.appengine.ext import deferred
-from actingweb import actor
-from actingweb import oauth
-from actingweb import config
-
 __all__ = [
     'check_on_oauth_success',
 ]

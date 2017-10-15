@@ -1,13 +1,3 @@
-#!/usr/bin/env python
-import webapp2
-import logging
-import time
-from google.appengine.ext import deferred
-from actingweb import actor
-from actingweb import oauth
-from actingweb import config
-from box import box
-
 __all__ = [
     'on_post_resources',
     'on_put_resources',

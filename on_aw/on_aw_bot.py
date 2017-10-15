@@ -1,10 +1,3 @@
-#!/usr/bin/env python
-import webapp2
-import logging
-import time
-import json
-from actingweb import actor
-from actingweb import oauth
 from actingweb import config
 
 __all__ = [
