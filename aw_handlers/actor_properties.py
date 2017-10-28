@@ -88,6 +88,7 @@ class actor_properties(webapp2.RequestHandler):
                 return
         except:
             out = str(lookup.value)
+        self.response.set_status(200, "Ok")
         self.response.headers["Content-Type"] = "application/json"
         self.response.write(out.encode('utf-8'))
 

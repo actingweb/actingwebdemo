@@ -1,27 +1,24 @@
-#!/usr/bin/env python
-#
-import cgi
-import wsgiref.handlers
-import logging
 import json
-from actingweb import actor
 from actingweb import auth
-from actingweb import config
 from actingweb import aw_proxy
 import webapp2
 
 
-class MainPage(webapp2.RequestHandler):
+class devtest(webapp2.RequestHandler):
 
     def put(self, id, path):
         """Handles PUT for devtest"""
 
-        Config = config.config()
+        Config = self.app.registry.get('config')
         if not Config.devtest:
             self.response.set_status(404)
             return
-        (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='devtest', subpath=path)
+        (myself, check) = auth.init_actingweb(
+            appreq=self,
+            id=id,
+            path='devtest',
+            subpath=path,
+            config=Config)
         if not myself or check.response["code"] != 200:
             return
         try:
@@ -33,7 +30,7 @@ class MainPage(webapp2.RequestHandler):
             mytwin = myself.getPeerTrustee(shorttype='myself')
             if mytwin and len(mytwin) > 0:
                 if paths[1] == 'properties' and paths[2] and len(paths[2]) > 0:
-                        proxy = aw_proxy.aw_proxy(peer_target=mytwin)
+                        proxy = aw_proxy.aw_proxy(peer_target=mytwin, config=Config)
                         if params:
                             proxy.changeResource('/properties/' + paths[2], params = params)
                         self.response.set_status(proxy.last_response_code)
@@ -46,13 +43,14 @@ class MainPage(webapp2.RequestHandler):
     def delete(self, id, path):
         """Handles DELETE for devtest"""
 
-        Config = config.config()
+        Config = self.app.registry.get('config')
         if not Config.devtest:
             self.response.set_status(404)
             return
-        (Config, myself, check) = auth.init_actingweb(appreq=self,
+        (myself, check) = auth.init_actingweb(appreq=self,
                                                       id=id, path='devtest', 
-                                                      subpath=path)
+                                                      subpath=path,
+                                                      config=Config)
         if not myself or check.response["code"] != 200:
             return
         paths = path.split('/')
@@ -60,7 +58,7 @@ class MainPage(webapp2.RequestHandler):
             mytwin = myself.getPeerTrustee(shorttype='myself')
             if mytwin and len(mytwin) > 0:
                 if paths[1] == 'properties':
-                    proxy = aw_proxy.aw_proxy(peer_target=mytwin)
+                    proxy = aw_proxy.aw_proxy(peer_target=mytwin, config=Config)
                     prop = proxy.deleteResource(path='/properties')
                     self.response.set_status(proxy.last_response_code)
                     return
@@ -72,13 +70,14 @@ class MainPage(webapp2.RequestHandler):
     def get(self, id, path):
         """Handles GET for devtest"""
 
-        Config = config.config()
+        Config = self.app.registry.get('config')
         if not Config.devtest:
             self.response.set_status(404)
             return
-        (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='devtest', 
-                                                      subpath=path)
+        (myself, check) = auth.init_actingweb(appreq=self,
+                                              id=id, path='devtest',
+                                              subpath=path,
+                                              config=Config)
         if not myself or check.response["code"] != 200:
             return
         paths = path.split('/')
@@ -86,7 +85,7 @@ class MainPage(webapp2.RequestHandler):
             mytwin = myself.getPeerTrustee(shorttype='myself')
             if mytwin and len(mytwin) > 0:
                 if paths[1] == 'properties':
-                    proxy = aw_proxy.aw_proxy(peer_target=mytwin)
+                    proxy = aw_proxy.aw_proxy(peer_target=mytwin, config=Config)
                     prop = proxy.getResource(path='/properties')
                     if proxy.last_response_code != 200:
                         self.response.set_status(proxy.last_response_code)
@@ -104,13 +103,14 @@ class MainPage(webapp2.RequestHandler):
     def post(self, id, path):
         """Handles POST for devtest"""
 
-        Config = config.config()
+        Config = self.app.registry.get('config')
         if not Config.devtest:
             self.response.set_status(404)
             return
-        (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='devtest', 
-                                                      subpath=path)
+        (myself, check) = auth.init_actingweb(appreq=self,
+                                              id=id, path='devtest',
+                                              subpath=path,
+                                              config=Config)
         if not myself or check.response["code"] != 200:
             return
         try:
@@ -122,7 +122,7 @@ class MainPage(webapp2.RequestHandler):
             mytwin = myself.getPeerTrustee(shorttype='myself')
             if mytwin and len(mytwin) > 0:
                 if paths[1] == 'create':
-                        proxy = aw_proxy.aw_proxy(peer_target=mytwin)
+                        proxy = aw_proxy.aw_proxy(peer_target=mytwin, config=Config)
                         meta = proxy.getResource(path='/meta')
                         if params:
                             proxy.createResource('/properties', params = params)
@@ -137,6 +137,3 @@ class MainPage(webapp2.RequestHandler):
             return
         self.response.set_status(404)
 
-application = webapp2.WSGIApplication([
-    webapp2.Route(r'/<id>/devtest<:/?><path:(.*)>', MainPage, name='MainPage'),
-], debug=True)
