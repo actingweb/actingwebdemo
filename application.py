@@ -2,7 +2,7 @@ import webapp2
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 from aw_handlers import root_factory, actor_root, actor_www, actor_properties, actor_meta, bot
-from aw_handlers import actor_trust, devtest
+from aw_handlers import actor_trust, devtest, actor_subscription
 
 
 app = webapp2.WSGIApplication([
@@ -15,6 +15,10 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/<id>/trust<:/?>', actor_trust.actor_trust),
     webapp2.Route(r'/<id>/trust/<relationship><:/?>', actor_trust.actor_trust_relationships),
     webapp2.Route(r'/<id>/trust/<relationship>/<peerid><:/?>', actor_trust.actor_trust_peer),
+    webapp2.Route(r'/<id>/subscriptions<:/?>', actor_subscription.rootHandler),
+    webapp2.Route(r'/<id>/subscriptions/<peerid><:/?>', actor_subscription.relationshipHandler),
+    webapp2.Route(r'/<id>/subscriptions/<peerid>/<subid><:/?>', actor_subscription.subscriptionHandler),
+    webapp2.Route(r'/<id>/subscriptions/<peerid>/<subid>/<seqnr><:/?>', actor_subscription.diffHandler),
     webapp2.Route(r'/<id>/devtest<:/?><path:(.*)>', devtest.devtest),
 ], debug=True)
 

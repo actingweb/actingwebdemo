@@ -1,16 +1,7 @@
-#!/usr/bin/env python
-#
-from actingweb import actor
-from actingweb import config
-from actingweb import trust
-from actingweb import auth
-
 import webapp2
-
-import os
-from google.appengine.ext.webapp import template
 import json
-import datetime
+import logging
+from actingweb import auth
 
 
 class rootHandler(webapp2.RequestHandler):
@@ -20,8 +11,10 @@ class rootHandler(webapp2.RequestHandler):
         if self.request.get('_method') == 'POST':
             self.post(id)
             return
-        (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='subscriptions')
+        (myself, check) = auth.init_actingweb(appreq=self,
+                                              id=id,
+                                              path='subscriptions',
+                                              config=self.app.registry.get('config'))
         if not myself or check.response["code"] != 200:
             return
         if not check.checkAuthorisation(path='subscriptions', method='GET'):
@@ -46,8 +39,10 @@ class rootHandler(webapp2.RequestHandler):
         self.response.set_status(200, 'Ok')
 
     def post(self, id):
-        (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='subscriptions')
+        (myself, check) = auth.init_actingweb(appreq=self,
+                                              id=id,
+                                              path='subscriptions',
+                                              config=self.app.registry.get('config'))
         if not myself or check.response["code"] != 200:
             return
         if not check.checkAuthorisation(path='subscriptions', method='POST'):
@@ -96,11 +91,14 @@ class rootHandler(webapp2.RequestHandler):
 class relationshipHandler(webapp2.RequestHandler):
 
     def get(self, id, peerid):
+        peerid = peerid.decode("utf-8")
         if self.request.get('_method') == 'POST':
             self.post(id, peerid)
             return
-        (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='subscriptions')
+        (myself, check) = auth.init_actingweb(appreq=self,
+                                              id=id,
+                                              path='subscriptions',
+                                              config=self.app.registry.get('config'))
         if not myself or check.response["code"] != 200:
             return
         if not check.checkAuthorisation(path='subscriptions', method='GET', peerid=peerid):
@@ -114,7 +112,6 @@ class relationshipHandler(webapp2.RequestHandler):
         if not subscriptions:
             self.response.set_status(404, 'Not found')
             return
-        pairs = []
         data = {
                 'id': myself.id,
                 'peerid': peerid,
@@ -126,11 +123,14 @@ class relationshipHandler(webapp2.RequestHandler):
         self.response.set_status(200, 'Ok')
 
     def post(self, id, peerid):
-        (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='subscriptions')
+        peerid = peerid.decode("utf-8")
+        (myself, check) = auth.init_actingweb(appreq=self,
+                                              id=id,
+                                              path='subscriptions',
+                                              config=self.app.registry.get('config'))
         if not myself or check.response["code"] != 200:
             return
-        if not check.checkAuthorisation(path='subscriptions', method='POST', peerid=peerid):
+        if not check.checkAuthorisation(path='subscriptions', subpath='<id>', method='POST', peerid=peerid):
             self.response.set_status(403)
             return
         try:
@@ -170,7 +170,9 @@ class relationshipHandler(webapp2.RequestHandler):
             self.response.set_status(500, 'Unable to create new subscription')
             return
         self.response.headers.add_header(
-            "Location", str(Config.root + myself.id + '/subscriptions/' + new_sub["peerid"] + '/' + new_sub["subscriptionid"]))
+            "Location", str(self.app.registry.get('config').root +
+                            myself.id + '/subscriptions/' + new_sub["peerid"] +
+                            '/' + new_sub["subscriptionid"]))
         pair = {
             'subscriptionid': new_sub["subscriptionid"],
             'target': new_sub["target"],
@@ -189,14 +191,19 @@ class subscriptionHandler(webapp2.RequestHandler):
     """ Handling requests to specific subscriptions, e.g. /subscriptions/<peerid>/12f2ae53bd"""
 
     def get(self, id, peerid, subid):
+        peerid = peerid.decode("utf-8")
+        subid = subid.decode("utf-8")
         if self.request.get('_method') == 'PUT':
             self.put(id, peerid, subid)
             return
         if self.request.get('_method') == 'DELETE':
             self.delete(id, peerid, subid)
             return
-        (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='subscriptions', subpath=peerid + '/' + subid)
+        (myself, check) = auth.init_actingweb(appreq=self,
+                                              id=id,
+                                              path='subscriptions',
+                                              subpath=peerid + '/' + subid,
+                                              config=self.app.registry.get('config'))
         if not myself or check.response["code"] != 200:
             return
         if not check.checkAuthorisation(path='subscriptions', subpath='<id>/<id>', method='GET', peerid=peerid):
@@ -237,8 +244,13 @@ class subscriptionHandler(webapp2.RequestHandler):
         self.response.set_status(200, 'Ok')
 
     def put(self, id, peerid, subid):
-        (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='subscriptions', subpath=peerid + '/' + subid)
+        peerid = peerid.decode("utf-8")
+        subid = subid.decode("utf-8")
+        (myself, check) = auth.init_actingweb(appreq=self,
+                                              id=id,
+                                              path='subscriptions',
+                                              subpath=peerid + '/' + subid,
+                                              config=self.app.registry.get('config'))
         if not myself or check.response["code"] != 200:
             return
         if not check.checkAuthorisation(path='subscriptions', subpath='<id>/<id>', method='GET', peerid=peerid):
@@ -273,8 +285,13 @@ class subscriptionHandler(webapp2.RequestHandler):
         return
 
     def delete(self, id, peerid, subid):
-        (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='subscriptions', subpath=peerid + '/' + subid)
+        peerid = peerid.decode("utf-8")
+        subid = subid.decode("utf-8")
+        (myself, check) = auth.init_actingweb(appreq=self,
+                                              id=id,
+                                              path='subscriptions',
+                                              subpath=peerid + '/' + subid,
+                                              config=self.app.registry.get('config'))
         if not myself or check.response["code"] != 200:
             return
         if not check.checkAuthorisation(path='subscriptions', subpath='<id>/<id>', method='GET', peerid=peerid):
@@ -294,8 +311,14 @@ class diffHandler(webapp2.RequestHandler):
     """ Handling requests to specific diffs for one subscription and clears it, e.g. /subscriptions/<peerid>/<subid>/112"""
 
     def get(self, id, peerid, subid, seqnr):
-        (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='subscriptions', subpath=peerid + '/' + subid + '/' + seqnr)
+        peerid = peerid.decode("utf-8")
+        subid = subid.decode("utf-8")
+        seqnr = seqnr.decode("utf-8")
+        (myself, check) = auth.init_actingweb(appreq=self,
+                                              id=id,
+                                              path='subscriptions',
+                                              subpath=peerid + '/' + subid + '/' + seqnr,
+                                              config=self.app.registry.get('config'))
         if not myself or check.response["code"] != 200:
             return
         if not check.checkAuthorisation(path='subscriptions', subpath='<id>/<id>', method='GET', peerid=peerid):
@@ -334,12 +357,3 @@ class diffHandler(webapp2.RequestHandler):
         self.response.set_status(200, 'Ok')
 
 
-application = webapp2.WSGIApplication([
-    webapp2.Route(r'/<id>/subscriptions<:/?>', rootHandler, name='rootHandler'),
-    webapp2.Route(r'/<id>/subscriptions/<peerid><:/?>',
-                  relationshipHandler, name='relationshipHandler'),
-    webapp2.Route(r'/<id>/subscriptions/<peerid>/<subid><:/?>',
-                  subscriptionHandler, name='subscriptionHandler'),
-    webapp2.Route(r'/<id>/subscriptions/<peerid>/<subid>/<seqnr><:/?>',
-                  diffHandler, name='diffHandler'),
-], debug=True)
