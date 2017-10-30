@@ -2,13 +2,16 @@ import webapp2
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 from aw_handlers import root_factory, actor_root, actor_www, actor_properties, actor_meta, bot
-from aw_handlers import actor_trust, devtest, actor_subscription
+from aw_handlers import actor_trust, devtest, actor_subscription, actor_callbacks, actor_resources
+from aw_handlers import callback_oauth, actor_oauth
 
 
 app = webapp2.WSGIApplication([
     ('/', root_factory.root_factory),
     webapp2.Route(r'/bot<:/?><path:(.*)>', bot.bot),
     (r'/(.*)/meta/?(.*)', actor_meta.actor_meta),
+    webapp2.Route(r'/oauth', callback_oauth.callback_oauth),
+    webapp2.Route(r'/<id>/oauth<:/?><path:.*>', actor_oauth.actor_oauth),
     webapp2.Route(r'/<id><:/?>', actor_root.actor_root),
     webapp2.Route(r'/<id>/www<:/?><path:(.*)>', actor_www.actor_www),
     webapp2.Route(r'/<id>/properties<:/?><name:(.*)>', actor_properties.actor_properties),
@@ -19,6 +22,8 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/<id>/subscriptions/<peerid><:/?>', actor_subscription.relationshipHandler),
     webapp2.Route(r'/<id>/subscriptions/<peerid>/<subid><:/?>', actor_subscription.subscriptionHandler),
     webapp2.Route(r'/<id>/subscriptions/<peerid>/<subid>/<seqnr><:/?>', actor_subscription.diffHandler),
+    webapp2.Route(r'/<id>/callbacks<:/?><name:(.*)>', actor_callbacks.actor_callbacks),
+    webapp2.Route(r'/<id>/resources<:/?><name:(.*)>', actor_resources.actor_resources),
     webapp2.Route(r'/<id>/devtest<:/?><path:(.*)>', devtest.devtest),
 ], debug=True)
 

@@ -30,7 +30,6 @@ def on_post_callbacks(myself, req, auth, name):
     """Customizible function to handle POST /callbacks"""
     # return True if callback has been processed
     # THE BELOW IS SAMPLE CODE
-    #Config = config.config()
     #logging.debug("Callback body: "+req.request.body.decode('utf-8', 'ignore'))
     # non-json POSTs to be handled first
     # if name == 'somethingelse':

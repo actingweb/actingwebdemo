@@ -1,17 +1,17 @@
-#!/usr/bin/env python
 import webapp2
 import logging
-from actingweb import actor
 from actingweb import auth
-from actingweb import config
 from on_aw import on_aw_oauth
 
 
-class MainPage(webapp2.RequestHandler):
+class actor_oauth(webapp2.RequestHandler):
 
     def get(self, id, path):
-        (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                        id=id, path='oauth', subpath=path)
+        (myself, check) = auth.init_actingweb(appreq=self,
+                                              id=id,
+                                              path='oauth',
+                                              subpath=path,
+                                              config=self.app.registry.get('config'))
         if not myself or not check:
             return
         if not check.checkAuthorisation(path='oauth', subpath=path, method='GET'):
@@ -47,7 +47,3 @@ class MainPage(webapp2.RequestHandler):
         logging.info("OAuth token refresh failed")
         return
 
-
-application = webapp2.WSGIApplication([
-    webapp2.Route(r'/<id>/oauth<:/?><path:.*>', MainPage, name='MainPage'),
-], debug=True)

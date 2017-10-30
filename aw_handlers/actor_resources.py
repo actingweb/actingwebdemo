@@ -1,21 +1,18 @@
-#!/usr/bin/env python
-#
-import cgi
-import wsgiref.handlers
 import json
-import logging
-from actingweb import actor
 from actingweb import auth
 from on_aw import on_aw_resources
 
 import webapp2
 
 
-class MainPage(webapp2.RequestHandler):
+class actor_resources(webapp2.RequestHandler):
 
     def get(self, id, name):
-        (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='resources', subpath=name)
+        (myself, check) = auth.init_actingweb(appreq=self,
+                                              id=id,
+                                              path='resources',
+                                              subpath=name,
+                                              config=self.app.registry.get('config'))
         if not myself or check.response["code"] != 200:
             return
         if not check.checkAuthorisation(path='resources', subpath=name, method='GET'):
@@ -34,8 +31,11 @@ class MainPage(webapp2.RequestHandler):
             self.response.set_status(404)
 
     def delete(self, id, name):
-        (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='resources', subpath=name)
+        (myself, check) = auth.init_actingweb(appreq=self,
+                                              id=id,
+                                              path='resources',
+                                              subpath=name,
+                                              config=self.app.registry.get('config'))
         if not myself or check.response["code"] != 200:
             return
         if not check.checkAuthorisation(path='resources', subpath=name, method='DELETE'):
@@ -57,8 +57,11 @@ class MainPage(webapp2.RequestHandler):
             self.response.set_status(404)
 
     def put(self, id, name):
-        (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='resources', subpath=name)
+        (myself, check) = auth.init_actingweb(appreq=self,
+                                              id=id,
+                                              path='resources',
+                                              subpath=name,
+                                              config=self.app.registry.get('config'))
         if not myself or check.response["code"] != 200:
             return
         if not check.checkAuthorisation(path='resources', subpath=name, method='PUT'):
@@ -86,8 +89,11 @@ class MainPage(webapp2.RequestHandler):
             self.response.set_status(404)
 
     def post(self, id, name):
-        (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='resources', subpath=name)
+        (myself, check) = auth.init_actingweb(appreq=self,
+                                              id=id,
+                                              path='resources',
+                                              subpath=name,
+                                              config=self.app.registry.get('config'))
         if not myself or check.response["code"] != 200:
             return
         if not check.checkAuthorisation(path='resources', subpath=name, method='POST'):
@@ -114,6 +120,3 @@ class MainPage(webapp2.RequestHandler):
         else:
             self.response.set_status(404)
 
-application = webapp2.WSGIApplication([
-    webapp2.Route(r'/<id>/resources<:/?><name:(.*)>', MainPage, name='MainPage'),
-], debug=True)

@@ -1,18 +1,12 @@
-#!/usr/bin/env python
-#
-import cgi
-import wsgiref.handlers
 import logging
 import json
-from actingweb import actor
 from actingweb import auth
-from actingweb import config
 
 import webapp2
 from on_aw import on_aw_callbacks
 
 
-class MainPage(webapp2.RequestHandler):
+class actor_callbacks(webapp2.RequestHandler):
 
     def get(self, id, name):
         """Handles GETs to callbacks"""
@@ -20,8 +14,12 @@ class MainPage(webapp2.RequestHandler):
             self.put(id, name)
         if self.request.get('_method') == 'POST':
             self.post(id, name)
-        (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='callbacks', add_response=False)
+        (myself, check) = auth.init_actingweb(appreq=self,
+                                              id=id,
+                                              path='callbacks',
+                                              add_response=False,
+                                              config=self.app.registry.get('config')
+                                              )
         if not myself or (check.response["code"] != 200 and check.response["code"] != 401):
             auth.add_auth_response(appreq=self, auth_obj=check)
             return
@@ -37,8 +35,10 @@ class MainPage(webapp2.RequestHandler):
 
     def delete(self, id, name):
         """Handles deletion of callbacks, like subscriptions"""
-        (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='callbacks')
+        (myself, check) = auth.init_actingweb(appreq=self,
+                                              id=id,
+                                              path='callbacks',
+                                              config=self.app.registry.get('config'))
         if not myself or check.response["code"] != 200:
             return
         path = name.split('/')
@@ -63,8 +63,11 @@ class MainPage(webapp2.RequestHandler):
 
     def post(self, id, name):
         """Handles POST callbacks"""
-        (Config, myself, check) = auth.init_actingweb(appreq=self,
-                                                      id=id, path='callbacks', add_response=False)
+        (myself, check) = auth.init_actingweb(appreq=self,
+                                              id=id,
+                                              path='callbacks',
+                                              add_response=False,
+                                              config=self.app.registry.get('config'))
         # Allow unauthenticated requests to /callbacks/subscriptions, so
         # do the auth check further below
         path = name.split('/')
@@ -97,7 +100,3 @@ class MainPage(webapp2.RequestHandler):
             return
         if not on_aw_callbacks.on_post_callbacks(myself=myself, req=self, auth=check, name=name):
             self.response.set_status(403, 'Forbidden')
-
-application = webapp2.WSGIApplication([
-    webapp2.Route(r'/<id>/callbacks<:/?><name:(.*)>', MainPage, name='MainPage'),
-], debug=True)
