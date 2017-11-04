@@ -1,87 +1,39 @@
 import webapp2
-from actingweb import auth
-from on_aw import on_aw_www_paths
+from actingweb import aw_web_request
+from actingweb.handlers import www
 
 
 class actor_www(webapp2.RequestHandler):
 
+    def init(self):
+        self.obj=aw_web_request.aw_webobj(
+            url=self.request.url,
+            params=self.request.params,
+            body=self.request.body,
+            headers=self.request.headers)
+        self.handler = www.www_handler(self.obj, self.app.registry.get('config'))
+
     def get(self, id, path):
-        (myself, check) = auth.init_actingweb(appreq=self,
-                                              id=id, path='www', subpath=path,
-                                              config=self.app.registry.get('config'))
-        if not myself or check.response["code"] != 200:
-            return
-        if not self.app.registry.get('config').ui:
-            self.response.set_status(404, "Web interface is not enabled")
-            return
-        if not check.checkAuthorisation(path='www', subpath=path, method='GET'):
-            self.response.set_status(403)
-            return
-
+        self.init()
+        # Process the request
+        self.handler.get(id, path)
+        # Pass results back to webapp2
+        self.response.set_status(self.obj.response.status_code, self.obj.response.status_message)
+        self.response.headers = self.obj.response.headers
         if not path or path == '':
-            template_values = {
-                'url': self.request.url,
-                'id': id,
-                'creator': myself.creator,
-                'passphrase': myself.passphrase,
-            }
             template = self.app.registry.get('template').get_template('aw-actor-www-root.html')
-            self.response.write(template.render(template_values).encode('utf-8'))
-            return
-
-        if path == 'init':
-            template_values = {
-                'id': myself.id,
-            }
+            self.response.write(template.render(self.obj.response.template_values).encode('utf-8'))
+        elif path == 'init':
             template = self.app.registry.get('template').get_template('aw-actor-www-init.html')
-            self.response.write(template.render(template_values).encode('utf-8'))
-            return
-        if path == 'properties':
-            properties = myself.getProperties()
-            template_values = {
-                'id': myself.id,
-                'properties': properties,
-            }
+            self.response.write(template.render(self.obj.response.template_values).encode('utf-8'))
+        elif path == 'properties':
             template = self.app.registry.get('template').get_template('aw-actor-www-properties.html')
-            self.response.write(template.render(template_values).encode('utf-8'))
-            return
-        if path == 'property':
-            lookup = myself.getProperty(self.request.get('name'))
-            if lookup.value:
-                template_values = {
-                    'id': myself.id,
-                    'property': lookup.name,
-                    'value': lookup.value,
-                    'qual': '',
-                }
-            else:
-                template_values = {
-                    'id': myself.id,
-                    'property': lookup.name,
-                    'value': 'Not set',
-                    'qual': 'no',
-                }
+            self.response.write(template.render(self.obj.response.template_values).encode('utf-8'))
+        elif path == 'property':
             template = self.app.registry.get('template').get_template('aw-actor-www-property.html')
-            self.response.write(template.render(template_values).encode('utf-8'))
-            return
-        if path == 'trust':
-            relationships = myself.getTrustRelationships()
-            if not relationships or len(relationships) == 0:
-                self.response.set_status(404, 'Not found')
-                return
-            for t in relationships:
-                t["approveuri"] = self.app.registry.get('config').root + myself.id + '/trust/' + t.relationship + '/' + t.peerid
-            template_values = {
-                'id': myself.id,
-                'trusts': relationships,
-            }
+            self.response.write(template.render(self.obj.response.template_values).encode('utf-8'))
+        elif path == 'trust':
             template = self.app.registry.get('template').get_template('aw-actor-www-trust.html')
-            self.response.write(template.render(template_values).encode('utf-8'))
-            return
-        output = on_aw_www_paths.on_www_paths(myself=myself, req=self, auth=check, path=path)
-        if output:
-            self.response.write(output)
+            self.response.write(template.render(self.obj.response.template_values).encode('utf-8'))
         else:
-            self.response.set_status(404, "Not found")
-        return
-
+            self.response.write(self.obj.response.body)

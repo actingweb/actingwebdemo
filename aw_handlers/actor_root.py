@@ -1,45 +1,34 @@
-from actingweb import auth
-
 import webapp2
-from on_aw import on_aw_delete
-import json
+from actingweb import aw_web_request
+from actingweb.handlers import root
 
 
 class actor_root(webapp2.RequestHandler):
 
+    def init(self):
+        self.obj=aw_web_request.aw_webobj(
+            url=self.request.url,
+            params=self.request.params,
+            body=self.request.body,
+            headers=self.request.headers)
+        self.handler = root.root_handler(self.obj, self.app.registry.get('config'))
+
     def get(self, id):
-        if self.request.get('_method') == 'DELETE':
-            self.delete(id)
-            return
-        (myself, check) = auth.init_actingweb(appreq=self, id=id, path='', subpath='',
-                                              config=self.app.registry.get('config'))
-        if not myself or check.response["code"] != 200:
-            return
-        if not check.checkAuthorisation(path='/', method='GET'):
-            self.response.set_status(403)
-            return
-        pair = {
-            'id': myself.id,
-            'creator': myself.creator,
-            'passphrase': myself.passphrase,
-        }
-        trustee_root = myself.getProperty('trustee_root').value
-        if trustee_root and len(trustee_root) > 0:
-            pair['trustee_root'] = trustee_root
-        out = json.dumps(pair)
-        self.response.write(out.encode('utf-8'))
-        self.response.headers["Content-Type"] = "application/json"
-        self.response.set_status(200)
+        self.init()
+        # Process the request
+        self.handler.get(id)
+        # Pass results back to webapp2
+        self.response.set_status(self.obj.response.status_code, self.obj.response.status_message)
+        self.response.headers = self.obj.response.headers
+        self.response.write(self.obj.response.body)
 
     def delete(self, id):
-        (myself, check) = auth.init_actingweb(appreq=self,
-                                              id=id, path='', subpath='', config=self.app.registry.get('config'))
-        if not myself or check.response["code"] != 200:
-            return
-        if not check.checkAuthorisation(path='/', method='DELETE'):
-            self.response.set_status(403)
-            return
-        on_aw_delete.on_aw_delete_actor(myself=myself, req=self, auth=check)
-        myself.delete()
-        self.response.set_status(204)
-        return
+        self.init()
+        # Process the request
+        self.handler.delete(id)
+        # Pass results back to webapp2
+        self.response.set_status(self.obj.response.status_code, self.obj.response.status_message)
+        self.response.headers = self.obj.response.headers
+        self.response.write(self.obj.response.body)
+
+

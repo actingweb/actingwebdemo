@@ -1,122 +1,52 @@
-import json
-from actingweb import auth
-from on_aw import on_aw_resources
+from actingweb import aw_web_request
+from actingweb.handlers import resources
 
 import webapp2
 
 
 class actor_resources(webapp2.RequestHandler):
 
+    def init(self):
+        self.obj=aw_web_request.aw_webobj(
+            url=self.request.url,
+            params=self.request.params,
+            body=self.request.body,
+            headers=self.request.headers)
+        self.handler = resources.resources_handler(self.obj, self.app.registry.get('config'))
+
     def get(self, id, name):
-        (myself, check) = auth.init_actingweb(appreq=self,
-                                              id=id,
-                                              path='resources',
-                                              subpath=name,
-                                              config=self.app.registry.get('config'))
-        if not myself or check.response["code"] != 200:
-            return
-        if not check.checkAuthorisation(path='resources', subpath=name, method='GET'):
-            self.response.set_status(403)
-            return
-        pair = on_aw_resources.on_get_resources(myself=myself,
-                                                req=self,
-                                                auth=check,
-                                                name=name)
-        if pair and any(pair): 
-            out = json.dumps(pair)
-            self.response.write(out.encode('utf-8'))
-            self.response.headers["Content-Type"] = "application/json"
-            self.response.set_status(200)
-        else:
-            self.response.set_status(404)
+        self.init()
+        # Process the request
+        self.handler.get(id, name)
+        # Pass results back to webapp2
+        self.response.set_status(self.obj.response.status_code, self.obj.response.status_message)
+        self.response.headers = self.obj.response.headers
+        self.response.write(self.obj.response.body)
 
     def delete(self, id, name):
-        (myself, check) = auth.init_actingweb(appreq=self,
-                                              id=id,
-                                              path='resources',
-                                              subpath=name,
-                                              config=self.app.registry.get('config'))
-        if not myself or check.response["code"] != 200:
-            return
-        if not check.checkAuthorisation(path='resources', subpath=name, method='DELETE'):
-            self.response.set_status(403)
-            return
-        pair = on_aw_resources.on_delete_resources(myself=myself,
-                                                   req=self,
-                                                   auth=check,
-                                                   name=name)
-        if pair:
-            if pair >= 100 and pair <= 999:
-                return
-            if any(pair): 
-                out = json.dumps(pair)
-                self.response.write(out.encode('utf-8'))
-                self.response.headers["Content-Type"] = "application/json"
-                self.response.set_status(200)
-        else:
-            self.response.set_status(404)
+        self.init()
+        # Process the request
+        self.handler.delete(id, name)
+        # Pass results back to webapp2
+        self.response.set_status(self.obj.response.status_code, self.obj.response.status_message)
+        self.response.headers = self.obj.response.headers
+        self.response.write(self.obj.response.body)
 
     def put(self, id, name):
-        (myself, check) = auth.init_actingweb(appreq=self,
-                                              id=id,
-                                              path='resources',
-                                              subpath=name,
-                                              config=self.app.registry.get('config'))
-        if not myself or check.response["code"] != 200:
-            return
-        if not check.checkAuthorisation(path='resources', subpath=name, method='PUT'):
-            self.response.set_status(403)
-            return
-        try:
-            params = json.loads(self.request.body.decode('utf-8', 'ignore'))
-        except:
-            self.response.set_status(405, "Error in json body")
-            return
-        pair = on_aw_resources.on_put_resources(myself=myself,
-                                                req=self,
-                                                auth=check,
-                                                name=name,
-                                                params=params)
-        if pair:
-            if pair >= 100 and pair <= 999:
-                return
-            if any(pair):
-                out = json.dumps(pair)
-                self.response.write(out.encode('utf-8'))
-                self.response.headers["Content-Type"] = "application/json"
-                self.response.set_status(200)
-        else:
-            self.response.set_status(404)
+        self.init()
+        # Process the request
+        self.handler.put(id, name)
+        # Pass results back to webapp2
+        self.response.set_status(self.obj.response.status_code, self.obj.response.status_message)
+        self.response.headers = self.obj.response.headers
+        self.response.write(self.obj.response.body)
 
     def post(self, id, name):
-        (myself, check) = auth.init_actingweb(appreq=self,
-                                              id=id,
-                                              path='resources',
-                                              subpath=name,
-                                              config=self.app.registry.get('config'))
-        if not myself or check.response["code"] != 200:
-            return
-        if not check.checkAuthorisation(path='resources', subpath=name, method='POST'):
-            self.response.set_status(403)
-            return
-        try:
-            params = json.loads(self.request.body.decode('utf-8', 'ignore'))
-        except:
-            self.response.set_status(405, "Error in json body")
-            return
-        pair = on_aw_resources.on_post_resources(myself=myself,
-                                                 req=self,
-                                                 auth=check,
-                                                 name=name,
-                                                 params=params)
-        if pair:
-            if pair >= 100 and pair <= 999:
-                return
-            if any(pair):
-                out = json.dumps(pair)
-                self.response.write(out.encode('utf-8'))
-                self.response.headers["Content-Type"] = "application/json"
-                self.response.set_status(201, 'Created')
-        else:
-            self.response.set_status(404)
+        self.init()
+        # Process the request
+        self.handler.post(id, name)
+        # Pass results back to webapp2
+        self.response.set_status(self.obj.response.status_code, self.obj.response.status_message)
+        self.response.headers = self.obj.response.headers
+        self.response.write(self.obj.response.body)
 
