@@ -1,4 +1,5 @@
 import webapp2
+#import pydevd
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 from aw_handlers import actor_root, actor_trust, devtests, actor_subscription, actor_callbacks, actor_resources
@@ -58,6 +59,8 @@ def main():
 
 
 if __name__ == '__main__':
+    #pydevd.settrace('docker.for.mac.localhost', port=3001, stdoutToServer=True, stderrToServer=True)
+
     set_config()
     set_template_env()
     main()

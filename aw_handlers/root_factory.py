@@ -21,11 +21,8 @@ class root_factory(webapp2.RequestHandler):
         # Pass results back to webapp2
         self.response.set_status(self.obj.response.status_code, self.obj.response.status_message)
         self.response.headers = self.obj.response.headers
-        if len(self.obj.response.template_values) > 0:
-            template = self.app.registry.get('template').get_template('aw-root-factory.html')
-            self.response.write(template.render(self.obj.response.template_values).encode('utf-8'))
-        else:
-            self.response.write(self.obj.response.body)
+        template = self.app.registry.get('template').get_template('aw-root-factory.html')
+        self.response.write(template.render(self.obj.response.template_values).encode('utf-8'))
 
     def post(self):
         self.init()
