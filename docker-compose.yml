@@ -14,3 +14,5 @@ services:
   dynamodb:
     image: deangiberson/aws-dynamodb-local
     command: -port 8000 -sharedDb
+    ports:
+      - 8000:8000

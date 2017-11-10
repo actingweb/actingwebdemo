@@ -34,7 +34,7 @@ def set_config():
         config = webapp2.import_string('actingweb.config')
         config = config.config(
             database='dynamodb',
-            fqdn="greger.ngrok.io",
+            fqdn="actingwebdemo.us-west-1.elasticbeanstalk.com",
             proto="http://")
         # Register the instance in the registry.
         app.registry['config'] = config
