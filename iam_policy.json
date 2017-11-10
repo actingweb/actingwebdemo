@@ -1,0 +1,46 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DynamodbAccess"
+      "Effect": "Allow",
+      "Action":   [ "dynamodb:*" ],
+      "Resource": [ "arn:aws:dynamodb:*" ]
+    },
+    {
+      "Sid": "SnsAccess",
+      "Effect": "Allow",
+      "Action":   [ "sns:Publish" ],
+      "Resource": [ "*" ]
+    },
+    {
+      "Sid": "BucketAccess",
+      "Action": [
+        "s3:Get*",
+        "s3:List*",
+        "s3:PutObject"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:s3:::elasticbeanstalk-*",
+        "arn:aws:s3:::elasticbeanstalk-*/*"
+      ]
+    },
+    {
+      "Sid": "CloudWatchLogsAccess",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:GetLogEvents",
+        "logs:PutLogEvents",
+        "logs:DescribeLogGroups",
+        "logs:DescribeLogStreams",
+        "logs:PutRetentionPolicy"
+      ],
+      "Resource": [
+        "arn:aws:logs:*:*:log-group:/aws/elasticbeanstalk*"
+      ]
+    }
+  ]
+}
