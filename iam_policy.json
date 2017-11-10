@@ -2,10 +2,10 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "DynamodbAccess"
+      "Sid": "DynamodbAccess",
       "Effect": "Allow",
       "Action":   [ "dynamodb:*" ],
-      "Resource": [ "arn:aws:dynamodb:*" ]
+      "Resource": [ "*" ]
     },
     {
       "Sid": "SnsAccess",
