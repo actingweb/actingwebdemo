@@ -1,4 +1,5 @@
 import webapp2
+import os
 #import pydevd
 from jinja2 import Environment, PackageLoader, select_autoescape
 
@@ -30,12 +31,14 @@ app = webapp2.WSGIApplication([
 
 def set_config():
     if not app.registry.get('config'):
+        myurl = os.getenv('APP_HOST_FQDN', "localhost")
+        proto = os.getenv('APP_HOST_PROTOCOL', "http://")
         # Import the class lazily.
         config = webapp2.import_string('actingweb.config')
         config = config.config(
             database='dynamodb',
-            fqdn="actingwebdemo.us-west-1.elasticbeanstalk.com",
-            proto="http://")
+            fqdn=myurl,
+            proto=proto)
         # Register the instance in the registry.
         app.registry['config'] = config
     return
@@ -59,6 +62,7 @@ def main():
 
 
 if __name__ == '__main__':
+    #To debug in pycharm inside the Docker containter, remember to uncomment import pydevd as well
     #pydevd.settrace('docker.for.mac.localhost', port=3001, stdoutToServer=True, stderrToServer=True)
 
     set_config()

@@ -7,4 +7,4 @@ pynamodb
 urlfetch
 logging
 actingweb
-pydevd
+#pydevd
