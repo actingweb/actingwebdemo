@@ -63,6 +63,7 @@ def main():
 
 if __name__ == '__main__':
     #To debug in pycharm inside the Docker containter, remember to uncomment import pydevd as well
+    # (and add to requirements.txt)
     #pydevd.settrace('docker.for.mac.localhost', port=3001, stdoutToServer=True, stderrToServer=True)
 
     set_config()

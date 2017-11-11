@@ -8,7 +8,7 @@ services:
       - AWS_ACCESS_KEY_ID=dummy
       - AWS_SECRET_ACCESS_KEY=dummy
       - AWS_DB_HOST=http://dynamodb:8000
-      - APP_HOST_FQDN=localhost
+      - APP_HOST_FQDN=greger.ngrok.io
       - APP_HOST_PROTOCOL=http://
     ports:
       - 5000:5000
