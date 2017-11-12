@@ -33,7 +33,7 @@ def set_config():
     if not app.registry.get('config'):
         myurl = os.getenv('APP_HOST_FQDN', "localhost")
         proto = os.getenv('APP_HOST_PROTOCOL', "http://")
-        # Import the class lazily.
+        # Import the class lazily
         config = webapp2.import_string('actingweb.config')
         config = config.config(
             database='dynamodb',
