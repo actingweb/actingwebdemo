@@ -2,7 +2,7 @@
   "trigger_url": "https://api.runscope.com/radar/9399c9f4-7814-43ae-a987-8ec755beb05a/trigger", 
   "name": "Trust actingweb actor flow", 
   "version": "1.0", 
-  "exported_at": 1479626549, 
+  "exported_at": 1510506653, 
   "steps": [
     {
       "body": "{\r\n\"creator\":  \"trust1@actingweb.net\"\r\n}", 
@@ -225,7 +225,9 @@
       "fragment": "", 
       "note": "Get the new trust relationship as peer", 
       "headers": {
-        "Authorization": "Bearer {{secret1}}"
+        "Authorization": [
+          "Bearer {{secret1}}"
+        ]
       }, 
       "assertions": [
         {
@@ -276,7 +278,9 @@
       "fragment": "", 
       "note": "Get the new trust relationship as peer", 
       "headers": {
-        "Authorization": "Bearer {{secret1}}"
+        "Authorization": [
+          "Bearer {{secret1}}"
+        ]
       }, 
       "assertions": [
         {
@@ -329,7 +333,7 @@
         {
           "comparison": "equal", 
           "property": "verified", 
-          "value": "true", 
+          "value": "false", 
           "source": "response_json"
         }
       ], 
@@ -381,7 +385,9 @@
       "fragment": "", 
       "note": "Get the new trust relationship as peer, but wrong peer", 
       "headers": {
-        "Authorization": "Bearer {{secret2}}"
+        "Authorization": [
+          "Bearer {{secret2}}"
+        ]
       }, 
       "assertions": [
         {
@@ -886,6 +892,7 @@
           "name": "secret4"
         }
       ], 
+      "scripts": [], 
       "step_type": "request", 
       "auth": {
         "username": "trust1@actingweb.net", 
@@ -893,14 +900,14 @@
         "password": "{{passphrase1}}"
       }, 
       "fragment": "", 
-      "note": "Initiate a new trust (trust4)", 
+      "note": "Initiate a new trust (trust4) from actorid2 to actorid1", 
       "headers": {
         "Content-Type": [
           "application/json"
         ]
       }, 
       "auth.password": "{{passphrase1}}", 
-      "scripts": [], 
+      "multipart_form": [], 
       "before_scripts": [], 
       "method": "POST", 
       "assertions": [

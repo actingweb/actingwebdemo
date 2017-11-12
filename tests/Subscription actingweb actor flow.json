@@ -2,7 +2,7 @@
   "trigger_url": "https://api.runscope.com/radar/92eefd8e-721f-4691-be17-19d024f8beaf/trigger", 
   "name": "Subscription actingweb actor flow", 
   "version": "1.0", 
-  "exported_at": 1479626601, 
+  "exported_at": 1510506636, 
   "steps": [
     {
       "body": "{\r\n\"creator\":  \"trust1@actingweb.net\"\r\n}", 
@@ -111,7 +111,7 @@
       "method": "POST"
     }, 
     {
-      "body": "{\r\n\"creator\":  \"trust2@actingweb.net\"\r\n}", 
+      "body": "{\r\n\"creator\":  \"trust3@actingweb.net\"\r\n}", 
       "form": {}, 
       "url": "{{appRoot}}", 
       "variables": [
@@ -149,7 +149,7 @@
         {
           "comparison": "equal", 
           "property": "creator", 
-          "value": "trust2@actingweb.net", 
+          "value": "trust3@actingweb.net", 
           "source": "response_json"
         }, 
         {
@@ -432,7 +432,7 @@
       "variables": [], 
       "step_type": "request", 
       "auth": {
-        "username": "trust2@actingweb.net", 
+        "username": "trust3@actingweb.net", 
         "auth_type": "basic", 
         "password": "{{passphrase3}}"
       }, 
@@ -530,7 +530,9 @@
       "fragment": "", 
       "note": "Get subscription 1 from actor 1 as peer to get subid", 
       "headers": {
-        "Authorization": "Bearer {{secret1}}"
+        "Authorization": [
+          "Bearer {{secret1}}"
+        ]
       }, 
       "assertions": [
         {
@@ -628,7 +630,7 @@
       ], 
       "step_type": "request", 
       "auth": {
-        "username": "trust2@actingweb.net", 
+        "username": "trust3@actingweb.net", 
         "auth_type": "basic", 
         "password": "{{passphrase3}}"
       }, 
@@ -664,7 +666,7 @@
       ], 
       "step_type": "request", 
       "auth": {
-        "username": "trust2@actingweb.net", 
+        "username": "trust3@actingweb.net", 
         "auth_type": "basic", 
         "password": "{{passphrase3}}"
       }, 
@@ -701,7 +703,9 @@
       "fragment": "", 
       "note": "Get subscription 5 from actor 1 as peer to get subid", 
       "headers": {
-        "Authorization": "Bearer {{secret2}}"
+        "Authorization": [
+          "Bearer {{secret2}}"
+        ]
       }, 
       "assertions": [
         {
@@ -727,7 +731,7 @@
       ], 
       "step_type": "request", 
       "auth": {
-        "username": "trust2@actingweb.net", 
+        "username": "trust3@actingweb.net", 
         "auth_type": "basic", 
         "password": "{{passphrase3}}"
       }, 
@@ -796,7 +800,9 @@
       "fragment": "", 
       "note": "Verify callback on actor2 for invalid subid as peer actor1", 
       "headers": {
-        "Authorization": "Bearer {{secret1}}"
+        "Authorization": [
+          "Bearer {{secret1}}"
+        ]
       }, 
       "assertions": [
         {
@@ -822,7 +828,9 @@
         "Content-Type": [
           "application/json"
         ], 
-        "Authorization": "Bearer {{secret1}}"
+        "Authorization": [
+          "Bearer {{secret1}}"
+        ]
       }, 
       "assertions": [
         {
@@ -848,7 +856,9 @@
         "Content-Type": [
           "application/json"
         ], 
-        "Authorization": "Bearer {{secret1}}"
+        "Authorization": [
+          "Bearer {{secret1}}"
+        ]
       }, 
       "assertions": [
         {
@@ -877,7 +887,9 @@
       "fragment": "", 
       "note": "Put change 1 to /properties/test", 
       "headers": {
-        "Authorization": "Bearer {{secret1}}"
+        "Authorization": [
+          "Bearer {{secret1}}"
+        ]
       }, 
       "assertions": [
         {
@@ -900,7 +912,9 @@
       "fragment": "", 
       "note": "Put change 2 to /properties/test", 
       "headers": {
-        "Authorization": "Bearer {{secret1}}"
+        "Authorization": [
+          "Bearer {{secret1}}"
+        ]
       }, 
       "assertions": [
         {
@@ -923,7 +937,9 @@
       "fragment": "", 
       "note": "Put change 3 to /properties/test", 
       "headers": {
-        "Authorization": "Bearer {{secret1}}"
+        "Authorization": [
+          "Bearer {{secret1}}"
+        ]
       }, 
       "assertions": [
         {
@@ -946,7 +962,9 @@
       "fragment": "", 
       "note": "Put change 4 to /properties/test", 
       "headers": {
-        "Authorization": "Bearer {{secret1}}"
+        "Authorization": [
+          "Bearer {{secret1}}"
+        ]
       }, 
       "assertions": [
         {
@@ -969,7 +987,9 @@
       "fragment": "", 
       "note": "Put change 5 to /properties/test/resource", 
       "headers": {
-        "Authorization": "Bearer {{secret1}}"
+        "Authorization": [
+          "Bearer {{secret1}}"
+        ]
       }, 
       "assertions": [
         {
@@ -1079,7 +1099,9 @@
       "fragment": "", 
       "note": "Search subscriptions on actor 1 as peer 2 with target", 
       "headers": {
-        "Authorization": "Bearer {{secret1}}"
+        "Authorization": [
+          "Bearer {{secret1}}"
+        ]
       }, 
       "assertions": [
         {
@@ -1112,7 +1134,9 @@
       "fragment": "", 
       "note": "Search subscriptions on actor 1 as peer actor 2", 
       "headers": {
-        "Authorization": "Bearer {{secret1}}"
+        "Authorization": [
+          "Bearer {{secret1}}"
+        ]
       }, 
       "assertions": [
         {
@@ -1133,7 +1157,9 @@
       "fragment": "", 
       "note": "Get subscription 1 as peer actor 2", 
       "headers": {
-        "Authorization": "Bearer {{secret1}}"
+        "Authorization": [
+          "Bearer {{secret1}}"
+        ]
       }, 
       "assertions": [
         {
@@ -1220,7 +1246,9 @@
       "fragment": "", 
       "note": "Get subscription 7 as peer actor 2", 
       "headers": {
-        "Authorization": "Bearer {{secret1}}"
+        "Authorization": [
+          "Bearer {{secret1}}"
+        ]
       }, 
       "assertions": [
         {
@@ -1265,7 +1293,9 @@
       "fragment": "", 
       "note": "Get subscription 1 diff 1 as peer actor 2", 
       "headers": {
-        "Authorization": "Bearer {{secret1}}"
+        "Authorization": [
+          "Bearer {{secret1}}"
+        ]
       }, 
       "assertions": [
         {
@@ -1286,7 +1316,9 @@
       "fragment": "", 
       "note": "Get subscription 1 as peer actor 2", 
       "headers": {
-        "Authorization": "Bearer {{secret1}}"
+        "Authorization": [
+          "Bearer {{secret1}}"
+        ]
       }, 
       "assertions": [
         {
@@ -1348,7 +1380,9 @@
         "Content-Type": [
           "application/json"
         ], 
-        "Authorization": "Bearer {{secret1}}"
+        "Authorization": [
+          "Bearer {{secret1}}"
+        ]
       }, 
       "assertions": [
         {
@@ -1369,7 +1403,9 @@
       "fragment": "", 
       "note": "Get subscription 1 as peer actor 2 after clearing", 
       "headers": {
-        "Authorization": "Bearer {{secret1}}"
+        "Authorization": [
+          "Bearer {{secret1}}"
+        ]
       }, 
       "assertions": [
         {
@@ -1414,7 +1450,9 @@
       "fragment": "", 
       "note": "Get subscription 6 as peer actor 2", 
       "headers": {
-        "Authorization": "Bearer {{secret2}}"
+        "Authorization": [
+          "Bearer {{secret2}}"
+        ]
       }, 
       "assertions": [
         {
@@ -1474,7 +1512,9 @@
       "fragment": "", 
       "note": "Delete subscription 4 as peer actor 3", 
       "headers": {
-        "Authorization": "Bearer {{secret2}}"
+        "Authorization": [
+          "Bearer {{secret2}}"
+        ]
       }, 
       "assertions": [
         {
@@ -1495,7 +1535,9 @@
       "fragment": "", 
       "note": "Get subscription 4 as peer actor 3", 
       "headers": {
-        "Authorization": "Bearer {{secret2}}"
+        "Authorization": [
+          "Bearer {{secret2}}"
+        ]
       }, 
       "assertions": [
         {
@@ -1515,7 +1557,7 @@
       "variables": [], 
       "step_type": "request", 
       "auth": {
-        "username": "trust2@actingweb.net", 
+        "username": "trust3@actingweb.net", 
         "auth_type": "basic", 
         "password": "{{passphrase3}}"
       }, 
@@ -1542,12 +1584,14 @@
       "step_type": "request", 
       "auth": {}, 
       "fragment": "", 
-      "note": "Try callback on actor1 for subscription 5 form actor3", 
+      "note": "Try callback on actor1 for subscription 5 from actor3", 
       "headers": {
         "Content-Type": [
           "application/json"
         ], 
-        "Authorization": "Bearer {{secret2}}"
+        "Authorization": [
+          "Bearer {{secret2}}"
+        ]
       }, 
       "assertions": [
         {

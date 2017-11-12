@@ -11,6 +11,14 @@ Jul 9, 2017
 - Add support for actors() class in actor.py to get a list of all actors with id and creator (ONLY for admin usage)
 - Fix various bugs when subscriptions don't exist
 - Improve logging when actor cannot be created
+=======
+Nov 12, 2017
+-----------
+
+- Forked as separate demo app from actingweb library
+- Deployed to https://actingwebdemo.greger.io as a test app
+
+>>>>>>> feature/aws
 
 Apr 2, 2017
 -----------
