@@ -2,7 +2,7 @@
   "trigger_url": "https://api.runscope.com/radar/97aea23b-780b-4712-b1a1-4e57ff821bbe/trigger", 
   "name": "Basic actingweb actor flow", 
   "version": "1.0", 
-  "exported_at": 1479626586, 
+  "exported_at": 1510506607, 
   "steps": [
     {
       "url": "{{appRoot}}", 
@@ -268,7 +268,9 @@
       "fragment": "", 
       "note": "Get actor  with bearer token as trustee", 
       "headers": {
-        "Authorization": "Bearer {{passphrase}}"
+        "Authorization": [
+          "Bearer {{passphrase}}"
+        ]
       }, 
       "assertions": [
         {
@@ -306,7 +308,9 @@
         "Content-Type": [
           "application/json"
         ], 
-        "Authorization": "Bearer {{passphrase}}"
+        "Authorization": [
+          "Bearer {{passphrase}}"
+        ]
       }, 
       "assertions": [
         {
@@ -363,7 +367,9 @@
       "fragment": "", 
       "note": "Get actor with bearer token as trustee - expect fail", 
       "headers": {
-        "Authorization": "Bearer {{passphrase}}"
+        "Authorization": [
+          "Bearer {{passphrase}}"
+        ]
       }, 
       "assertions": [
         {
@@ -532,6 +538,7 @@
     {
       "url": "{{actorurl}}/meta", 
       "variables": [], 
+      "scripts": [], 
       "step_type": "request", 
       "auth": {}, 
       "fragment": "", 
@@ -546,22 +553,23 @@
         {
           "comparison": "equal_number", 
           "property": "aw_version", 
-          "value": "0.9", 
+          "value": "1.0", 
           "source": "response_json"
         }
       ], 
-      "scripts": [], 
+      "multipart_form": [], 
       "before_scripts": [], 
       "method": "GET"
     }, 
     {
+      "headers": {}, 
       "url": "{{actorurl}}/meta/actingweb/version", 
       "variables": [], 
+      "multipart_form": [], 
       "step_type": "request", 
       "auth": {}, 
-      "fragment": "", 
       "note": "Get meta specific var", 
-      "headers": {}, 
+      "fragment": "", 
       "assertions": [
         {
           "comparison": "equal_number", 
@@ -570,7 +578,7 @@
         }, 
         {
           "comparison": "equal", 
-          "value": "0.9", 
+          "value": "1.0", 
           "source": "response_text"
         }
       ], 
