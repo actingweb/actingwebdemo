@@ -11,7 +11,7 @@ class callback_oauth(webapp2.RequestHandler):
             params=self.request.params,
             body=self.request.body,
             headers=self.request.headers)
-        self.handler = factory.root_factory_handler(self.obj, self.app.registry.get('config'))
+        self.handler = callback_oauth.callback_oauth_handler(self.obj, self.app.registry.get('config'))
 
     def get(self):
         self.init()

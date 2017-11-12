@@ -2,41 +2,61 @@
 Getting Started
 ===============
 
-This ActingWeb library is inself a fully working app that can be deployed
-to Google AppEngine.
+This actingwebdemo application is a full ActingWeb demo that uses the python
+library actingweb.
 
-It does not really use anything AppEngine specific beyond the database (ndb),
-so it can easily be ported to e.g. running in a Docker container. The
-deployment is then a bit more complex as you need a database container as well.
-Building this into the current python library as an option is a TODO.
+The actingweb library supports both AWS Dynamodb and Google Datastore as database
+backends, but this application is deployed to AWS as an Elastic Beanstalk
+application and can be found at https://actingwebdemo.greger.io
 
-Google AppEngine
-----------------
+Basically, the application.py uses the webapp2 framework to map all the endpoints
+required by an ActingWeb app and set up handlers (/aw_handlers) for each.
+Each handler takes the requests, copies into an actingweb request and calls
+the correct endpoint handler from the actingweb library.
 
-1. Go to https://cloud.google.com/appengine, and log in using your google account.
-You can go to https://cloud.google.com/appengine/docs to get access to the quick
-start, however, the tutorial I recommend is here. It covers a lot things in a
-guestbook app you don’t really need to understand to get started, but it’s a
-simple way to deploy your first app. If you plan to re-use your test app,
-take care when choosing an app name as it cannot be changed and will be part of the
-app URL.
+There is some boilerplate code, but it is fairly simple to replace webapp2 with
+flask or any other web app framework.
 
-2. Once you have deployed your first python 2.7 app, you can either just re-use
-that app (and replace the code) or create a new project at
-https://console.cloud.google.com.  You then add the app with the same name
-in Google AppEngineLauncher on your computer and a new local directory will be
-created for you. Also remember, you will need the public URL created for your
-Appengine App in the next step.
+Running locally
+---------------
 
-3. Copy the acting-web-gae-library code into your app directory and edit appl.yaml.
-The first line must be edited to your app name
+You don't have to deploy to AWS to test the app. There is a docker-compose.yml file in the repo that brings up
+both a local version of dynamodb and the actingwebdemo app.
 
-4. Deploy the app to Google AppEngine and you should get a sign-up form when you go
-to the URL of the app!
+1. `docker-compose up -d`
+
+2. Go to http://localhost:5000
+
+You can also use ngrok.io or similar to expose the app on a public URL, remember to change the app URL in
+docker-compose.yml.
+
+Running tests
+-------------
+If you use ngrok.io (or deploy to AWS), you can use the Runscope tests found in the tests directory. Just sign-up at
+runscope.com and import the test suites. The Basic test suite tests all actor creation and properties functionality,
+while the trust suite also tests trust relationships between actors, and finally the subscription suite tests
+subscriptions between actors with trust relationships. Thus, if basic test suite fails, all will fail, and if trust
+test suite fails, subscription test suite will also fail.
+
+AWS Elastic Beanstalk
+---------------------
+
+1. Install `Elastic Beanstalk CLI <http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/eb-cli3-install.html>`_
+
+2. Edit .ebextensions/options.config to set the hostname you are going to deploy to, region that matches, and the
+protocol (default http://, but https:// if you choose to set up that later)
+
+2. Run `eb init`, set region and AWS credentials, create a new app (your new app), and select Docker, latest version
+
+3. Run `eb create` to create an environment (e.g. dev, prod etc of your app). Remember to match the CNAME prefix with
+the prefix of the hostname in options.config (the rest is based on region)
+
+4. Deploy with `eb deploy`
+
+5. Run `eb open` to open the app in the browser
 
 Use the library for your own projects
 -------------------------------------
 
-For how to use and extend the library, you can have a look at an example where
-the ActingWeb library is used for Cisco Spark, the free collaboration service:
-http://stuff.ttwedel.no/latest-armyknife-code-html
+For how to use and extend the library, see the `ActingWeb repository <https://bitbucket.org/gregerw/actingweb>`_
+
