@@ -11,7 +11,7 @@ app = webapp2.WSGIApplication([
     ('/', root_factory.root_factory),
     webapp2.Route(r'/bot<:/?><path:(.*)>', bots.bots),
     (r'/(.*)/meta/?(.*)', actor_meta.actor_meta),
-    webapp2.Route(r'/oauth', callback_oauth.callback_oauth),
+    webapp2.Route(r'/oauth', callback_oauth.callback_oauths),
     webapp2.Route(r'/<id>/oauth<:/?><path:.*>', actor_oauth.actor_oauth),
     webapp2.Route(r'/<id><:/?>', actor_root.actor_root),
     webapp2.Route(r'/<id>/www<:/?><path:(.*)>', actor_www.actor_www),
@@ -32,13 +32,53 @@ app = webapp2.WSGIApplication([
 def set_config():
     if not app.registry.get('config'):
         myurl = os.getenv('APP_HOST_FQDN', "localhost")
-        proto = os.getenv('APP_HOST_PROTOCOL', "http://")
+        proto = os.getenv('APP_HOST_PROTOCOL', "https://")
+        type = "urn:actingweb:actingweb.org:actingwebdemo"
+        bot_token = os.getenv('APP_BOT_TOKEN', "")
+        bot_email = os.getenv('APP_BOT_EMAIL', "")
+        bot_secret = os.getenv('APP_BOT_SECRET', "")
+        bot_admin_room = os.getenv('APP_BOT_ADMIN_ROOM', "")
+        oauth = {
+            'client_id': os.getenv('APP_OAUTH_ID',""),
+            'client_secret': os.getenv('APP_OAUTH_KEY',""),
+            'redirect_uri': proto + myurl + "/oauth",
+            'scope': "",
+            'auth_uri': "https://api.actingweb.net/v1/authorize",
+            'token_uri': "https://api.actingweb.net/v1/access_token",
+            'response_type': "code",
+            'grant_type': "authorization_code",
+            'refresh_type': "refresh_token",
+        }
+        actors = {
+            'myself': {
+                'type': type,
+                'factory': proto + myurl + '/',
+                'relationship': 'friend',  # associate, friend, partner, admin
+            }
+        }
         # Import the class lazily
         config = webapp2.import_string('actingweb.config')
         config = config.config(
             database='dynamodb',
             fqdn=myurl,
-            proto=proto)
+            proto=proto,
+            type=type,
+            desc="Actingwebdemo actor: ",
+            version="2.0",
+            devtest=True,
+            actors=actors,
+            force_email_prop_as_creator=False,
+            unique_creator=False,
+            www_auth="oauth",
+            ui=True,
+            bot={
+                "token": bot_token,
+                "email": bot_email,
+                "secret": bot_secret,
+                "admin_room": bot_admin_room
+            },
+            oauth=oauth
+        )
         # Register the instance in the registry.
         app.registry['config'] = config
     return
