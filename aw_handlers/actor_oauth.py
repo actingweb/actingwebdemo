@@ -19,7 +19,7 @@ class actor_oauth(webapp2.RequestHandler):
             body=self.request.body,
             headers=self.request.headers,
             cookies=cookies)
-        self.handler = oauth.oauth_handler(self.obj, self.app.registry.get('config'), on_aw=on_aw.spark_on_aw)
+        self.handler = oauth.oauth_handler(self.obj, self.app.registry.get('config'), on_aw=on_aw.on_aw_demo)
 
 
     def get(self, id, path):

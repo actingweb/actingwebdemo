@@ -1,8 +1,9 @@
 import logging
 import json
-from actingweb import aw_web_request
+from actingweb import on_aw
 
-class on_aw_base():
+
+class on_aw_demo(on_aw.on_aw_base):
 
 
     @classmethod

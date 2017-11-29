@@ -11,7 +11,7 @@ class bots(webapp2.RequestHandler):
             params=self.request.params,
             body=self.request.body,
             headers=self.request.headers)
-        self.handler = bot.bot_handler(self.obj, self.app.registry.get('config'), on_aw=on_aw.spark_on_aw)
+        self.handler = bot.bot_handler(self.obj, self.app.registry.get('config'), on_aw=on_aw.on_aw_demo)
 
     def post(self, path):
         self.init()
