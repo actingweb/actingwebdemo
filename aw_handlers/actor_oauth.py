@@ -22,5 +22,5 @@ class actor_oauth(webapp2.RequestHandler):
         self.response.set_status(self.obj.response.status_code, self.obj.response.status_message)
         self.response.headers = self.obj.response.headers
         self.response.write(self.obj.response.body)
-        if self.obj.redirect:
-            self.redirect(self.obj.redirect)
+        if self.obj.response.redirect:
+            self.redirect(self.obj.response.redirect)
