@@ -69,7 +69,7 @@ def set_config():
             actors=actors,
             force_email_prop_as_creator=False,
             unique_creator=False,
-            www_auth="oauth",
+            www_auth="basic",
             ui=True,
             bot={
                 "token": bot_token,
