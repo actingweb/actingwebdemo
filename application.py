@@ -1,6 +1,7 @@
+# noinspection PyPackageRequirements
 import webapp2
 import os
-#import pydevd
+# import pydevd
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 from aw_handlers import actor_root, actor_trust, devtests, actor_subscription, actor_callbacks, actor_resources
@@ -8,24 +9,24 @@ from aw_handlers import callback_oauth, actor_oauth
 from aw_handlers import root_factory, actor_www, actor_properties, actor_meta, bots
 
 app = webapp2.WSGIApplication([
-    ('/', root_factory.root_factory),
-    webapp2.Route(r'/bot<:/?><path:(.*)>', bots.bots),
-    (r'/(.*)/meta/?(.*)', actor_meta.actor_meta),
-    webapp2.Route(r'/oauth', callback_oauth.callback_oauths),
-    webapp2.Route(r'/<id>/oauth<:/?><path:.*>', actor_oauth.actor_oauth),
-    webapp2.Route(r'/<id><:/?>', actor_root.actor_root),
-    webapp2.Route(r'/<id>/www<:/?><path:(.*)>', actor_www.actor_www),
-    webapp2.Route(r'/<id>/properties<:/?><name:(.*)>', actor_properties.actor_properties),
-    webapp2.Route(r'/<id>/trust<:/?>', actor_trust.actor_trust),
-    webapp2.Route(r'/<id>/trust/<relationship><:/?>', actor_trust.actor_trust_relationships),
-    webapp2.Route(r'/<id>/trust/<relationship>/<peerid><:/?>', actor_trust.actor_trust_peer),
-    webapp2.Route(r'/<id>/subscriptions<:/?>', actor_subscription.rootHandler),
-    webapp2.Route(r'/<id>/subscriptions/<peerid><:/?>', actor_subscription.relationshipHandler),
-    webapp2.Route(r'/<id>/subscriptions/<peerid>/<subid><:/?>', actor_subscription.subscriptionHandler),
-    webapp2.Route(r'/<id>/subscriptions/<peerid>/<subid>/<seqnr><:/?>', actor_subscription.diffHandler),
-    webapp2.Route(r'/<id>/callbacks<:/?><name:(.*)>', actor_callbacks.actor_callbacks),
-    webapp2.Route(r'/<id>/resources<:/?><name:(.*)>', actor_resources.actor_resources),
-    webapp2.Route(r'/<id>/devtest<:/?><path:(.*)>', devtests.devtests),
+    ('/', root_factory.RootFactory),
+    webapp2.Route(r'/bot<:/?><path:(.*)>', bots.Bots),
+    webapp2.Route(r'/oauth', callback_oauth.CallbackOauths),
+    webapp2.Route(r'/<actor_id>/meta<:/?><path:(.*)>', actor_meta.ActorMeta),
+    webapp2.Route(r'/<actor_id>/oauth<:/?><path:.*>', actor_oauth.ActorOauth),
+    webapp2.Route(r'/<actor_id><:/?>', actor_root.ActorRoot),
+    webapp2.Route(r'/<actor_id>/www<:/?><path:(.*)>', actor_www.ActorWWW),
+    webapp2.Route(r'/<actor_id>/properties<:/?><name:(.*)>', actor_properties.ActorProperties),
+    webapp2.Route(r'/<actor_id>/trust<:/?>', actor_trust.ActorTrust),
+    webapp2.Route(r'/<actor_id>/trust/<relationship><:/?>', actor_trust.ActorTrustRelationships),
+    webapp2.Route(r'/<actor_id>/trust/<relationship>/<peerid><:/?>', actor_trust.ActorTrustPeer),
+    webapp2.Route(r'/<actor_id>/subscriptions<:/?>', actor_subscription.RootHandler),
+    webapp2.Route(r'/<actor_id>/subscriptions/<peerid><:/?>', actor_subscription.RelationshipHandler),
+    webapp2.Route(r'/<actor_id>/subscriptions/<peerid>/<subid><:/?>', actor_subscription.SubscriptionHandler),
+    webapp2.Route(r'/<actor_id>/subscriptions/<peerid>/<subid>/<seqnr><:/?>', actor_subscription.DiffHandler),
+    webapp2.Route(r'/<actor_id>/callbacks<:/?><name:(.*)>', actor_callbacks.ActorCallbacks),
+    webapp2.Route(r'/<actor_id>/resources<:/?><name:(.*)>', actor_resources.ActorResources),
+    webapp2.Route(r'/<actor_id>/devtest<:/?><path:(.*)>', devtests.Devtests),
 ], debug=True)
 
 
@@ -33,14 +34,14 @@ def set_config():
     if not app.registry.get('config'):
         myurl = os.getenv('APP_HOST_FQDN', "localhost")
         proto = os.getenv('APP_HOST_PROTOCOL', "https://")
-        type = "urn:actingweb:actingweb.org:actingwebdemo"
+        aw_type = "urn:actingweb:actingweb.org:actingwebdemo"
         bot_token = os.getenv('APP_BOT_TOKEN', "")
         bot_email = os.getenv('APP_BOT_EMAIL', "")
         bot_secret = os.getenv('APP_BOT_SECRET', "")
         bot_admin_room = os.getenv('APP_BOT_ADMIN_ROOM', "")
         oauth = {
-            'client_id': os.getenv('APP_OAUTH_ID',""),
-            'client_secret': os.getenv('APP_OAUTH_KEY',""),
+            'client_id': os.getenv('APP_OAUTH_ID', ""),
+            'client_secret': os.getenv('APP_OAUTH_KEY', ""),
             'redirect_uri': proto + myurl + "/oauth",
             'scope': "",
             'auth_uri': "https://api.actingweb.net/v1/authorize",
@@ -51,25 +52,25 @@ def set_config():
         }
         actors = {
             'myself': {
-                'type': type,
+                'type': aw_type,
                 'factory': proto + myurl + '/',
                 'relationship': 'friend',  # associate, friend, partner, admin
             }
         }
         # Import the class lazily
         config = webapp2.import_string('actingweb.config')
-        config = config.config(
+        config = config.Config(
             database='dynamodb',
             fqdn=myurl,
             proto=proto,
-            type=type,
+            aw_type=aw_type,
             desc="Actingwebdemo actor: ",
             version="2.0",
             devtest=True,
             actors=actors,
             force_email_prop_as_creator=False,
             unique_creator=False,
-            www_auth="oauth",
+            www_auth="basic",
             ui=True,
             bot={
                 "token": bot_token,
@@ -102,9 +103,9 @@ def main():
 
 
 if __name__ == '__main__':
-    #To debug in pycharm inside the Docker containter, remember to uncomment import pydevd as well
+    # To debug in pycharm inside the Docker containter, remember to uncomment import pydevd as well
     # (and add to requirements.txt)
-    #pydevd.settrace('docker.for.mac.localhost', port=3001, stdoutToServer=True, stderrToServer=True)
+    # pydevd.settrace('docker.for.mac.localhost', port=3001, stdoutToServer=True, stderrToServer=True)
 
     set_config()
     set_template_env()
