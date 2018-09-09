@@ -1,0 +1,16 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+Jinja2 = "*"
+Flask = "*"
+uWSGI = "*"
+"0d30f03" = {path = "./../actingweb", editable = true}
+
+[dev-packages]
+pydevd = "*"
+
+[requires]
+python_version = "3.6"
