@@ -1,7 +1,7 @@
 import os
 import logging
 # import pydevd
-from flask import Flask, request, Response, render_template
+from flask import Flask, request, redirect, Response, render_template
 from actingweb import config
 from actingweb import aw_web_request
 import on_aw
@@ -95,6 +95,9 @@ class Handler:
             elif f == 'bot':
                 self.handler = bot.BotHandler(
                     webobj=self.webobj, config=get_config(), on_aw=OBJ_ON_AW)
+            elif len(path) == 2:
+                self.handler = root.RootHandler(
+                    self.webobj, get_config(), on_aw=OBJ_ON_AW)
             else:
                 self.actor_id = f
                 f = path[2]
@@ -156,9 +159,6 @@ class Handler:
                     # r'/<actor_id>/devtest<:/?><path:(.*)>'
                     self.handler = devtest.DevtestHandler(
                         self.webobj, get_config(), on_aw=OBJ_ON_AW)
-                else:
-                    self.handler = root.RootHandler(
-                        self.webobj, get_config(), on_aw=OBJ_ON_AW)
         if not self.handler:
             logging.warning('Handler was not set with path: ' + req.url)
 
@@ -181,6 +181,11 @@ class Handler:
             headers=self.webobj.response.headers
         )
         self.response.status_code = self.webobj.response.status_code
+        if self.webobj.response.redirect:
+            return redirect(self.webobj.response.redirect, code=302)
+        if len(self.webobj.response.cookies) > 0:
+            for a in self.webobj.response.cookies:
+                self.response.set_cookie(a["name"], a["value"], max_age=a["max_age"], secure=a["secure"])
         return self.response
 
 
@@ -212,6 +217,34 @@ def app_root():
     if request.method == 'GET':
         return render_template('aw-root-factory.html', **h.webobj.response.template_values)
     return render_template('aw-root-created.html', **h.webobj.response.template_values)
+
+
+@app.route('/<actor_id>', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
+def app_actor_root(actor_id):
+    h = Handler(request)
+    if not h.process(actor_id=actor_id):
+        return Response(status=404)
+    return h.get_response()
+
+
+@app.route('/<actor_id>/www', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
+@app.route('/<actor_id>/www/<path>', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
+def app_actor_www(actor_id, path=''):
+    h = Handler(request)
+    if not h.process(actor_id=actor_id, path=path):
+        return Response(status=404)
+    if request.method == 'GET':
+        if not path or path == '':
+            return render_template('aw-actor-www-root.html', **h.webobj.response.template_values)
+        elif path == 'init':
+            return render_template('aw-actor-www-init.html', **h.webobj.response.template_values)
+        elif path == 'properties':
+            return render_template('aw-actor-www-properties.html', **h.webobj.response.template_values)
+        elif path == 'property':
+            return render_template('aw-actor-www-property.html', **h.webobj.response.template_values)
+        elif path == 'trust':
+            return render_template('aw-actor-www-trust.html', **h.webobj.response.template_values)
+    return h.get_response()
 
 
 @app.route('/bot', methods=['POST'])
