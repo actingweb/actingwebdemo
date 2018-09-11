@@ -73,11 +73,18 @@ class Handler:
         self.actor_id = None
         self.path = None
         self.method = req.method
+        cookies = {}
+        raw_cookies = req.headers.get("Cookie")
+        if raw_cookies:
+            for cookie in raw_cookies.split(";"):
+                name, value = cookie.split("=")
+                cookies[name] = value
         self.webobj = aw_web_request.AWWebObj(
             url=request.url,
             params=request.values,
             body=request.data,
-            headers=request.headers
+            headers=request.headers,
+            cookies=cookies
         )
         if not req or not req.path:
             return
@@ -188,25 +195,8 @@ class Handler:
                 self.response.set_cookie(a["name"], a["value"], max_age=a["max_age"], secure=a["secure"])
         return self.response
 
-
-# ('/', root_factory.RootFactory),
-# webapp2.Route(r'/bot<:/?><path:(.*)>', bots.Bots),
-# webapp2.Route(r'/oauth', callback_oauth.CallbackOauths),
-# webapp2.Route(r'/<actor_id>/meta<:/?><path:(.*)>', actor_meta.ActorMeta),
-# webapp2.Route(r'/<actor_id>/oauth<:/?><path:.*>', actor_oauth.ActorOauth),
-# webapp2.Route(r'/<actor_id><:/?>', actor_root.ActorRoot),
-# webapp2.Route(r'/<actor_id>/www<:/?><path:(.*)>', actor_www.ActorWWW),
-# webapp2.Route(r'/<actor_id>/properties<:/?><name:(.*)>', actor_properties.ActorProperties),
-# webapp2.Route(r'/<actor_id>/trust<:/?>', actor_trust.ActorTrust),
-# webapp2.Route(r'/<actor_id>/trust/<relationship><:/?>', actor_trust.ActorTrustRelationships),
-# webapp2.Route(r'/<actor_id>/trust/<relationship>/<peerid><:/?>', actor_trust.ActorTrustPeer),
-# webapp2.Route(r'/<actor_id>/subscriptions<:/?>', actor_subscription.RootHandler),
-# webapp2.Route(r'/<actor_id>/subscriptions/<peerid><:/?>', actor_subscription.RelationshipHandler),
-# webapp2.Route(r'/<actor_id>/subscriptions/<peerid>/<subid><:/?>', actor_subscription.SubscriptionHandler),
-# webapp2.Route(r'/<actor_id>/subscriptions/<peerid>/<subid>/<seqnr><:/?>', actor_subscription.DiffHandler),
-# webapp2.Route(r'/<actor_id>/callbacks<:/?><name:(.*)>', actor_callbacks.ActorCallbacks),
-# webapp2.Route(r'/<actor_id>/resources<:/?><name:(.*)>', actor_resources.ActorResources),
-# webapp2.Route(r'/<actor_id>/devtest<:/?><path:(.*)>', devtests.Devtests),
+    def get_status(self):
+        return self.webobj.response.status_code
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -216,7 +206,10 @@ def app_root():
         return Response(status=404)
     if request.method == 'GET':
         return render_template('aw-root-factory.html', **h.webobj.response.template_values)
-    return render_template('aw-root-created.html', **h.webobj.response.template_values)
+    if h.get_status() == 200:
+        return render_template('aw-root-created.html', **h.webobj.response.template_values)
+    else:
+        return h.get_response()
 
 
 @app.route('/<actor_id>', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
@@ -227,9 +220,27 @@ def app_actor_root(actor_id):
     return h.get_response()
 
 
+@app.route('/<actor_id>/meta', methods=['GET'], strict_slashes=False)
+@app.route('/<actor_id>/meta/<path>', methods=['GET'], strict_slashes=False)
+def app_meta(actor_id, path=''):
+    h = Handler(request)
+    if not h.process(actor_id=actor_id, path=path):
+        return Response(status=404)
+    return h.get_response()
+
+
+@app.route('/<actor_id>/oauth', methods=['GET'], strict_slashes=False)
+@app.route('/<actor_id>/oauth/<path>', methods=['GET'], strict_slashes=False)
+def app_oauth(actor_id, path=''):
+    h = Handler(request)
+    if not h.process(actor_id=actor_id, path=path):
+        return Response(status=404)
+    return h.get_response()
+
+
 @app.route('/<actor_id>/www', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @app.route('/<actor_id>/www/<path>', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
-def app_actor_www(actor_id, path=''):
+def app_www(actor_id, path=''):
     h = Handler(request)
     if not h.process(actor_id=actor_id, path=path):
         return Response(status=404)
@@ -247,18 +258,84 @@ def app_actor_www(actor_id, path=''):
     return h.get_response()
 
 
-@app.route('/bot', methods=['POST'])
-def app_bot():
+@app.route('/<actor_id>/properties', methods=['GET', 'POST', 'DELETE', 'PUT'], strict_slashes=False)
+@app.route('/<actor_id>/properties/<name>', methods=['GET', 'POST', 'DELETE', 'PUT'], strict_slashes=False)
+def app_properties(actor_id, name=''):
     h = Handler(request)
-    if not h.process(path='/bot'):
+    if not h.process(actor_id=actor_id, name=name):
         return Response(status=404)
     return h.get_response()
 
 
-@app.route('/<actor_id>', methods=['POST'])
-def app_main_actor(actor_id):
+@app.route('/<actor_id>/trust', methods=['GET', 'POST', 'DELETE', 'PUT'], strict_slashes=False)
+@app.route('/<actor_id>/trust/<relationship>', methods=['GET', 'POST', 'DELETE', 'PUT'], strict_slashes=False)
+@app.route('/<actor_id>/trust/<relationship>/<peerid>', methods=['GET', 'POST', 'DELETE', 'PUT'], strict_slashes=False)
+def app_trust(actor_id, relationship=None, peerid=None):
     h = Handler(request)
-    if not h.process(actor_id=actor_id):
+    if peerid:
+        if not h.process(actor_id=actor_id, relationship=relationship, peerid=peerid):
+            return Response(status=404)
+    elif relationship:
+        if not h.process(actor_id=actor_id, relationship=relationship):
+            return Response(status=404)
+    else:
+        if not h.process(actor_id=actor_id):
+            return Response(status=404)
+    return h.get_response()
+
+
+@app.route('/<actor_id>/subscriptions', methods=['GET', 'POST', 'DELETE', 'PUT'], strict_slashes=False)
+@app.route('/<actor_id>/subscriptions/<peerid>', methods=['GET', 'POST', 'DELETE', 'PUT'], strict_slashes=False)
+@app.route('/<actor_id>/subscriptions/<peerid>/<subid>', methods=['GET', 'POST', 'DELETE', 'PUT'], strict_slashes=False)
+@app.route('/<actor_id>/subscriptions/<peerid>/<subid>/<int:seqnr>', methods=['GET'], strict_slashes=False)
+def app_subscriptions(actor_id, peerid=None, subid=None, seqnr=None):
+    h = Handler(request)
+    if seqnr:
+        if not h.process(actor_id=actor_id, peerid=peerid, subid=subid, seqnr=seqnr):
+            return Response(status=404)
+    elif subid:
+        if not h.process(actor_id=actor_id, peerid=peerid, subid=subid):
+            return Response(status=404)
+    elif peerid:
+        if not h.process(actor_id=actor_id, peerid=peerid):
+            return Response(status=404)
+    else:
+        if not h.process(actor_id=actor_id):
+            return Response(status=404)
+    return h.get_response()
+
+
+@app.route('/<actor_id>/resources', methods=['GET', 'POST', 'DELETE', 'PUT'], strict_slashes=False)
+@app.route('/<actor_id>/resources/<name>', methods=['GET', 'POST', 'DELETE', 'PUT'], strict_slashes=False)
+def app_resources(actor_id, name=''):
+    h = Handler(request)
+    if not h.process(actor_id=actor_id, name=name):
+        return Response(status=404)
+    return h.get_response()
+
+
+@app.route('/<actor_id>/callbacks', methods=['GET', 'POST', 'DELETE', 'PUT'], strict_slashes=False)
+@app.route('/<actor_id>/callbacks/<name>', methods=['GET', 'POST', 'DELETE', 'PUT'], strict_slashes=False)
+def app_callbacks(actor_id, name=''):
+    h = Handler(request)
+    if not h.process(actor_id=actor_id, name=name):
+        return Response(status=404)
+    return h.get_response()
+
+
+@app.route('/<actor_id>/devtest', methods=['GET', 'POST', 'DELETE', 'PUT'], strict_slashes=False)
+@app.route('/<actor_id>/devtest/<path>', methods=['GET', 'POST', 'DELETE', 'PUT'], strict_slashes=False)
+def app_devtest(actor_id, path=''):
+    h = Handler(request)
+    if not h.process(actor_id=actor_id, path=path):
+        return Response(status=404)
+    return h.get_response()
+
+
+@app.route('/bot', methods=['POST'], strict_slashes=False)
+def app_bot():
+    h = Handler(request)
+    if not h.process(path='/bot'):
         return Response(status=404)
     return h.get_response()
 
