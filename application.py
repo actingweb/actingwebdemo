@@ -177,6 +177,8 @@ class Handler:
                 self.handler.get(**kwargs)
             elif self.method == 'DELETE':
                 self.handler.delete(**kwargs)
+            elif self.method == 'PUT':
+                self.handler.put(**kwargs)
         except AttributeError:
             return False
         return True
@@ -221,7 +223,7 @@ def app_actor_root(actor_id):
 
 
 @app.route('/<actor_id>/meta', methods=['GET'], strict_slashes=False)
-@app.route('/<actor_id>/meta/<path>', methods=['GET'], strict_slashes=False)
+@app.route('/<actor_id>/meta/<path:path>', methods=['GET'], strict_slashes=False)
 def app_meta(actor_id, path=''):
     h = Handler(request)
     if not h.process(actor_id=actor_id, path=path):
@@ -230,7 +232,7 @@ def app_meta(actor_id, path=''):
 
 
 @app.route('/<actor_id>/oauth', methods=['GET'], strict_slashes=False)
-@app.route('/<actor_id>/oauth/<path>', methods=['GET'], strict_slashes=False)
+@app.route('/<actor_id>/oauth/<path:path>', methods=['GET'], strict_slashes=False)
 def app_oauth(actor_id, path=''):
     h = Handler(request)
     if not h.process(actor_id=actor_id, path=path):
@@ -239,7 +241,7 @@ def app_oauth(actor_id, path=''):
 
 
 @app.route('/<actor_id>/www', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
-@app.route('/<actor_id>/www/<path>', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
+@app.route('/<actor_id>/www/<path:path>', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 def app_www(actor_id, path=''):
     h = Handler(request)
     if not h.process(actor_id=actor_id, path=path):
@@ -259,7 +261,7 @@ def app_www(actor_id, path=''):
 
 
 @app.route('/<actor_id>/properties', methods=['GET', 'POST', 'DELETE', 'PUT'], strict_slashes=False)
-@app.route('/<actor_id>/properties/<name>', methods=['GET', 'POST', 'DELETE', 'PUT'], strict_slashes=False)
+@app.route('/<actor_id>/properties/<path:name>', methods=['GET', 'POST', 'DELETE', 'PUT'], strict_slashes=False)
 def app_properties(actor_id, name=''):
     h = Handler(request)
     if not h.process(actor_id=actor_id, name=name):
@@ -306,7 +308,7 @@ def app_subscriptions(actor_id, peerid=None, subid=None, seqnr=None):
 
 
 @app.route('/<actor_id>/resources', methods=['GET', 'POST', 'DELETE', 'PUT'], strict_slashes=False)
-@app.route('/<actor_id>/resources/<name>', methods=['GET', 'POST', 'DELETE', 'PUT'], strict_slashes=False)
+@app.route('/<actor_id>/resources/<path:name>', methods=['GET', 'POST', 'DELETE', 'PUT'], strict_slashes=False)
 def app_resources(actor_id, name=''):
     h = Handler(request)
     if not h.process(actor_id=actor_id, name=name):
@@ -315,7 +317,7 @@ def app_resources(actor_id, name=''):
 
 
 @app.route('/<actor_id>/callbacks', methods=['GET', 'POST', 'DELETE', 'PUT'], strict_slashes=False)
-@app.route('/<actor_id>/callbacks/<name>', methods=['GET', 'POST', 'DELETE', 'PUT'], strict_slashes=False)
+@app.route('/<actor_id>/callbacks/<path:name>', methods=['GET', 'POST', 'DELETE', 'PUT'], strict_slashes=False)
 def app_callbacks(actor_id, name=''):
     h = Handler(request)
     if not h.process(actor_id=actor_id, name=name):
@@ -324,7 +326,7 @@ def app_callbacks(actor_id, name=''):
 
 
 @app.route('/<actor_id>/devtest', methods=['GET', 'POST', 'DELETE', 'PUT'], strict_slashes=False)
-@app.route('/<actor_id>/devtest/<path>', methods=['GET', 'POST', 'DELETE', 'PUT'], strict_slashes=False)
+@app.route('/<actor_id>/devtest/<path:path>', methods=['GET', 'POST', 'DELETE', 'PUT'], strict_slashes=False)
 def app_devtest(actor_id, path=''):
     h = Handler(request)
     if not h.process(actor_id=actor_id, path=path):
