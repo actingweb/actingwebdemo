@@ -1,0 +1,26 @@
+branch-defaults:
+  aws:
+    environment: actingwebdemo
+    group_suffix: null
+  master:
+    environment: actingwebdemo
+  update_oauth:
+    environment: actingwebdemo
+environment-defaults:
+  actingwebdemo:
+    branch: null
+    repository: null
+global:
+  application_name: actingwebdemo
+  branch: null
+  default_ec2_keyname: null
+  default_platform: Docker 17.03.2-ce
+  default_region: us-west-1
+  include_git_submodules: true
+  instance_profile: null
+  platform_name: null
+  platform_version: null
+  profile: null
+  repository: null
+  sc: git
+  workspace_type: Application

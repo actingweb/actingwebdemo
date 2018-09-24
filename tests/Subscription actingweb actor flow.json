@@ -2,10 +2,11 @@
   "trigger_url": "https://api.runscope.com/radar/92eefd8e-721f-4691-be17-19d024f8beaf/trigger", 
   "name": "Subscription actingweb actor flow", 
   "version": "1.0", 
-  "exported_at": 1511942876, 
+  "exported_at": 1537772570, 
   "steps": [
     {
       "body": "{\r\n\"creator\":  \"trust1@actingweb.net\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{appRoot}}", 
       "variables": [
@@ -59,6 +60,7 @@
     }, 
     {
       "body": "{\r\n\"creator\":  \"trust2@actingweb.net\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{appRoot}}", 
       "variables": [
@@ -112,6 +114,7 @@
     }, 
     {
       "body": "{\r\n\"creator\":  \"trust3@actingweb.net\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{appRoot}}", 
       "variables": [
@@ -165,6 +168,7 @@
     }, 
     {
       "body": "{\r\n\"url\":  \"{{actorurl2}}\",\r\n\"relationship\": \"friend\",\r\n\"desc\": \"Test relationship between actor1 and actor2\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{appRoot}}{{actorid1}}/trust", 
       "variables": [
@@ -205,6 +209,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{appRoot}}{{actorid2}}/trust/friend/{{actorid1}}", 
       "variables": [], 
       "step_type": "request", 
@@ -265,6 +270,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{trusturl1}}", 
       "variables": [], 
       "step_type": "request", 
@@ -326,6 +332,7 @@
     }, 
     {
       "body": "{\r\n  \"approved\": true\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{appRoot}}{{actorid2}}/trust/friend/{{actorid1}}", 
       "variables": [], 
@@ -356,6 +363,7 @@
     }, 
     {
       "body": "{\r\n  \"approved\": true\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{trusturl1}}", 
       "variables": [], 
@@ -386,6 +394,7 @@
     }, 
     {
       "body": "{\r\n\"url\":  \"{{actorurl3}}\",\r\n\"relationship\": \"friend\",\r\n\"secret\": \"mysecret2\",\r\n\"desc\": \"Test relationship between actor1 and actor3\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{appRoot}}{{actorid1}}/trust", 
       "variables": [
@@ -427,6 +436,7 @@
     }, 
     {
       "body": "{\r\n  \"approved\": true\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{appRoot}}{{actorid3}}/trust/friend/{{actorid1}}", 
       "variables": [], 
@@ -457,6 +467,7 @@
     }, 
     {
       "body": "{\r\n\"peerid\": \"{{actorid1}}\",\r\n\"target\": \"properties\",\r\n\"subtarget: \"\",\r\n\"granularity\": \"high\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl2}}/subscriptions", 
       "variables": [], 
@@ -482,6 +493,7 @@
     }, 
     {
       "body": "{\r\n\"peerid\": \"{{actorid1}}\",\r\n\"target\": \"properties\",\r\n\"subtarget\": \"test\",\r\n\"granularity\": \"none\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl2}}/subscriptions", 
       "variables": [
@@ -517,6 +529,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl1}}/subscriptions/{{actorid2}}", 
       "variables": [
         {
@@ -547,6 +560,7 @@
     }, 
     {
       "body": "{\r\n\"peerid\": \"{{actorid1}}\",\r\n\"target\": \"properties\",\r\n\"subtarget\": \"\",\r\n\"granularity\": \"high\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl2}}/subscriptions", 
       "variables": [
@@ -583,6 +597,7 @@
     }, 
     {
       "body": "{\r\n\"peerid\": \"{{actorid1}}\",\r\n\"target\": \"meta\",\r\n\"subtarget\": \"\",\r\n\"granularity\": \"high\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl2}}/subscriptions", 
       "variables": [
@@ -619,6 +634,7 @@
     }, 
     {
       "body": "{\r\n\"peerid\": \"{{actorid1}}\",\r\n\"target\": \"properties\",\r\n\"subtarget\": \"\",\r\n\"granularity\": \"low\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl3}}/subscriptions", 
       "variables": [
@@ -655,6 +671,7 @@
     }, 
     {
       "body": "{\r\n\"peerid\": \"{{actorid1}}\",\r\n\"target\": \"properties\",\r\n\"subtarget\": \"data2\",\r\n\"granularity\": \"high\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl3}}/subscriptions", 
       "variables": [
@@ -690,6 +707,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl1}}/subscriptions/{{actorid3}}", 
       "variables": [
         {
@@ -720,6 +738,7 @@
     }, 
     {
       "body": "{\r\n\"peerid\": \"{{actorid1}}\",\r\n\"target\": \"properties\",\r\n\"subtarget\": \"\",\r\n\"granularity\": \"none\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl3}}/subscriptions", 
       "variables": [
@@ -756,6 +775,7 @@
     }, 
     {
       "body": "{\r\n\"peerid\": \"{{actorid1}}\",\r\n\"target\": \"properties\",\r\n\"subtarget\": \"test\",\r\n\"resource\": \"resource\",\r\n\"granularity\": \"none\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl2}}/subscriptions", 
       "variables": [
@@ -792,6 +812,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl2}}/callbacks/subscriptions/{{actorid1}}/invalidsubid", 
       "variables": [], 
@@ -817,6 +838,7 @@
     }, 
     {
       "body": "{\r\n  \"test\": \"fake\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl2}}/callbacks/subscriptions/{{actorid1}}/{{subid1}}", 
       "variables": [], 
@@ -845,6 +867,7 @@
     }, 
     {
       "body": "{\r\n\"data1\": {\r\n   \"str1\": \"initial\", \r\n  \"str2\": \"initial\"\r\n  },\r\n\"data2\": \"initial\",\r\n\"test\": {\r\n  \"var1\": \"initial\",\r\n  \"var2\": \"initial\",\r\n  \"resource\": \"initial\"\r\n  }\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl1}}/properties", 
       "variables": [], 
@@ -879,6 +902,7 @@
     }, 
     {
       "body": "change1", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl1}}/properties/test", 
       "variables": [], 
@@ -904,6 +928,7 @@
     }, 
     {
       "body": "change2", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl1}}/properties/test", 
       "variables": [], 
@@ -929,6 +954,7 @@
     }, 
     {
       "body": "change3", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl1}}/properties/test", 
       "variables": [], 
@@ -954,6 +980,7 @@
     }, 
     {
       "body": "{\r\n  \"resource\": \"change4\",\r\n  \"some\": \"data\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl1}}/properties/test", 
       "variables": [], 
@@ -979,6 +1006,7 @@
     }, 
     {
       "body": "change5", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl1}}/properties/test/resource", 
       "variables": [], 
@@ -1003,6 +1031,7 @@
       "method": "PUT"
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl1}}/subscriptions", 
       "variables": [], 
       "step_type": "request", 
@@ -1026,6 +1055,7 @@
       "method": "GET"
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl1}}/subscriptions", 
       "variables": [], 
       "step_type": "request", 
@@ -1050,6 +1080,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl1}}/subscriptions?target=properties", 
       "variables": [], 
       "step_type": "request", 
@@ -1092,6 +1123,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl1}}/subscriptions/{{actorid2}}?target=meta", 
       "variables": [], 
       "step_type": "request", 
@@ -1127,6 +1159,7 @@
       "method": "GET"
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl1}}/subscriptions/{{actorid2}}", 
       "variables": [], 
       "step_type": "request", 
@@ -1150,6 +1183,7 @@
       "method": "GET"
     }, 
     {
+      "skipped": false, 
       "url": "{{suburl1}}", 
       "variables": [], 
       "step_type": "request", 
@@ -1239,6 +1273,7 @@
       "method": "GET"
     }, 
     {
+      "skipped": false, 
       "url": "{{suburl7}}", 
       "variables": [], 
       "step_type": "request", 
@@ -1286,6 +1321,7 @@
       "method": "GET"
     }, 
     {
+      "skipped": false, 
       "url": "{{suburl1}}/1", 
       "variables": [], 
       "step_type": "request", 
@@ -1309,6 +1345,7 @@
       "method": "GET"
     }, 
     {
+      "skipped": false, 
       "url": "{{suburl1}}", 
       "variables": [], 
       "step_type": "request", 
@@ -1369,6 +1406,7 @@
     }, 
     {
       "body": "{\r\n\"sequence\": 2\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{suburl1}}", 
       "variables": [], 
@@ -1396,6 +1434,7 @@
       "method": "PUT"
     }, 
     {
+      "skipped": false, 
       "url": "{{suburl1}}", 
       "variables": [], 
       "step_type": "request", 
@@ -1443,6 +1482,7 @@
       "method": "GET"
     }, 
     {
+      "skipped": false, 
       "url": "{{suburl6}}", 
       "variables": [], 
       "step_type": "request", 
@@ -1479,6 +1519,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{suburl2}}", 
       "variables": [], 
@@ -1504,6 +1545,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{suburl4}}", 
       "variables": [], 
@@ -1528,6 +1570,7 @@
       "method": "DELETE"
     }, 
     {
+      "skipped": false, 
       "url": "{{suburl4}}", 
       "variables": [], 
       "step_type": "request", 
@@ -1552,6 +1595,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl3}}", 
       "variables": [], 
@@ -1578,6 +1622,7 @@
     }, 
     {
       "body": "{\r\n  \"test\": \"fake\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl1}}/callbacks/subscriptions/{{actorid3}}/{{subid5}}", 
       "variables": [], 
@@ -1606,6 +1651,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl1}}", 
       "variables": [], 
@@ -1632,6 +1678,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl2}}", 
       "variables": [], 

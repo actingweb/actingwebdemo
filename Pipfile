@@ -7,7 +7,7 @@ name = "pypi"
 Jinja2 = "*"
 Flask = "*"
 uWSGI = "*"
-"0d30f03" = {path = "./../actingweb", editable = true}
+actingweb = {path = "./../actingweb", editable = true}
 
 [dev-packages]
 pydevd = "*"

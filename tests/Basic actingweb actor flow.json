@@ -2,9 +2,10 @@
   "trigger_url": "https://api.runscope.com/radar/97aea23b-780b-4712-b1a1-4e57ff821bbe/trigger", 
   "name": "Basic actingweb actor flow", 
   "version": "1.0", 
-  "exported_at": 1511942833, 
+  "exported_at": 1537610704, 
   "steps": [
     {
+      "skipped": false, 
       "url": "{{appRoot}}", 
       "variables": [], 
       "args": {}, 
@@ -26,6 +27,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{appRoot}}bot", 
       "variables": [], 
@@ -47,6 +49,7 @@
     }, 
     {
       "body": "{\r\n\"creator\":  \"testuser@actingweb.net\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{appRoot}}", 
       "variables": [
@@ -95,6 +98,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl}}", 
       "variables": [], 
@@ -121,6 +125,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl}}", 
       "variables": [], 
@@ -146,6 +151,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl}}", 
       "variables": [], 
@@ -172,6 +178,7 @@
     }, 
     {
       "body": "{\r\n\"creator\":  \"trustee\",\r\n\"trustee_root\": \"http://www.actingweb.net\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{appRoot}}", 
       "variables": [
@@ -225,6 +232,7 @@
       "method": "POST"
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl}}", 
       "variables": [], 
       "step_type": "request", 
@@ -261,6 +269,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl}}", 
       "variables": [], 
       "step_type": "request", 
@@ -297,6 +306,7 @@
     }, 
     {
       "body": "{\r\n  \"trustee_root\": \"https://newroot.actingweb.net\",\r\n  \"creator\": \"creator\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl}}/trust/trustee", 
       "variables": [], 
@@ -324,6 +334,7 @@
       "method": "PUT"
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl}}", 
       "variables": [], 
       "step_type": "request", 
@@ -360,6 +371,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl}}", 
       "variables": [], 
       "step_type": "request", 
@@ -384,6 +396,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl}}/trust/trustee", 
       "variables": [], 
@@ -410,6 +423,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl}}", 
       "variables": [], 
@@ -436,6 +450,7 @@
     }, 
     {
       "body": "{\r\n\"creator\":  \"testuser@actingweb.net\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{appRoot}}", 
       "variables": [
@@ -483,6 +498,7 @@
       "method": "POST"
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl}}", 
       "variables": [], 
       "step_type": "request", 
@@ -506,6 +522,7 @@
       "method": "GET"
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl}}", 
       "variables": [], 
       "step_type": "request", 
@@ -536,6 +553,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl}}/meta", 
       "variables": [], 
       "scripts": [], 
@@ -562,6 +580,7 @@
       "method": "GET"
     }, 
     {
+      "skipped": false, 
       "headers": {}, 
       "url": "{{actorurl}}/meta/actingweb/version", 
       "variables": [], 
@@ -588,6 +607,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {
         "test": [
           "testvalue"
@@ -632,6 +652,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl}}/properties/test", 
       "variables": [], 
       "step_type": "request", 
@@ -661,6 +682,7 @@
     }, 
     {
       "body": "valuechanged", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl}}/properties/test", 
       "variables": [], 
@@ -685,6 +707,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl}}/properties/test", 
       "variables": [], 
       "step_type": "request", 
@@ -713,6 +736,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl}}/properties", 
       "variables": [], 
       "step_type": "request", 
@@ -744,6 +768,7 @@
     }, 
     {
       "body": "{\r\n\"var1\" : \"value1\u00e6\u00f8\u00e5\",\r\n\"var2\" : \"value2\u00c6\u00d8\u00c5\",\r\n\"var3\" :  {\"test3\" : \"value3\", \"test4\": \"value4\"}\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl}}/properties", 
       "variables": [], 
@@ -786,6 +811,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl}}/properties/var1", 
       "variables": [], 
@@ -811,6 +837,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl}}/properties/var1", 
       "variables": [], 
       "step_type": "request", 
@@ -834,6 +861,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl}}/properties", 
       "variables": [], 
       "step_type": "request", 
@@ -871,6 +899,7 @@
     }, 
     {
       "body": "{\r\n  \"type\": \"mobile\",\r\n  \"latitude\": {\r\n     \"hours\": 1,\r\n     \"minutes\": 1,\r\n     \"seconds\": 1  \r\n   },\r\n  \"longitude\":  {\r\n     \"hours\": 2,\r\n     \"minutes\": 2,\r\n     \"seconds\": 2  \r\n   }\r\n}\r\n\r\n", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl}}/properties/location", 
       "variables": [], 
@@ -895,6 +924,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl}}/properties/location", 
       "variables": [], 
       "step_type": "request", 
@@ -924,6 +954,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl}}/properties/location/latitude", 
       "variables": [], 
       "step_type": "request", 
@@ -953,6 +984,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl}}/properties", 
       "variables": [], 
       "step_type": "request", 
@@ -996,6 +1028,7 @@
     }, 
     {
       "body": "{\r\n     \"hours\": 3,\r\n     \"minutes\": 3,\r\n     \"seconds\": 3  \r\n   }\r\n\r\n", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl}}/properties/location/latitude", 
       "variables": [], 
@@ -1020,6 +1053,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl}}/properties/location/latitude", 
       "variables": [], 
       "step_type": "request", 
@@ -1050,6 +1084,7 @@
     }, 
     {
       "body": "4\r\n\r\n", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl}}/properties/location/latitude/minutes", 
       "variables": [], 
@@ -1074,6 +1109,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl}}/properties/location/latitude/minutes", 
       "variables": [], 
       "step_type": "request", 
@@ -1102,6 +1138,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl}}/properties", 
       "variables": [], 
       "step_type": "request", 
@@ -1145,6 +1182,7 @@
     }, 
     {
       "body": "50\r\n\r\n", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl}}/properties/location/latitude/milliseconds", 
       "variables": [], 
@@ -1169,6 +1207,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl}}/properties/location/latitude/milliseconds", 
       "variables": [], 
       "step_type": "request", 
@@ -1198,6 +1237,7 @@
     }, 
     {
       "body": "{\r\n  \"test1\": \"testvalue1\",\r\n  \"test2\": \"testvalue2\"\r\n}\r\n\r\n", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl}}/properties/location/fraud/milliseconds", 
       "variables": [], 
@@ -1222,6 +1262,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl}}/properties", 
       "variables": [], 
       "step_type": "request", 
@@ -1277,6 +1318,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl}}/properties/location/latitude/milliseconds", 
       "variables": [], 
@@ -1301,6 +1343,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl}}/properties/location/latitude/milliseconds", 
       "variables": [], 
       "step_type": "request", 
@@ -1325,6 +1368,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl}}/properties/location/latitude/milliseconds", 
       "variables": [], 
@@ -1350,6 +1394,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl}}/properties/location/fraud", 
       "variables": [], 
@@ -1374,6 +1419,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl}}/properties", 
       "variables": [], 
       "step_type": "request", 
@@ -1417,6 +1463,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl}}/properties/var3/nonexistent", 
       "variables": [], 
@@ -1442,6 +1489,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl}}/properties/var3", 
       "variables": [], 
@@ -1467,6 +1515,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl}}/properties", 
       "variables": [], 
@@ -1491,6 +1540,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl}}/properties", 
       "variables": [], 
       "step_type": "request", 
@@ -1515,6 +1565,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl}}", 
       "variables": [], 
@@ -1540,6 +1591,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl}}", 
       "variables": [], 
       "step_type": "request", 

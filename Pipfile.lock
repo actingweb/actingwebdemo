@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "f621c0662a9110f757e67fc757caa896ecc10a2196514f03023ca38c30a526b2"
+            "sha256": "a1c2f1970156bcbfc66c8ebcb946fb465303cce242084b89c336852dd1b4b435"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -16,23 +16,23 @@
         ]
     },
     "default": {
-        "0d30f03": {
+        "actingweb": {
             "editable": true,
             "path": "./../actingweb"
         },
         "boto3": {
             "hashes": [
-                "sha256:3d737919b7f0d274c718d86c9215102db43fc9a285ebe8a75c7daafe6c3fd45f",
-                "sha256:ff40cb47202227b44a1b877f716d522a49b24ed3141123b095fa2d38fb8903e2"
+                "sha256:675970103ca5eef49689bea0f8c2dcbc6d70da4fa1ceec2533f5f02c31089b04",
+                "sha256:e747068c52316891e600c523a29e407e14e223fd570d146fdd318236120bbca4"
             ],
-            "version": "==1.9.0"
+            "version": "==1.9.9"
         },
         "botocore": {
             "hashes": [
-                "sha256:354dd98082dc1ca8aa127f5aff0e28404363f94a8c13c9a9ddbd24b9a70eb259",
-                "sha256:81b0b15f5cfe16bce7280010daaee4c88c046aa0eef0b65432cf4832a0d8c5e8"
+                "sha256:b79f1e5b6fe80cdfe951912bf1a08343013d021cf67d973825634ff47248cdb0",
+                "sha256:d631911bf02bb0db07a9e04031135d88c76ccc97cfa7ac5644f40ad412b455d3"
             ],
-            "version": "==1.12.0"
+            "version": "==1.12.9"
         },
         "click": {
             "hashes": [
@@ -62,6 +62,14 @@
                 "sha256:e39ced1ab767b5936646cedba8bcce582398233d6a627067d4c6a454c90cfedb"
             ],
             "version": "==0.16.0"
+        },
+        "futures": {
+            "hashes": [
+                "sha256:9ec02aa7d674acb8618afb127e27fde7fc68994c0437ad759fa094a574adb265",
+                "sha256:ec0a6cb848cc212002b9828c3e34c675e0c9ff6741dc445cab6fdd4e1085d1f1"
+            ],
+            "markers": "python_version == '2.6' or python_version == '2.7'",
+            "version": "==3.2.0"
         },
         "itsdangerous": {
             "hashes": [
@@ -102,6 +110,7 @@
                 "sha256:1adb80e7a782c12e52ef9a8182bebeb73f1d7e24e374397af06fb4956c8dc5c0",
                 "sha256:e27001de32f627c22380a688bcc43ce83504a7bc5da472209b4c70f02829f0b8"
             ],
+            "markers": "python_version >= '2.7'",
             "version": "==2.7.3"
         },
         "s3transfer": {
@@ -129,6 +138,7 @@
                 "sha256:a68ac5e15e76e7e5dd2b8f94007233e01effe3e50e8daddf69acfd81cb686baf",
                 "sha256:b5725a0bd4ba422ab0e66e89e030c806576753ea3ee08554382c14e685d117b5"
             ],
+            "markers": "python_version != '3.2.*' and python_version != '3.3.*' and python_version != '3.0.*' and python_version != '3.1.*' and python_version < '4' and python_version >= '2.6'",
             "version": "==1.23"
         },
         "uwsgi": {
