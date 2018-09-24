@@ -1,6 +1,5 @@
 import os
 import logging
-# import pydevd
 from flask import Flask, request, redirect, Response, render_template
 from actingweb import config
 from actingweb import aw_web_request
@@ -47,7 +46,7 @@ def get_config():
         proto=proto,
         aw_type=aw_type,
         desc="Actingwebdemo actor: ",
-        version="2.1",
+        version="2.2",
         devtest=True,
         actors=actors,
         force_email_prop_as_creator=False,
@@ -345,8 +344,9 @@ def app_bot():
 if __name__ == "__main__":
     # To debug in pycharm inside the Docker container, remember to uncomment import pydevd as well
     # (and add to requirements.txt)
+    # import pydevd
     # pydevd.settrace('docker.for.mac.localhost', port=3001, stdoutToServer=True, stderrToServer=True)
 
     logging.debug('Starting up the ActingWeb Demo ...')
     # Only for debugging while developing
-    app.run(host='0.0.0.0', debug=True, port=9000)
+    app.run(host='0.0.0.0', debug=True, port=5000)
