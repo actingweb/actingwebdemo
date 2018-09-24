@@ -2,8 +2,3 @@ docs/_build
 _build
 *.pyc
 .vscode/
-
-# Elastic Beanstalk Files
-.elasticbeanstalk/*
-!.elasticbeanstalk/*.cfg.yml
-!.elasticbeanstalk/*.global.yml
