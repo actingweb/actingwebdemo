@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "a1c2f1970156bcbfc66c8ebcb946fb465303cce242084b89c336852dd1b4b435"
+            "sha256": "ff7b4cca89ec6c68e5cfe939f41c7d0c772dfd26fecc6b4cadd76689d0ccb958"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -17,8 +17,13 @@
     },
     "default": {
         "actingweb": {
-            "editable": true,
-            "path": "./../actingweb"
+            "hashes": [
+                "sha256:4abd0f8443f54509eb8096114975a64a0a64126d939ca4ccb0672c432ea82b6d",
+                "sha256:625a0783f4f872d885144e1b8a7e12173d5e9aabc328e7e454aa8a452ee063f6",
+                "sha256:c75c95344837c794f8ee11c1e8d65a83ddee1a40dac48404c65e815ff662e50c"
+            ],
+            "index": "pypi",
+            "version": "==2.4.0"
         },
         "boto3": {
             "hashes": [
