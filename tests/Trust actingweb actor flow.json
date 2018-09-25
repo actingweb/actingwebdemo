@@ -2,10 +2,11 @@
   "trigger_url": "https://api.runscope.com/radar/9399c9f4-7814-43ae-a987-8ec755beb05a/trigger", 
   "name": "Trust actingweb actor flow", 
   "version": "1.0", 
-  "exported_at": 1511942891, 
+  "exported_at": 1537771424, 
   "steps": [
     {
       "body": "{\r\n\"creator\":  \"trust1@actingweb.net\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{appRoot}}", 
       "variables": [
@@ -59,6 +60,7 @@
     }, 
     {
       "body": "{\r\n\"creator\":  \"trust2@actingweb.net\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{appRoot}}", 
       "variables": [
@@ -112,6 +114,7 @@
     }, 
     {
       "body": "{\r\n\"baseuri\": \"testurl\",\r\n\"id\": \"testid\",\r\n\"type\": \"urn:actingweb:actingweb.org:gae-demo\",\r\n\"desc\": \"Test friend relationship\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl1}}/trust/friend", 
       "variables": [
@@ -195,6 +198,7 @@
       "method": "POST"
     }, 
     {
+      "skipped": false, 
       "url": "{{trusturl1}}", 
       "variables": [], 
       "step_type": "request", 
@@ -218,6 +222,7 @@
       "method": "GET"
     }, 
     {
+      "skipped": false, 
       "url": "{{trusturl1}}", 
       "variables": [], 
       "step_type": "request", 
@@ -242,6 +247,7 @@
     }, 
     {
       "body": "{\r\n\"approved\": \"true\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{trusturl1}}", 
       "variables": [], 
@@ -271,6 +277,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{trusturl1}}", 
       "variables": [], 
       "step_type": "request", 
@@ -343,6 +350,7 @@
     }, 
     {
       "body": "{\r\n\"baseuri\": \"test\",\r\n\"id\": \"test\",\r\n\"type\": \"urn:actingweb:actingweb.org:gae-demo\",\r\n\"desc\": \"Test friend relationship\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl1}}/trust/friend", 
       "variables": [
@@ -378,6 +386,7 @@
       "method": "POST"
     }, 
     {
+      "skipped": false, 
       "url": "{{trusturl1}}", 
       "variables": [], 
       "step_type": "request", 
@@ -401,6 +410,7 @@
       "method": "GET"
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl1}}/trust", 
       "variables": [], 
       "step_type": "request", 
@@ -425,6 +435,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl1}}/trust?peerid=test", 
       "variables": [], 
       "step_type": "request", 
@@ -450,6 +461,7 @@
     }, 
     {
       "body": "{\r\n\"baseuri\": \"{{actorurl1}}\",\r\n\"secret\": \"newsecret\",\r\n\"desc\": \"Changed\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{trusturl2}}", 
       "variables": [], 
@@ -479,6 +491,7 @@
     }, 
     {
       "body": "{\r\n\"baseuri\": \"{{actorurl1}}\",\r\n\"secret\": \"newsecret\",\r\n\"desc\": \"Changed\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{trusturl2}}", 
       "variables": [], 
@@ -509,6 +522,7 @@
     }, 
     {
       "body": "{\r\n\"baseuri\": \"{{actorurl1}}\",\r\n\"desc\": \"Changed\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{trusturl2}}", 
       "variables": [], 
@@ -538,6 +552,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{trusturl2}}", 
       "variables": [], 
       "step_type": "request", 
@@ -599,6 +614,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{trusturl2}}?peer=true", 
       "variables": [], 
@@ -625,6 +641,7 @@
     }, 
     {
       "body": "{\r\n\"url\":  \"{{actorurl2}}/fail\",\r\n\"type\": \"urn:actingweb:actingweb.org:gae-demo\",\r\n\"relationship\": \"friend\",\r\n\"secret\": \"mysecret\",\r\n\"desc\": \"Test relationship between actor1 and actor2\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{appRoot}}{{actorid1}}/trust", 
       "variables": [], 
@@ -655,6 +672,7 @@
     }, 
     {
       "body": "{\r\n\"url\":  \"{{actorurl2}}\",\r\n\"relationship\": \"friend\",\r\n\"secret\": \"mysecret\",\r\n\"desc\": \"Test relationship between actor1 and actor2\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{appRoot}}{{actorid1}}/trust", 
       "variables": [
@@ -707,6 +725,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{trusturl3}}", 
       "variables": [], 
       "step_type": "request", 
@@ -749,6 +768,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{appRoot}}{{actorid2}}/trust/friend/{{actorid1}}", 
       "variables": [], 
       "step_type": "request", 
@@ -804,6 +824,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{trusturl3}}", 
       "variables": [], 
@@ -829,6 +850,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{appRoot}}{{actorid2}}/trust/friend/{{actorid1}}", 
       "variables": [], 
       "step_type": "request", 
@@ -853,6 +875,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{trusturl3}}", 
       "variables": [], 
       "step_type": "request", 
@@ -878,6 +901,7 @@
     }, 
     {
       "body": "{\r\n\"url\":  \"{{actorurl2}}\",\r\n\"relationship\": \"lover\",\r\n\"secret\": \"mysecret\",\r\n\"desc\": \"Test lover relationship between actor1 and actor2\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{appRoot}}{{actorid1}}/trust", 
       "variables": [
@@ -937,6 +961,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{trusturl4}}", 
       "variables": [], 
       "step_type": "request", 
@@ -997,6 +1022,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{appRoot}}{{actorid2}}/trust/lover/{{actorid1}}", 
       "variables": [], 
       "step_type": "request", 
@@ -1058,6 +1084,7 @@
     }, 
     {
       "body": "{\r\n\"approved\": \"true\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{appRoot}}{{actorid2}}/trust/lover/{{actorid1}}", 
       "variables": [], 
@@ -1087,6 +1114,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{appRoot}}{{actorid2}}/trust/lover/{{actorid1}}", 
       "variables": [], 
       "step_type": "request", 
@@ -1147,6 +1175,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{trusturl4}}", 
       "variables": [], 
       "step_type": "request", 
@@ -1208,6 +1237,7 @@
     }, 
     {
       "body": "{\r\n  \"test1\": \"value1\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl1}}/devtest/proxy/create", 
       "variables": [
@@ -1249,6 +1279,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl1}}/devtest/proxy/properties", 
       "variables": [], 
       "step_type": "request", 
@@ -1280,6 +1311,7 @@
     }, 
     {
       "body": "{\r\n  \"var1\": \"value1\",\r\n  \"var2\": \"value2\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl1}}/devtest/proxy/properties/test1", 
       "variables": [], 
@@ -1309,6 +1341,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl1}}/devtest/proxy/properties", 
       "variables": [], 
       "step_type": "request", 
@@ -1340,6 +1373,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl1}}/devtest/proxy/properties", 
       "variables": [], 
@@ -1365,6 +1399,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl1}}/devtest/proxy/properties", 
       "variables": [], 
       "step_type": "request", 
@@ -1390,6 +1425,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl1}}", 
       "variables": [], 
@@ -1416,6 +1452,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl2}}", 
       "variables": [], 

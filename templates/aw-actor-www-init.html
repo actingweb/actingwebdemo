@@ -1,16 +1,12 @@
 <html>
   <body>
-	To initialize this actor ({{ id }} with properties, please fill out the form below.
+  <h1>To initialize this actor ({{ id }} with properties, please fill out the form below.</h1>
 
     <form action="/{{ id }}/properties/" method="post">
-      <div>Property name:<label>
-          Property name:
-          <input type="text" name="property" maxlength="100"/>
-      </label></div>
-      <div>Value<label>
-          Value
-          <input type="text" name="value" maxlength="100"/>
-      </label></div>
+      <div>Property name:
+          <input type="text" name="property" maxlength="100"/></div>
+      <div>Value
+          <input type="text" name="value" maxlength="100"/></div>
       <div><input type="submit" value="Set property"></div>
     </form>
 
