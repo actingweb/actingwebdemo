@@ -1,11 +1,11 @@
 branch-defaults:
   aws:
-    environment: actingwebdemo
+    environment: actingwebdemo-1
     group_suffix: null
   master:
-    environment: actingwebdemo
+    environment: actingwebdemo-1
   update_oauth:
-    environment: actingwebdemo
+    environment: actingwebdemo-1
 environment-defaults:
   actingwebdemo:
     branch: null
