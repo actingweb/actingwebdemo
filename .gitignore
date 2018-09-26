@@ -2,3 +2,6 @@ docs/_build
 _build
 *.pyc
 .vscode/
+node_modules/
+.serverless/
+package-lock.json
