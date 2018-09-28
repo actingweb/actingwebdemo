@@ -21,8 +21,8 @@ You can modify all the templates in the templates directory. Most of the logic y
 can be found in on_aw.py. This file has empty methods for all relevant ActingWeb endpoints where
 you can adapt functionality.
 
-Running locally
----------------
+Running locally/Docker
+----------------------
 
 You don't have to deploy to AWS to test the app. There is a docker-compose.yml file in the repo that brings up
 both a local version of dynamodb and the actingwebdemo app. The docker image uses alpine as best practice to reduce the
@@ -66,6 +66,13 @@ the prefix of the hostname in options.config (the rest is based on region)
 
 5. Run `eb open` to open the app in the browser
 
+AWS Lambda
+----------
+You can also deploy the app to AWS Lamda. There is a serverless.yml file with the config you need.
+
+1. `Install Serverless <https://serverless.com/framework/docs/providers/aws/guide/installation/>`_
+
+2. Run `sls deploy`
 
 Use the library for your own projects
 -------------------------------------

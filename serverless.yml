@@ -1,6 +1,6 @@
 # serverless.yml
 
-service: serverless-flask
+service: actingwebdemo
 
 plugins:
   - serverless-python-requirements
@@ -19,8 +19,21 @@ provider:
   stage: dev
   region: us-west-1
   environment:
-    APP_HOST_FQDN: ''
+    APP_HOST_FQDN: 'actingwebdemo.greger.io'
     APP_HOST_PROTOCOL: 'https://'
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+        - dynamodb:CreateTable
+        - dynamodb:DescribeTable
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/demo_*"
+
 
 functions:
   app:
