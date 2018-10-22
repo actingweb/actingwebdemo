@@ -16,10 +16,12 @@ custom:
 provider:
   name: aws
   runtime: python3.6
-  stage: dev
+  memorySize: 128
+  timeout: 30
+  stage: prod
   region: us-west-1
   environment:
-    APP_HOST_FQDN: 'actingwebdemo.greger.io'
+    APP_HOST_FQDN: 'demo.actingweb.io'
     APP_HOST_PROTOCOL: 'https://'
   iamRoleStatements:
     - Effect: Allow

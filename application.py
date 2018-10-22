@@ -1,5 +1,8 @@
 import os
+import sys
+import json
 import logging
+from urllib.parse import urlparse
 from flask import Flask, request, redirect, Response, render_template
 from actingweb import config
 from actingweb import aw_web_request
@@ -7,6 +10,9 @@ import on_aw
 from actingweb.handlers import callbacks, properties, meta, root, trust, devtest, \
     subscription, resources, oauth, callback_oauth, bot, www, factory
 
+logging.basicConfig(stream=sys.stderr, level=os.getenv('LOG_LEVEL', "INFO"))
+LOG = logging.getLogger()
+LOG.setLevel(os.getenv('LOG_LEVEL', "INFO"))
 
 app = Flask(__name__, static_url_path='/static')
 
@@ -52,6 +58,7 @@ def get_config():
         force_email_prop_as_creator=False,
         unique_creator=False,
         www_auth="basic",
+        logLevel=os.getenv('LOG_LEVEL', "INFO"),
         ui=True,
         bot={
             "token": bot_token,
@@ -63,36 +70,72 @@ def get_config():
     )
 
 
+class SimplifyRequest:
+
+    def __init__(self, req):
+        if isinstance(req, dict):
+            self._req = req
+            if isinstance(self._req['data'], str):
+                req['data'] = req['data'].encode('utf-8')
+            if 'method' not in self._req:
+                self._req['method'] = 'POST'
+            if 'path' not in req:
+                self._req['path'] = urlparse(req['url']).path
+        else:
+            cookies = {}
+            raw_cookies = req.headers.get("Cookie")
+            if raw_cookies:
+                for cookie in raw_cookies.split("; "):
+                    name, value = cookie.split("=")
+                    cookies[name] = value
+            headers = {}
+            for k, v in req.headers.items():
+                headers[k] = v
+            params = {}
+            for k, v in req.values.items():
+                params[k] = v
+            self._req = {
+                'method': req.method,
+                'path': req.path,
+                'data': req.data,
+                'headers': headers,
+                'cookies': cookies,
+                'values': params,
+                'url': req.url
+            }
+
+    def __getattr__(self, key):
+        try:
+            return self._req[key]
+        except KeyError:
+            raise AttributeError(key)
+
+
 class Handler:
 
     def __init__(self, req):
+        req = SimplifyRequest(req)
         self.handler = None
-        self.request = None
         self.response = None
         self.actor_id = None
-        self.path = None
+        self.path = req.path
         self.method = req.method
-        cookies = {}
-        raw_cookies = req.headers.get("Cookie")
-        if raw_cookies:
-            for cookie in raw_cookies.split(";"):
-                name, value = cookie.split("=")
-                cookies[name] = value
+        LOG.debug('Path: ' + req.url + ', params(' + json.dumps(req.values) + ')' + ', body (' +
+                  json.dumps(req.data.decode('utf-8')) + ')')
         self.webobj = aw_web_request.AWWebObj(
-            url=request.url,
-            params=request.values,
-            body=request.data,
-            headers=request.headers,
-            cookies=cookies
+            url=req.url,
+            params=req.values,
+            body=req.data,
+            headers=req.headers,
+            cookies=req.cookies
         )
-        if not req or not req.path:
+        if not req or not self.path:
             return
-        self.request = req
-        if req.path == '/':
+        if self.path == '/':
             self.handler = factory.RootFactoryHandler(
                 self.webobj, get_config(), on_aw=OBJ_ON_AW)
         else:
-            path = req.path.split('/')
+            path = self.path.split('/')
             self.path = path
             f = path[1]
             if f == 'oauth':
@@ -166,7 +209,7 @@ class Handler:
                     self.handler = devtest.DevtestHandler(
                         self.webobj, get_config(), on_aw=OBJ_ON_AW)
         if not self.handler:
-            logging.warning('Handler was not set with path: ' + req.url)
+            LOG.warning('Handler was not set with path: ' + req.url)
 
     def process(self, **kwargs):
         try:
@@ -182,15 +225,21 @@ class Handler:
             return False
         return True
 
-    def get_response(self):
-        self.response = Response(
-            response=self.webobj.response.body,
-            status=self.webobj.response.status_message,
-            headers=self.webobj.response.headers
-        )
-        self.response.status_code = self.webobj.response.status_code
+    def get_redirect(self):
         if self.webobj.response.redirect:
-            return redirect(self.webobj.response.redirect, code=302)
+            return self.get_response()
+        return None
+
+    def get_response(self):
+        if self.webobj.response.redirect:
+            self.response = redirect(self.webobj.response.redirect, code=302)
+        else:
+            self.response = Response(
+                response=self.webobj.response.body,
+                status=self.webobj.response.status_message,
+                headers=self.webobj.response.headers
+            )
+            self.response.status_code = self.webobj.response.status_code
         if len(self.webobj.response.cookies) > 0:
             for a in self.webobj.response.cookies:
                 self.response.set_cookie(a["name"], a["value"], max_age=a["max_age"], secure=a["secure"])
@@ -207,10 +256,7 @@ def app_root():
         return Response(status=404)
     if request.method == 'GET':
         return render_template('aw-root-factory.html', **h.webobj.response.template_values)
-    if h.get_status() == 200:
-        return render_template('aw-root-created.html', **h.webobj.response.template_values)
-    else:
-        return h.get_response()
+    return h.get_response()
 
 
 @app.route('/<actor_id>', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
@@ -245,6 +291,8 @@ def app_www(actor_id, path=''):
     h = Handler(request)
     if not h.process(actor_id=actor_id, path=path):
         return Response(status=404)
+    if h.get_redirect():
+        return h.get_redirect()
     if request.method == 'GET':
         if not path or path == '':
             return render_template('aw-actor-www-root.html', **h.webobj.response.template_values)
@@ -337,6 +385,14 @@ def app_devtest(actor_id, path=''):
 def app_bot():
     h = Handler(request)
     if not h.process(path='/bot'):
+        return Response(status=404)
+    return h.get_response()
+
+
+@app.route('/oauth', methods=['GET'], strict_slashes=False)
+def app_oauth_callback():
+    h = Handler(request)
+    if not h.process():
         return Response(status=404)
     return h.get_response()
 
