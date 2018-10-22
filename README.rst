@@ -5,15 +5,20 @@ Getting Started
 This actingwebdemo application is a full ActingWeb demo that uses the python
 library actingweb.
 
-The actingweb library supports both AWS Dynamodb and Google Datastore as database
-backends, but this application is deployed to AWS as an Elastic Beanstalk
-application and can be found at https://actingwebdemo.greger.io
+The actingweb library currently supports AWS Dynamodb and this application is deployed to AWS
+as Lambda function and can be found at https://demo.actingweb.io. There are also config files for ElasticBeanstalk
+(see below).
 
-Basically, the application.py uses the flask framework to map all the endpoints
-required by an ActingWeb app and set up handlers for each.
-Each handler takes the requests, copies into an actingweb request and calls
-the correct endpoint handler from the actingweb library. Everything happens in the
-application.py file.
+Basically, there are only two files in this application:
+ application.py uses the flask framework to map all the endpoints required by an ActingWeb app and set up
+ handlers for each. This is done through a simplified request object that shows how a Flask request is
+ mapped into request elements forward to the ActingWeb framework to handle the requests and through a handler
+ object that processes the responses from the ActingWeb framework and maps back into Flask responses. It is
+ very easy to replace Flask with any framework of your choice
+
+ The on_aw.py file implements the on_aw.OnAWBase() class. By overriding methods in this class, you can plug into the
+ framework and do extra things as part of the requests. The empty class in this demo does nothing extra.
+
 
 Extending the demo
 ------------------
@@ -46,11 +51,25 @@ test suite fails, subscription test suite will also fail.
 The attributes test relies on the devtest endpoint to validate the internal attributes functionality to store
 attributes on an actor that are not exposed through properties or any other ActingWeb endpoint.
 
+AWS Lambda
+----------
+You can deploy the app to AWS Lamda in three simple steps. There is a serverless.yml file with the config you need.
+
+1. `Install Serverless <https://serverless.com/framework/docs/providers/aws/guide/installation/>`_
+
+2. Edit serverless.yml APP_HOST_FQDN to use your domain (or AWS domain, see 4.) and region if you prefer another
+
+3. Run `sls deploy`
+
+4. (if using AWS allocated domain) Use the long domain name AWS assigns the lambda and go to #2 above
+
 
 AWS Elastic Beanstalk
 ---------------------
 
-0. Delete the reference config.yml in .elasticbeanstalk
+You can also deploy to Elastic Beanstalk:
+
+0. Delete the config.yml in .elasticbeanstalk (it's just for your reference)
 
 1. Install `Elastic Beanstalk CLI <http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/eb-cli3-install.html>`_
 
@@ -66,13 +85,6 @@ the prefix of the hostname in options.config (the rest is based on region)
 
 5. Run `eb open` to open the app in the browser
 
-AWS Lambda
-----------
-You can also deploy the app to AWS Lamda. There is a serverless.yml file with the config you need.
-
-1. `Install Serverless <https://serverless.com/framework/docs/providers/aws/guide/installation/>`_
-
-2. Run `sls deploy`
 
 Use the library for your own projects
 -------------------------------------
