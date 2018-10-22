@@ -6,12 +6,6 @@
       "Effect": "Allow",
       "Action":   [ "dynamodb:*" ],
       "Resource": [ "*" ]
-    },
-    {
-      "Sid": "SnsAccess",
-      "Effect": "Allow",
-      "Action":   [ "sns:Publish" ],
-      "Resource": [ "*" ]
     }
   ]
 }

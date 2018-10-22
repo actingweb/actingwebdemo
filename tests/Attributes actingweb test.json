@@ -2,9 +2,10 @@
   "trigger_url": "https://api.runscope.com/radar/b2f74d27-5d53-43d6-8b73-36f4e71ad4af/trigger", 
   "name": "Attributes actingweb test", 
   "version": "1.0", 
-  "exported_at": 1511942791, 
+  "exported_at": 1537638450, 
   "steps": [
     {
+      "skipped": false, 
       "url": "{{appRoot}}", 
       "variables": [], 
       "args": {}, 
@@ -26,6 +27,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{appRoot}}bot", 
       "variables": [], 
@@ -48,6 +50,7 @@
     }, 
     {
       "body": "{\r\n\"creator\":  \"testuser@actingweb.net\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{appRoot}}", 
       "variables": [
@@ -97,6 +100,7 @@
     }, 
     {
       "body": "{\r\n  \"var1\": \"value1\",\r\n  \"var2\": \"value2\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "headers": {
         "Content-Type": [
@@ -133,6 +137,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "headers": {
         "Content-Type": [
           "application/json"
@@ -168,6 +173,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl}}/devtest/attribute", 
       "variables": [], 
       "multipart_form": [], 
@@ -204,6 +210,7 @@
     }, 
     {
       "body": "\"value2\"", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl}}/devtest/attribute/bucket1/var1", 
       "variables": [], 
@@ -234,6 +241,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl}}/devtest/attribute", 
       "variables": [], 
       "multipart_form": [], 
@@ -270,6 +278,7 @@
     }, 
     {
       "body": "{\r\n  \"varb1\": \"valueb1\",\r\n  \"varb2\": \"valueb2\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "headers": {
         "Content-Type": [
@@ -306,6 +315,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "headers": {
         "Content-Type": [
           "application/json"
@@ -348,6 +358,7 @@
     }, 
     {
       "body": "{\r\n  \"varc1\": \"valuec1\",\r\n  \"varc2\": \"valuec2\"\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "headers": {
         "Content-Type": [
@@ -384,6 +395,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "url": "{{actorurl}}/devtest/attribute", 
       "variables": [], 
       "multipart_form": [], 
@@ -432,6 +444,7 @@
     }, 
     {
       "body": "{\r\n  \"vard1\": \"valued1\",\r\n  \"vard2\": { \r\n     \"var1\": \"test1\",\r\n     \"var2\": \"test2\"\r\n  }\r\n}", 
+      "skipped": false, 
       "form": {}, 
       "headers": {
         "Content-Type": [
@@ -468,6 +481,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "headers": {
         "Content-Type": [
           "application/json"
@@ -522,6 +536,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl}}/devtest/attribute/bucket2/varb2", 
       "variables": [], 
@@ -552,6 +567,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "headers": {
         "Content-Type": [
           "application/json"
@@ -618,6 +634,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl}}/devtest/attribute/bucket2/varb1", 
       "variables": [], 
@@ -648,6 +665,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "headers": {
         "Content-Type": [
           "application/json"
@@ -690,6 +708,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "headers": {
         "Content-Type": [
@@ -720,6 +739,7 @@
       ]
     }, 
     {
+      "skipped": false, 
       "headers": {
         "Content-Type": [
           "application/json"
@@ -750,6 +770,7 @@
     }, 
     {
       "body": "", 
+      "skipped": false, 
       "form": {}, 
       "url": "{{actorurl}}", 
       "variables": [], 
