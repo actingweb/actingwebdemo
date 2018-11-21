@@ -223,6 +223,8 @@ class Handler:
                 self.handler.put(**kwargs)
         except AttributeError:
             return False
+        if self.get_status() == 404:
+            return False
         return True
 
     def get_redirect(self):
