@@ -10,6 +10,7 @@ how such micro-services interact.
 .. toctree::
     :maxdepth: 2
 
+    LICENSE
     README
     CHANGELOG
     getting-started

@@ -37,7 +37,7 @@ class OnAWDemo(on_aw.OnAWBase):
         #    myself.create(url=self.config.root, creator= <EMAIL>,
         #                    passphrase=self.config.new_token())
         #    Now store the oauthId propery
-        #    myself.set_property('oauthId', <ID-VALUE>)
+        #    myself.store.property.oauthId = <ID-VALUE>
         #    Send confirmation message that actor has been created
         #    return True
         # Do something
@@ -47,7 +47,7 @@ class OnAWDemo(on_aw.OnAWBase):
         """Customizible function to handle GET /callbacks"""
         # return True if callback has been processed
         # THE BELOW IS SAMPLE CODE
-        # my_oauth=oauth.oauth(token = myself.get_property('oauth_token').value)
+        # my_oauth=oauth.oauth(token = myself.store.oauth_token
         # if name == 'something':
         #    return
         # END OF SAMPLE CODE
