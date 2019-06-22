@@ -89,5 +89,5 @@ the prefix of the hostname in options.config (the rest is based on region)
 Use the library for your own projects
 -------------------------------------
 
-For how to use and extend the library, see the `ActingWeb repository <https://bitbucket.org/gregerw/actingweb>`_
+For how to use and extend the library, see the `ActingWeb repository <https://github.com/gregertw/actingweb>`_
 
