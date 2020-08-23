@@ -8,11 +8,15 @@ from actingweb import config, aw_web_request, actor
 import on_aw
 from actingweb.handlers import callbacks, properties, meta, root, trust, devtest, \
     subscription, resources, oauth, callback_oauth, bot, www, factory
+# To debug in pycharm inside the Docker container, remember to uncomment import pydevd as well
+# (and add to requirements.txt)
+#import pydevd_pycharm
 
 logging.basicConfig(stream=sys.stderr, level=os.getenv('LOG_LEVEL', "INFO"))
 LOG = logging.getLogger()
 LOG.setLevel(os.getenv('LOG_LEVEL', "INFO"))
 
+# Prefix url_path here with path if app is deployed in non-root URL
 app = Flask(__name__, static_url_path='/static')
 
 # The on_aw object we will use to do app-specific processing
@@ -20,8 +24,16 @@ OBJ_ON_AW = on_aw.OnAWDemo()
 
 
 def get_config():
-    myurl = os.getenv('APP_HOST_FQDN', "localhost")
+    # Having settrace here will make sure the process reconnects to the debug server on each request
+    # which makes it easier to keep in sync when doing code changes
+    # This is for pycharm
+    #pydevd_pycharm.settrace('docker.for.mac.localhost', port=3001, stdoutToServer=True, stderrToServer=True,
+    #                        suspend=False)
+    #
+    # The greger.ngrok.io address will be overriden by env variables from serverless.yml
+    myurl = os.getenv('APP_HOST_FQDN', "greger.ngrok.io")
     proto = os.getenv('APP_HOST_PROTOCOL', "https://")
+    # Replace with your URN here
     aw_type = "urn:actingweb:actingweb.org:actingwebdemo"
     bot_token = os.getenv('APP_BOT_TOKEN', "")
     bot_email = os.getenv('APP_BOT_EMAIL', "")
@@ -37,6 +49,13 @@ def get_config():
         'response_type': "code",
         'grant_type': "authorization_code",
         'refresh_type': "refresh_token",
+        # Example oauth_extras for google
+        #'oauth_extras': {
+        #    'access_type': 'offline',
+        #    'include_granted_scopes': 'false',
+        #    'login_hint': 'dynamic:creator',
+        #    'prompt': 'consent'
+        #}
     }
     actors = {
         'myself': {
@@ -51,11 +70,12 @@ def get_config():
         proto=proto,
         aw_type=aw_type,
         desc="Actingwebdemo actor: ",
-        version="2.2",
+        version="2.3",
         devtest=True,
         actors=actors,
         force_email_prop_as_creator=False,
         unique_creator=False,
+	    # Use "oauth" here if authenticating against a service
         www_auth="basic",
         logLevel=os.getenv('LOG_LEVEL', "INFO"),
         ui=True,
@@ -235,12 +255,16 @@ class Handler:
         if self.webobj.response.redirect:
             self.response = redirect(self.webobj.response.redirect, code=302)
         else:
+            if self.webobj.response.status_code == 401:
+                # For this demo, you may have tested with different users, so
+                # force a new domain, so that the browser will pop up the login window
+                self.webobj.response.headers['WWW-Authenticate'] = 'Basic realm="' + self.actor_id +'"'
             self.response = Response(
                 response=self.webobj.response.body,
                 status=self.webobj.response.status_message,
                 headers=self.webobj.response.headers
             )
-            self.response.status_code = self.webobj.response.status_code
+        self.response.status_code = self.webobj.response.status_code
         if len(self.webobj.response.cookies) > 0:
             for a in self.webobj.response.cookies:
                 self.response.set_cookie(a["name"], a["value"], max_age=a["max_age"], secure=a["secure"])
@@ -264,6 +288,8 @@ def app_root():
             return render_template('aw-root-failed.html', **h.webobj.response.template_values)
     if request.method == 'GET':
         return render_template('aw-root-factory.html', **h.webobj.response.template_values)
+    if request.method == 'POST' and h.get_status() == 200:
+        return render_template('aw-root-created.html', **h.webobj.response.template_values)
     return h.get_response()
 
 
@@ -301,7 +327,9 @@ def app_www(actor_id, path=''):
         return Response(status=404)
     if h.get_redirect():
         return h.get_redirect()
-    if request.method == 'GET':
+    if h.webobj.response.status_code == 403:
+        return Response(status=403)
+    if request.method == 'GET' and h.get_status() == 200:
         if not path or path == '':
             return render_template('aw-actor-www-root.html', **h.webobj.response.template_values)
         elif path == 'init':
@@ -405,12 +433,11 @@ def app_oauth_callback():
     return h.get_response()
 
 
+# Here is how you can add a google verification
+#@app.route('/google123456.html', methods=['GET'], strict_slashes=False)
+#def app_google_verify():
+#    return Response("google-site-verification: google123456.html")
 if __name__ == "__main__":
-    # To debug in pycharm inside the Docker container, remember to uncomment import pydevd as well
-    # (and add to requirements.txt)
-    # import pydevd
-    # pydevd.settrace('docker.for.mac.localhost', port=3001, stdoutToServer=True, stderrToServer=True)
-
     logging.debug('Starting up the ActingWeb Demo ...')
     # Only for debugging while developing
     app.run(host='0.0.0.0', debug=True, port=5000)

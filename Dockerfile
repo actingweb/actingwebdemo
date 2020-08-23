@@ -1,5 +1,4 @@
-FROM python:alpine3.6
-MAINTAINER support@greger.io
+FROM python:alpine3.7
 
 RUN addgroup -g 1000 -S uwsgi && \
     adduser -u 1000 -S uwsgi -G uwsgi
