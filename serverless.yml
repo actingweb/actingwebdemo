@@ -5,7 +5,10 @@ service: actingwebdemo
 plugins:
   - serverless-python-requirements
   - serverless-wsgi
-
+  # Add this plugin to deploy to a sub-domain 
+  #- serverless-domain-manager
+  # If you want to use pseudo parameters, add this plugin
+  #- serverless-pseudo-parameters
 custom:
   wsgi:
     app: application.app
@@ -15,7 +18,7 @@ custom:
 
 provider:
   name: aws
-  runtime: python3.6
+  runtime: python3.7
   memorySize: 128
   timeout: 30
   stage: prod
@@ -39,7 +42,7 @@ provider:
 
 functions:
   app:
-    handler: wsgi.handler
+    handler: wsgi_handler.handler
     events:
       - http: ANY /
       - http: 'ANY {proxy+}'
