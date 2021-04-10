@@ -1,12 +1,1 @@
-{
-  "name": "armyknife",
-  "description": "",
-  "version": "0.1.0",
-  "dependencies": {},
-  "devDependencies": {
-    "serverless-domain-manager": "^4.2.0",
-    "serverless-pseudo-parameters": "^2.5.0",
-    "serverless-python-requirements": "^5.1.0",
-    "serverless-wsgi": "^1.7.5"
-  }
-}
+{"name":"actingwebdemo","description":"","version":"0.1.0","devDependencies":{"serverless-python-requirements":"^5.1.1","serverless-wsgi":"^1.7.6"}}

@@ -1,3 +1,5 @@
+org: greger
+app: actingwebdemo-app
 # serverless.yml
 
 service: actingwebdemo
@@ -23,21 +25,24 @@ provider:
   timeout: 30
   stage: prod
   region: us-west-1
+  lambdaHashingVersion: '20201221'
   environment:
     APP_HOST_FQDN: 'demo.actingweb.io'
     APP_HOST_PROTOCOL: 'https://'
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamodb:Query
-        - dynamodb:Scan
-        - dynamodb:GetItem
-        - dynamodb:PutItem
-        - dynamodb:UpdateItem
-        - dynamodb:DeleteItem
-        - dynamodb:CreateTable
-        - dynamodb:DescribeTable
-      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/demo_*"
+  iam:
+    role:   
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:CreateTable
+            - dynamodb:DescribeTable
+          Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/demo_*"
 
 
 functions:
@@ -45,4 +50,4 @@ functions:
     handler: wsgi_handler.handler
     events:
       - http: ANY /
-      - http: 'ANY {proxy+}'
+      - http: 'ANY /{proxy+}'
