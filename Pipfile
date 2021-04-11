@@ -10,11 +10,11 @@ name = "pypi"
 #name = "pypitest"
 
 [packages]
-Jinja2 = "*"
-Flask = "*"
-uWSGI = "*"
-#actingweb = {version="*", index="pypitest"}
-actingweb = "*"
+Jinja2 = "2.11.3"
+Flask = "1.1.2"
+uWSGI = "2.0.19.1"
+#actingweb = {version="2.6.3.2", index="pypitest"}
+actingweb = "2.6.4"
 
 [dev-packages]
 pydevd-pycharm = "*"
