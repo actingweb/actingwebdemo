@@ -1,5 +1,3 @@
-org: greger
-app: actingwebdemo-app
 # serverless.yml
 
 service: actingwebdemo
@@ -29,6 +27,7 @@ provider:
   environment:
     APP_HOST_FQDN: 'demo.actingweb.io'
     APP_HOST_PROTOCOL: 'https://'
+    LOG_LEVEL: 'DEBUG'
   iam:
     role:   
       statements:
