@@ -18,11 +18,11 @@ docker-compose up -d
 
 ### Python Dependencies
 ```bash
-# Install dependencies using pipenv with Python 3.11
-pipenv --python 3.11 install --dev
+# Install dependencies using Poetry
+poetry install
 
 # Run the application directly (without Docker)
-pipenv run python application.py
+poetry run python application.py
 ```
 
 ### Testing
@@ -91,7 +91,7 @@ eb deploy
 ```
 
 ### Docker
-The application uses Alpine Linux with uWSGI for production deployment. The Dockerfile creates a production-ready container with proper user permissions and web server configuration.
+The application uses Poetry for dependency management and Python 3.11 runtime. The Dockerfile creates a production-ready container with proper user permissions and web server configuration.
 
 ## Configuration
 
