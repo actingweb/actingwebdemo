@@ -18,11 +18,11 @@ docker-compose up -d
 
 ### Python Dependencies
 ```bash
-# Install dependencies using pipenv
-pipenv install --dev
+# Install dependencies using pipenv with Python 3.11
+pipenv --python 3.11 install --dev
 
 # Run the application directly (without Docker)
-python application.py
+pipenv run python application.py
 ```
 
 ### Testing

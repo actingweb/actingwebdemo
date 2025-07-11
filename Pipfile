@@ -10,15 +10,15 @@ verify_ssl = true
 name = "pypitest"
 
 [packages]
-Jinja2 = "2.11.3"
-Flask = "1.1.2"
-uWSGI = "2.0.19.1"
+Jinja2 = ">=3.1.2"
+Flask = ">=2.3.0,<3.0.0"
+uWSGI = ">=2.0.23"
 #actingweb = {path = "./../actingweb", editable = true}
 #actingweb = {version="2.6.4.4", index="pypitest"}
-actingweb = "2.6.5"
+actingweb = ">=2.6.5"
 
 [dev-packages]
 pydevd-pycharm = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.11"
