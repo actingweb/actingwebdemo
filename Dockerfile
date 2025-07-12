@@ -1,25 +1,44 @@
 FROM python:3.11-slim-bookworm
 
+# Create user
 RUN useradd -ms /bin/bash uwsgi
-RUN mkdir /src
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    python3-dev \
+    curl \
+    git \
+    libffi-dev \
+    libssl-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set environment variables for Poetry
+ENV POETRY_VIRTUALENVS_CREATE=false \
+    POETRY_NO_INTERACTION=1 \
+    POETRY_CACHE_DIR=/tmp/poetry_cache
+
+# Install Poetry via pip (more reliable in Docker)
+RUN pip install --no-cache-dir poetry
+
+# Set working directory
 WORKDIR /src
 
-# Install Poetry
-RUN apt-get update \
-    && apt-get -y install build-essential python-dev-is-python3 curl \
-    && pip install --upgrade pip \
-    && curl -sSL https://install.python-poetry.org | python3 - \
-    && ln -s /root/.local/bin/poetry /usr/local/bin/poetry
-
-# Copy Poetry files
+# Copy project metadata
 COPY pyproject.toml poetry.lock* /src/
 
-# Configure Poetry and install dependencies
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-dev --no-interaction --no-ansi
+# Install dependencies
+RUN poetry install --only main --no-root
 
-# Copy application code
+# Copy the rest of the application code
 COPY . /src
 
+# Make run.sh executable and set proper ownership
+RUN chmod +x /src/run.sh && chown -R uwsgi:uwsgi /src
+
+# Switch to non-root user (optional but good practice)
+USER uwsgi
+
 EXPOSE 5000
-#ENTRYPOINT ["/src/run.sh"]
+# ENTRYPOINT ["/src/run.sh"]
