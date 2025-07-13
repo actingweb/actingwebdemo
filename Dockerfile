@@ -28,11 +28,11 @@ WORKDIR /src
 # Copy project metadata
 COPY pyproject.toml poetry.lock* /src/
 
-# Install dependencies
-RUN poetry install --only main --no-root
-
 # Copy the rest of the application code
 COPY . /src
+
+# Generate lock file and install dependencies
+RUN poetry lock && poetry install --only main --no-root
 
 # Make run.sh executable and set proper ownership
 RUN chmod +x /src/run.sh && chown -R uwsgi:uwsgi /src
