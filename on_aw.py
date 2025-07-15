@@ -1,17 +1,14 @@
 import logging
 import json
+from typing import Optional, Union
 from actingweb import on_aw
 
-PROP_HIDE = [
-    "email"
-]
+PROP_HIDE = ["email"]
 
-PROP_PROTECT = PROP_HIDE + [
-]
+PROP_PROTECT = PROP_HIDE + []
 
 
 class OnAWDemo(on_aw.OnAWBase):
-
     def bot_post(self, path):
         """Called on POSTs to /bot.
 
@@ -20,7 +17,7 @@ class OnAWDemo(on_aw.OnAWBase):
 
         # Safety valve to make sure we don't do anything if bot is not
         # configured.
-        if not self.config.bot['token'] or len(self.config.bot['token']) == 0:
+        if self.config and (not self.config.bot["token"] or len(self.config.bot["token"]) == 0):
             return False
 
         # try:
@@ -50,8 +47,8 @@ class OnAWDemo(on_aw.OnAWBase):
         # Do something
         return True
 
-    def get_properties(self, path: list, data: dict) -> dict or None:
-        """ Called on GET to properties for transformations to be done
+    def get_properties(self, path: list[str], data: dict) -> Optional[dict]:
+        """Called on GET to properties for transformations to be done
         :param path: Target path requested
         :type path: list[str]
         :param data: Data retrieved from data store to be returned
@@ -67,8 +64,8 @@ class OnAWDemo(on_aw.OnAWBase):
             return None
         return data
 
-    def delete_properties(self, path: list, old: dict, new: dict) -> bool:
-        """ Called on DELETE to properties
+    def delete_properties(self, path: list[str], old: dict, new: dict) -> bool:
+        """Called on DELETE to properties
         :param path: Target path to be deleted
         :type path: list[str]
         :param old: Property value that will be deleted (or changed)
@@ -82,8 +79,8 @@ class OnAWDemo(on_aw.OnAWBase):
             return False
         return True
 
-    def put_properties(self, path: list, old: dict, new: dict) -> dict or None:
-        """ Called on PUT to properties for transformations to be done before save
+    def put_properties(self, path: list[str], old: dict, new: Union[dict, str]) -> Optional[dict | str]:
+        """Called on PUT to properties for transformations to be done before save
         :param path: Target path requested to be updated
         :type path: list[str]
         :param old: Old data from database
@@ -97,15 +94,21 @@ class OnAWDemo(on_aw.OnAWBase):
             return None
         elif len(path) > 0 and path[0] in PROP_PROTECT:
             return None
-        if path and len(path) >= 1 and path[0] == 'config':
-            if 'watchLabels' in new:
-                new_labels = new['watchLabels']
-                gm = gmail.GMail(self.myself, self.config, self.auth)
-                gm.create_watch(labels=new_labels, refresh=True)
+        # Handle string data by converting to dict if needed
+        if isinstance(new, str):
+            try:
+                new = json.loads(new)
+            except (json.JSONDecodeError, TypeError):
+                return new
+
+        # Ensure we have a dict at this point
+        if not isinstance(new, dict):
+            return None
+
         return new
 
-    def post_properties(self, prop: str, data: dict) -> dict or None:
-        """ Called on POST to properties, once for each property
+    def post_properties(self, prop: str, data: Union[dict, str]) -> Optional[dict | str]:
+        """Called on POST to properties, once for each property
         :param prop: Property to be created
         :type prop: str
         :param data: The data to be stored in prop
@@ -117,6 +120,18 @@ class OnAWDemo(on_aw.OnAWBase):
             return None
         elif prop in PROP_PROTECT:
             return None
+
+        # Handle string data by converting to dict if needed
+        if isinstance(data, str):
+            try:
+                data = json.loads(data)
+            except (json.JSONDecodeError, TypeError):
+                return data
+
+        # Ensure we have a dict at this point
+        if not isinstance(data, dict):
+            return None
+
         return data
 
     def get_callbacks(self, name):
@@ -156,8 +171,14 @@ class OnAWDemo(on_aw.OnAWBase):
     def post_subscriptions(self, sub, peerid, data):
         """Customizible function to process incoming callbacks/subscriptions/ callback with json body,
         return True if processed, False if not."""
-        logging.debug("Got callback and processed " + sub["subscriptionid"] +
-                      " subscription from peer " + peerid + " with json blob: " + json.dumps(data))
+        logging.debug(
+            "Got callback and processed "
+            + sub["subscriptionid"]
+            + " subscription from peer "
+            + peerid
+            + " with json blob: "
+            + json.dumps(data)
+        )
         return True
 
     def delete_actor(self):
@@ -176,38 +197,38 @@ class OnAWDemo(on_aw.OnAWBase):
         return True
 
     def get_resources(self, name):
-        """ Called on GET to resources. Return struct for json out.
+        """Called on GET to resources. Return struct for json out.
 
-            Returning {} will give a 404 response back to requestor.
+        Returning {} will give a 404 response back to requestor.
         """
         return {}
 
     def delete_resources(self, name):
-        """ Called on DELETE to resources. Return struct for json out.
+        """Called on DELETE to resources. Return struct for json out.
 
-            Returning {} will give a 404 response back to requestor.
+        Returning {} will give a 404 response back to requestor.
         """
         return {}
 
     def put_resources(self, name, params):
-        """ Called on PUT to resources. Return struct for json out.
+        """Called on PUT to resources. Return struct for json out.
 
-            Returning {} will give a 404 response back to requestor.
-            Returning an error code after setting the response will not change
-            the error code.
+        Returning {} will give a 404 response back to requestor.
+        Returning an error code after setting the response will not change
+        the error code.
         """
         return {}
 
     def post_resources(self, name, params):
-        """ Called on POST to resources. Return struct for json out.
+        """Called on POST to resources. Return struct for json out.
 
-            Returning {} will give a 404 response back to requestor.
-            Returning an error code after setting the response will not change
-            the error code.
+        Returning {} will give a 404 response back to requestor.
+        Returning an error code after setting the response will not change
+        the error code.
         """
         return {}
 
-    def www_paths(self, path=''):
+    def www_paths(self, path=""):
         # THIS METHOD IS CALLED WHEN AN actorid/www/* PATH IS CALLED (AND AFTER ACTINGWEB
         # DEFAULT PATHS HAVE BEEN HANDLED)
         # THE BELOW IS SAMPLE CODE

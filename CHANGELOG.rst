@@ -2,6 +2,32 @@
 CHANGELOG
 =========
 
+Jul 14, 2025
+------------
+
+**ActingWeb Library Compatibility Update**
+
+- **Library Compatibility**: Updated codebase to work with refactored actingweb library v3.0+
+- **Type System Improvements**:
+  - Updated on_aw.py method signatures to accept Union[dict, str] parameters as required by new actingweb types
+  - Added proper typing imports and modernized type annotations using Optional[dict] syntax
+  - Fixed property methods (get_properties, put_properties, post_properties) to handle both dict and string data
+- **Handler Method Fixes**:
+  - Updated application.py Handler.process() method to use dynamic method access with getattr()
+  - Fixed missing HTTP method attributes (post, get, delete, put) in actingweb handlers
+  - Improved error handling for handlers that don't implement all HTTP methods
+- **Flask Route Improvements**:
+  - Fixed potential None return values in Flask route functions
+  - Ensured all routes return valid Flask Response objects
+- **Data Processing Enhancements**:
+  - Added JSON string parsing for property data in both put_properties and post_properties
+  - Added type guards to ensure proper data validation
+  - Fixed devtest/proxy/properties endpoint handling for single property scenarios
+- **Code Quality**:
+  - Resolved all Pylance type checking errors
+  - Commented out unused gmail functionality to prevent import errors
+  - Maintained backward compatibility with existing ActingWeb features
+
 Jul 11, 2025
 ------------
 
