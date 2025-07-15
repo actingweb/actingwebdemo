@@ -1,9 +1,15 @@
 [tool.poetry]
+package-mode = false
 name = "actingwebdemo"
 version = "0.1.0"
 description = "ActingWeb Demo Application"
 authors = ["Greger Wedel <greger@greger.io>"]
 readme = "README.rst"
+
+[[tool.poetry.source]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+priority = "supplemental"
 
 [tool.poetry.dependencies]
 python = "^3.11"
