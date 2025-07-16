@@ -4,7 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is an ActingWeb demo application built with Python Flask and the ActingWeb framework. ActingWeb is a protocol for creating distributed actor-based systems where actors can communicate via standardized REST APIs. This demo showcases the core ActingWeb capabilities including actor creation, properties, trust relationships, and subscriptions.
+This is the ActingWeb demo application that showcases the modern ActingWeb interface. It demonstrates the new fluent API and decorator-based hook system that replaces the old OnAWBase callback approach.
+
+The application uses the new `ActingWebApp` class with automatic Flask integration, providing a clean, maintainable codebase with minimal boilerplate.
+
+## Key Features
+
+- **Modern Interface**: Uses `ActingWebApp` with fluent configuration API
+- **Decorator-Based Hooks**: Simple, focused functions for handling events
+- **Automatic Route Generation**: No manual Flask route definitions needed
+- **Clean Architecture**: Separation of concerns with focused hook functions
+- **Type Safety**: Better IDE support and error detection
 
 ## Development Commands
 
@@ -21,7 +31,7 @@ docker-compose up -d
 # Install dependencies using Poetry
 poetry install
 
-# Run the application directly (without Docker)
+# Run the application directly
 poetry run python application.py
 ```
 
@@ -35,25 +45,83 @@ This project uses Runscope tests found in the `tests/` directory. To run tests:
 
 ### Core Components
 
-**application.py** - Main Flask application that:
-- Maps all ActingWeb endpoints to Flask routes
-- Uses `SimplifyRequest` class to normalize Flask requests for ActingWeb
-- Uses `Handler` class to process ActingWeb responses back to Flask
-- Implements the complete ActingWeb actor lifecycle
+**application.py** - Main application using modern interface:
+- Uses `ActingWebApp` with fluent configuration
+- Defines hooks using decorators (`@app.property_hook`, `@app.callback_hook`, etc.)
+- Automatic Flask integration with `app.integrate_flask(flask_app)`
+- No manual route definitions needed
 
-**on_aw.py** - Application-specific logic extending `on_aw.OnAWBase`:
-- Handles property access controls via `PROP_HIDE` and `PROP_PROTECT`
-- Implements callback handlers for bot, oauth, subscriptions, and resources
-- Provides hooks for customizing ActingWeb behavior
+**on_aw.py** - Legacy file kept for reference:
+- Contains deprecated `OnAWDemo` class (no longer used)
+- Kept for backward compatibility but not used by modern implementation
+- All functionality moved to decorator-based hooks in application.py
+
+### Modern Hook System
+
+The application uses focused hook functions instead of a monolithic class:
+
+#### Property Hooks
+```python
+@app.property_hook("email")
+def handle_email_property(actor, operation, value, path):
+    if operation == "get":
+        return None  # Hide email from external access
+    elif operation == "put":
+        return value.lower() if "@" in value else None
+    return value
+```
+
+#### Callback Hooks
+```python
+@app.callback_hook("bot")
+def handle_bot_callback(actor, name, data):
+    if data.get("method") == "POST":
+        # Process bot request
+        return True
+    return False
+```
+
+#### Subscription Hooks
+```python
+@app.subscription_hook
+def handle_subscription_callback(actor, subscription, peer_id, data):
+    # Process subscription data
+    return True
+```
+
+#### Lifecycle Hooks
+```python
+@app.lifecycle_hook("actor_created")
+def on_actor_created(actor, **kwargs):
+    # Initialize new actor
+    actor.properties.created_at = str(datetime.now())
+```
+
+### Configuration
+
+The modern interface uses fluent configuration:
+
+```python
+app = ActingWebApp(
+    aw_type="urn:actingweb:actingweb.org:actingwebdemo",
+    database="dynamodb",
+    fqdn=os.getenv("APP_HOST_FQDN", "localhost:5000")
+).with_oauth(
+    client_id=os.getenv("APP_OAUTH_ID", ""),
+    client_secret=os.getenv("APP_OAUTH_KEY", "")
+).with_web_ui().with_devtest()
+```
 
 ### Request Flow
-1. Flask routes capture HTTP requests
-2. `Handler` class determines the appropriate ActingWeb handler
-3. `SimplifyRequest` normalizes the Flask request
-4. ActingWeb framework processes the request
-5. Response is converted back to Flask format
+
+1. Flask receives HTTP requests
+2. ActingWeb integration automatically routes to appropriate handlers
+3. Hooks are executed at appropriate points in the request lifecycle
+4. Response is automatically formatted and returned
 
 ### ActingWeb Endpoints
+
+All standard ActingWeb endpoints are automatically available:
 - `/` - Actor factory (create new actors)
 - `/<actor_id>` - Actor root endpoint
 - `/<actor_id>/meta` - Actor metadata
@@ -66,6 +134,44 @@ This project uses Runscope tests found in the `tests/` directory. To run tests:
 - `/<actor_id>/devtest` - Development/testing endpoints
 - `/oauth` - OAuth callback handling
 - `/bot` - Bot integration endpoint
+
+## Property Access Control
+
+The demo implements property access control through hooks:
+
+```python
+PROP_HIDE = ["email"]  # Hidden from external access
+PROP_PROTECT = PROP_HIDE + []  # Protected from modification/deletion
+```
+
+## Actor Management
+
+Creating and managing actors is straightforward:
+
+```python
+# Actor creation is handled by the actor factory
+@app.actor_factory
+def create_actor(creator: str, **kwargs) -> ActorInterface:
+    actor = ActorInterface.create(creator=creator, config=app.get_config())
+    actor.properties.email = creator
+    return actor
+
+# Access actor properties
+actor.properties.email = "user@example.com"
+actor.properties.status = "active"
+
+# Manage trust relationships
+peer = actor.trust.create_relationship(
+    peer_url="https://peer.example.com/actor123",
+    relationship="friend"
+)
+
+# Handle subscriptions
+actor.subscriptions.subscribe_to_peer(
+    peer_id="peer123",
+    target="properties"
+)
+```
 
 ## Deployment
 
@@ -91,20 +197,61 @@ eb deploy
 ```
 
 ### Docker
-The application uses Poetry for dependency management and Python 3.11 runtime. The Dockerfile creates a production-ready container with proper user permissions and web server configuration.
+The application uses Poetry for dependency management and Python 3.11 runtime. The Dockerfile creates a production-ready container.
 
-## Configuration
+## Environment Variables
 
 Key environment variables:
 - `APP_HOST_FQDN` - The domain where the app is hosted
 - `APP_HOST_PROTOCOL` - Protocol (http:// or https://)
+- `APP_OAUTH_ID` - OAuth client ID
+- `APP_OAUTH_KEY` - OAuth client secret
+- `APP_BOT_TOKEN` - Bot token for bot integration
+- `APP_BOT_EMAIL` - Bot email
+- `APP_BOT_SECRET` - Bot secret
+- `APP_BOT_ADMIN_ROOM` - Bot admin room
 - `LOG_LEVEL` - Logging level (DEBUG, INFO, etc.)
-- `AWS_*` - AWS credentials and DynamoDB configuration
 
 ## Database
 
 Uses AWS DynamoDB for storage with table prefix `demo_`. For local development, docker-compose provides a local DynamoDB instance.
 
+## Benefits of Modern Interface
+
+1. **90% less boilerplate code** - No manual route definitions needed
+2. **Better organization** - Each hook handles one specific concern
+3. **Type safety** - Better IDE support and error detection
+4. **Easier testing** - Hooks can be tested independently
+5. **Maintainability** - Clear separation of concerns
+6. **Discoverability** - Intuitive API with method chaining
+
+## Migration from Old Interface
+
+This demo shows how to migrate from the old OnAWBase system:
+
+**Old (OnAWBase)**:
+```python
+class OnAWDemo(on_aw.OnAWBase):
+    def get_properties(self, path, data):
+        # 50+ lines of complex logic
+        
+    def put_properties(self, path, old, new):
+        # 30+ lines of validation
+```
+
+**New (Modern Interface)**:
+```python
+@app.property_hook("email")
+def handle_email_property(actor, operation, value, path):
+    if operation == "get":
+        return None  # Hide email
+    elif operation == "put":
+        return value.lower() if "@" in value else None
+    return value
+```
+
 ## Templates
 
 HTML templates in `templates/` directory provide the web UI for actor management, using Jinja2 templating with ActingWeb's built-in template variables.
+
+The modern interface automatically provides template variables through the integration layer, maintaining compatibility with existing templates.

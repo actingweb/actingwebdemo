@@ -5,23 +5,20 @@ name = "actingweb"
 version = "3.0.0"
 description = "The official ActingWeb library"
 optional = false
-python-versions = ">=3.11,<4.0"
+python-versions = "^3.11"
 groups = ["main"]
-files = [
-    {file = "actingweb-3.0.0-py3-none-any.whl", hash = "sha256:faa46a7dd6f89f01956a31a3345ef9e6761177632d0f393f36790ca2860e990c"},
-    {file = "actingweb-3.0.0.tar.gz", hash = "sha256:4287f9f4dccd5bd0ff9d8f2b5e129a18892ae1eb0d5df3c1043a0c469e7dcde1"},
-]
+files = []
+develop = true
 
 [package.dependencies]
-boto3 = ">=1.26.0,<2.0.0"
-pynamodb = ">=6.0.0,<7.0.0"
-typing-extensions = ">=4.0.0,<5.0.0"
-urlfetch = ">=1.0.2,<2.0.0"
+boto3 = "^1.26.0"
+pynamodb = "^6.0.0"
+typing-extensions = "^4.0.0"
+urlfetch = "^1.0.2"
 
 [package.source]
-type = "legacy"
-url = "https://test.pypi.org/simple"
-reference = "testpypi"
+type = "directory"
+url = "../actingweb"
 
 [[package]]
 name = "blinker"
@@ -387,4 +384,4 @@ watchdog = ["watchdog (>=2.3)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "468c44a82730b75e47fe8867bcc5141925f33a760b0f42967ed1053a4eda4e6b"
+content-hash = "0edc7370d74cef7f78332c0c8f5e05166b9269c785181ee93268cc5ce8f9a1e1"
