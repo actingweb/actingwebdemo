@@ -129,10 +129,10 @@ def handle_all_properties(actor: ActorInterface, operation: str, value: Any, pat
     return value
 
 
-# Callback hooks
-@app.callback_hook("bot")
-def handle_bot_callback(actor: ActorInterface, name: str, data: Dict[str, Any]) -> bool:
-    """Handle bot callbacks."""
+# Application-level callback hooks (no actor context)
+@app.app_callback_hook("bot")
+def handle_bot_callback(data: Dict[str, Any]) -> bool:
+    """Handle bot callbacks (application-level, no actor context)."""
     if data.get("method") == "POST":
         # Safety valve - make sure bot is configured
         config = app.get_config()
@@ -255,6 +255,127 @@ def handle_www_paths(actor: ActorInterface, name: str, data: Dict[str, Any]) -> 
         }
 
     return False
+
+
+# Method hooks for RPC-style function calls
+@app.method_hook("calculate")
+def handle_calculate_method(actor: ActorInterface, method_name: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Handle calculate method with JSON-RPC support."""
+    try:
+        a = data.get("a", 0)
+        b = data.get("b", 0)
+        operation = data.get("operation", "add")
+        
+        if operation == "add":
+            result = a + b
+        elif operation == "subtract":
+            result = a - b
+        elif operation == "multiply":
+            result = a * b
+        elif operation == "divide":
+            if b == 0:
+                return None  # Division by zero
+            result = a / b
+        else:
+            return None  # Unsupported operation
+            
+        return {"result": result, "operation": operation}
+    except (TypeError, ValueError):
+        return None
+
+
+@app.method_hook("greet")
+def handle_greet_method(actor: ActorInterface, method_name: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Handle greet method with personalized greeting."""
+    name = data.get("name", "World")
+    actor_id = actor.id if actor else "unknown"
+    
+    return {
+        "greeting": f"Hello, {name}! This is actor {actor_id}.",
+        "timestamp": datetime.now().isoformat()
+    }
+
+
+@app.method_hook("get_status")
+def handle_get_status_method(actor: ActorInterface, method_name: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Handle get_status method to return actor status."""
+    if not actor:
+        return None
+        
+    return {
+        "actor_id": actor.id,
+        "creator": actor.creator,
+        "status": "active",
+        "properties_count": len(actor.properties.to_dict()) if actor.properties is not None else 0,
+        "trust_relationships": len(actor.trust.relationships),
+        "subscriptions": len(actor.subscriptions.all_subscriptions)
+    }
+
+
+# Action hooks for trigger-based functionality
+@app.action_hook("log_message")
+def handle_log_message_action(actor: ActorInterface, action_name: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Handle log_message action to log a message."""
+    message = data.get("message", "")
+    level = data.get("level", "info").upper()
+    
+    if level == "ERROR":
+        LOG.error(f"Actor {actor.id if actor else 'unknown'}: {message}")
+    elif level == "WARNING":
+        LOG.warning(f"Actor {actor.id if actor else 'unknown'}: {message}")
+    else:
+        LOG.info(f"Actor {actor.id if actor else 'unknown'}: {message}")
+    
+    return {
+        "status": "logged",
+        "message": message,
+        "level": level,
+        "timestamp": datetime.now().isoformat()
+    }
+
+
+@app.action_hook("update_status")
+def handle_update_status_action(actor: ActorInterface, action_name: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Handle update_status action to update actor status."""
+    if not actor:
+        return None
+        
+    status = data.get("status", "active")
+    timestamp = datetime.now().isoformat()
+    
+    # Update actor properties
+    if actor.properties is not None:
+        actor.properties.status = status
+        actor.properties.last_update = timestamp
+    
+    return {
+        "status": "updated",
+        "new_status": status,
+        "timestamp": timestamp,
+        "actor_id": actor.id
+    }
+
+
+@app.action_hook("send_notification")
+def handle_send_notification_action(actor: ActorInterface, action_name: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Handle send_notification action (simulated)."""
+    recipient = data.get("recipient", "")
+    message = data.get("message", "")
+    notification_type = data.get("type", "email")
+    
+    # Simulate sending notification
+    success = bool(recipient and message)
+    
+    # Log the notification
+    LOG.info(f"Sending {notification_type} notification to {recipient}: {message}")
+    
+    return {
+        "status": "sent" if success else "failed",
+        "recipient": recipient,
+        "message": message,
+        "type": notification_type,
+        "timestamp": datetime.now().isoformat()
+    }
 
 
 # Integrate with Flask
