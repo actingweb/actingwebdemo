@@ -1,9 +1,7 @@
-version: '3.4'
-
 services:
-
   actingwebdemo:
     build: .
+    entrypoint: ["./run.sh"]
     environment:
       - AWS_ACCESS_KEY_ID=dummy
       - AWS_SECRET_ACCESS_KEY=dummy
@@ -17,7 +15,11 @@ services:
       - 5000:5000
 
   dynamodb:
-    image: deangiberson/aws-dynamodb-local
-    command: -port 8000 -sharedDb
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
+    image: "amazon/dynamodb-local:latest"
+    container_name: dynamodb-local
     ports:
-      - 8000:8000
+      - "8000:8000"
+    volumes:
+      - "./dynamodb:/home/dynamodblocal/data"
+    working_dir: /home/dynamodblocal

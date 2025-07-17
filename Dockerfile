@@ -1,14 +1,44 @@
-FROM python:3.7-slim-buster
+FROM python:3.11-slim-bookworm
 
+# Create user
 RUN useradd -ms /bin/bash uwsgi
-RUN mkdir /src
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    python3-dev \
+    curl \
+    git \
+    libffi-dev \
+    libssl-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set environment variables for Poetry
+ENV POETRY_VIRTUALENVS_CREATE=false \
+    POETRY_NO_INTERACTION=1 \
+    POETRY_CACHE_DIR=/tmp/poetry_cache
+
+# Install Poetry via pip (more reliable in Docker)
+RUN pip install --no-cache-dir poetry
+
+# Set working directory
 WORKDIR /src
-COPY Pipfile.lock /src/
-COPY Pipfile /src/
-RUN apt-get update \
-    && apt-get -y install build-essential python python-dev \
-    && pip install --upgrade pip && pip install pipenv
+
+# Copy project metadata
+COPY pyproject.toml poetry.lock* /src/
+
+# Copy the rest of the application code
 COPY . /src
-RUN pipenv install --dev --system --ignore-pipfile
+
+# Generate lock file and install dependencies
+RUN poetry lock && poetry install --only main --no-root
+
+# Make run.sh executable and set proper ownership
+RUN chmod +x /src/run.sh && chown -R uwsgi:uwsgi /src
+
+# Switch to non-root user (optional but good practice)
+USER uwsgi
+
 EXPOSE 5000
-#ENTRYPOINT ["/src/run.sh"]
+# ENTRYPOINT ["/src/run.sh"]

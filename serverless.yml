@@ -14,13 +14,15 @@ custom:
     app: application.app
     packRequirements: false
   pythonRequirements:
-    dockerizePip: non-linux
+    dockerizePip: false
+    poetry: true
+    poetryWithoutHashes: true
 
 provider:
   name: aws
-  runtime: python3.7
+  runtime: python3.11
   memorySize: 128
-  timeout: 30
+  timeout: 29
   stage: prod
   region: us-west-1
   lambdaHashingVersion: '20201221'
@@ -42,7 +44,6 @@ provider:
             - dynamodb:CreateTable
             - dynamodb:DescribeTable
           Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/demo_*"
-
 
 functions:
   app:

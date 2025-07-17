@@ -1,1 +1,1 @@
-{"name":"actingwebdemo","description":"","version":"0.1.0","devDependencies":{"serverless-python-requirements":"^5.1.1","serverless-wsgi":"^1.7.6"}}
+{"name":"actingwebdemo","description":"","version":"0.1.0","devDependencies":{"serverless-python-requirements":"^6.1.2","serverless-wsgi":"^3.1.0"}}
