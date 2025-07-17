@@ -381,6 +381,9 @@ def handle_send_notification_action(actor: ActorInterface, action_name: str, dat
 # Integrate with Flask
 integration = app.integrate_flask(flask_app)
 
+# For serverless deployment, export the Flask app
+app = flask_app
+
 
 # Custom error handlers
 @flask_app.errorhandler(404)

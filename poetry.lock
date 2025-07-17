@@ -2,23 +2,26 @@
 
 [[package]]
 name = "actingweb"
-version = "3.0.0"
+version = "3.0.1"
 description = "The official ActingWeb library"
 optional = false
-python-versions = "^3.11"
+python-versions = ">=3.11,<4.0"
 groups = ["main"]
-files = []
-develop = true
+files = [
+    {file = "actingweb-3.0.1-py3-none-any.whl", hash = "sha256:8afa0d720f3793b3459809451236e82fb4455fbad28411d1c3e8e21ece71bf78"},
+    {file = "actingweb-3.0.1.tar.gz", hash = "sha256:557792f5590fc272f0113881f948021dd5e5e58aad984433c52c1e4508cfa09a"},
+]
 
 [package.dependencies]
-boto3 = "^1.26.0"
-pynamodb = "^6.0.0"
-typing-extensions = "^4.0.0"
-urlfetch = "^1.0.2"
+boto3 = ">=1.26.0,<2.0.0"
+pynamodb = ">=6.0.0,<7.0.0"
+typing-extensions = ">=4.0.0,<5.0.0"
+urlfetch = ">=1.0.2,<2.0.0"
 
 [package.source]
-type = "directory"
-url = "../actingweb"
+type = "legacy"
+url = "https://test.pypi.org/simple"
+reference = "testpypi"
 
 [[package]]
 name = "blinker"
@@ -34,18 +37,18 @@ files = [
 
 [[package]]
 name = "boto3"
-version = "1.39.4"
+version = "1.39.7"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "boto3-1.39.4-py3-none-any.whl", hash = "sha256:f8e9534b429121aa5c5b7c685c6a94dd33edf14f87926e9a182d5b50220ba284"},
-    {file = "boto3-1.39.4.tar.gz", hash = "sha256:6c955729a1d70181bc8368e02a7d3f350884290def63815ebca8408ee6d47571"},
+    {file = "boto3-1.39.7-py3-none-any.whl", hash = "sha256:c8c0e11fff7bb85f903b860b6bfd4f509a4d749decf38bb6a409ffe5d6eb0c91"},
+    {file = "boto3-1.39.7.tar.gz", hash = "sha256:28daeb005e3381808e0e12995056ee8951056ddd43506c07482a15b40ae785b0"},
 ]
 
 [package.dependencies]
-botocore = ">=1.39.4,<1.40.0"
+botocore = ">=1.39.7,<1.40.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.13.0,<0.14.0"
 
@@ -54,14 +57,14 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.39.4"
+version = "1.39.7"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "botocore-1.39.4-py3-none-any.whl", hash = "sha256:c41e167ce01cfd1973c3fa9856ef5244a51ddf9c82cb131120d8617913b6812a"},
-    {file = "botocore-1.39.4.tar.gz", hash = "sha256:e662ac35c681f7942a93f2ec7b4cde8f8b56dd399da47a79fa3e370338521a56"},
+    {file = "botocore-1.39.7-py3-none-any.whl", hash = "sha256:1d11ba9f3cb46856bb541ed010db160093201a224d21ef854249513ae3af7e77"},
+    {file = "botocore-1.39.7.tar.gz", hash = "sha256:431e342ef97ecb387cea9df1ae8c4e0edc1b0c9c50d2e121cca77699f24f8dc1"},
 ]
 
 [package.dependencies]
@@ -384,4 +387,4 @@ watchdog = ["watchdog (>=2.3)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "0edc7370d74cef7f78332c0c8f5e05166b9269c785181ee93268cc5ce8f9a1e1"
+content-hash = "426e8af1f74b2ad71444ffa28449c8e9c56445974acd515704eff39ef6d7afae"
