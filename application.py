@@ -19,24 +19,22 @@ logging.basicConfig(stream=sys.stderr, level=os.getenv("LOG_LEVEL", "INFO"))
 LOG = logging.getLogger()
 LOG.setLevel(os.getenv("LOG_LEVEL", "INFO"))
 
-# Create Flask app
-flask_app = Flask(__name__, static_url_path="/static")
-
 # Create ActingWeb app with fluent configuration
-app = (
+aw_app = (
     ActingWebApp(
         aw_type="urn:actingweb:actingweb.org:actingwebdemo",
         database="dynamodb",
         fqdn=os.getenv("APP_HOST_FQDN", "greger.ngrok.io"),
         proto=os.getenv("APP_HOST_PROTOCOL", "https://"),
     )
-    .with_oauth(
-        client_id=os.getenv("APP_OAUTH_ID", ""),
-        client_secret=os.getenv("APP_OAUTH_KEY", ""),
-        scope="",
-        auth_uri="https://api.actingweb.net/v1/authorize",
-        token_uri="https://api.actingweb.net/v1/access_token",
-    )
+    # OAuth disabled for testing - uncomment to enable:
+    # .with_oauth(
+    #     client_id=os.getenv("APP_OAUTH_ID", ""),
+    #     client_secret=os.getenv("APP_OAUTH_KEY", ""),
+    #     scope="",
+    #     auth_uri="https://api.actingweb.net/v1/authorize",
+    #     token_uri="https://api.actingweb.net/v1/access_token",
+    # )
     .with_web_ui(enable=True)
     .with_devtest(enable=True)  # Set to False in production
     .with_bot(
@@ -60,10 +58,10 @@ PROP_PROTECT = PROP_HIDE + []
 
 
 # Actor factory
-@app.actor_factory
+@aw_app.actor_factory
 def create_actor(creator: str, **kwargs) -> ActorInterface:
     """Create a new actor instance with default properties."""
-    actor = ActorInterface.create(creator=creator, config=app.get_config())
+    actor = ActorInterface.create(creator=creator, config=aw_app.get_config())
 
     # Initialize actor properties
     if actor.properties is not None:
@@ -75,7 +73,7 @@ def create_actor(creator: str, **kwargs) -> ActorInterface:
 
 
 # Property hooks for access control and validation
-@app.property_hook("email")
+@aw_app.property_hook("email")
 def handle_email_property(actor: ActorInterface, operation: str, value: Any, path: List[str]) -> Optional[Any]:
     """Handle email property with access control."""
     if operation == "get":
@@ -97,7 +95,7 @@ def handle_email_property(actor: ActorInterface, operation: str, value: Any, pat
     return value
 
 
-@app.property_hook("*")
+@aw_app.property_hook("*")
 def handle_all_properties(actor: ActorInterface, operation: str, value: Any, path: List[str]) -> Optional[Any]:
     """Handle all properties with general validation."""
     if not path:
@@ -130,12 +128,12 @@ def handle_all_properties(actor: ActorInterface, operation: str, value: Any, pat
 
 
 # Application-level callback hooks (no actor context)
-@app.app_callback_hook("bot")
+@aw_app.app_callback_hook("bot")
 def handle_bot_callback(data: Dict[str, Any]) -> bool:
     """Handle bot callbacks (application-level, no actor context)."""
     if data.get("method") == "POST":
         # Safety valve - make sure bot is configured
-        config = app.get_config()
+        config = aw_app.get_config()
         if not config or not config.bot or not config.bot.get("token") or len(config.bot.get("token", "")) == 0:
             return False
 
@@ -145,7 +143,7 @@ def handle_bot_callback(data: Dict[str, Any]) -> bool:
     return False
 
 
-@app.callback_hook("ping")
+@aw_app.callback_hook("ping")
 def handle_ping_callback(actor: ActorInterface, name: str, data: Dict[str, Any]) -> Union[Dict[str, Any], bool]:
     """Handle ping callback for health checks."""
     if data.get("method") == "GET":
@@ -153,7 +151,7 @@ def handle_ping_callback(actor: ActorInterface, name: str, data: Dict[str, Any])
     return False
 
 
-@app.callback_hook("status")
+@aw_app.callback_hook("status")
 def handle_status_callback(actor: ActorInterface, name: str, data: Dict[str, Any]) -> Union[Dict[str, Any], bool]:
     """Handle status callback."""
     if data.get("method") == "GET":
@@ -169,7 +167,7 @@ def handle_status_callback(actor: ActorInterface, name: str, data: Dict[str, Any
 
 
 # Subscription hooks
-@app.subscription_hook
+@aw_app.subscription_hook
 def handle_subscription_callback(
     actor: ActorInterface, subscription: Dict[str, Any], peer_id: str, data: Dict[str, Any]
 ) -> bool:
@@ -191,7 +189,7 @@ def handle_subscription_callback(
 
 
 # Lifecycle hooks
-@app.lifecycle_hook("actor_created")
+@aw_app.lifecycle_hook("actor_created")
 def on_actor_created(actor: ActorInterface, **kwargs: Any) -> None:
     """Handle actor creation."""
     LOG.info(f"New actor created: {actor.id} for {actor.creator}")
@@ -202,7 +200,7 @@ def on_actor_created(actor: ActorInterface, **kwargs: Any) -> None:
         actor.properties.interface_version = "modern"
 
 
-@app.lifecycle_hook("actor_deleted")
+@aw_app.lifecycle_hook("actor_deleted")
 def on_actor_deleted(actor: ActorInterface, **kwargs: Any) -> None:
     """Handle actor deletion."""
     LOG.info(f"Actor {actor.id} is being deleted")
@@ -211,7 +209,7 @@ def on_actor_deleted(actor: ActorInterface, **kwargs: Any) -> None:
     # The framework handles standard cleanup automatically
 
 
-@app.lifecycle_hook("oauth_success")
+@aw_app.lifecycle_hook("oauth_success")
 def on_oauth_success(actor: ActorInterface, **kwargs: Any) -> bool:
     """Handle OAuth success."""
     LOG.info(f"OAuth successful for actor {actor.id}")
@@ -224,7 +222,7 @@ def on_oauth_success(actor: ActorInterface, **kwargs: Any) -> bool:
 
 
 # Resource hooks (custom endpoints)
-@app.callback_hook("resource_demo")
+@aw_app.callback_hook("resource_demo")
 def handle_demo_resource(actor: ActorInterface, name: str, data: Dict[str, Any]) -> Union[Dict[str, Any], bool]:
     """Handle demo resource endpoint."""
     method = data.get("method", "GET")
@@ -239,7 +237,7 @@ def handle_demo_resource(actor: ActorInterface, name: str, data: Dict[str, Any])
 
 
 # WWW path hooks
-@app.callback_hook("www")
+@aw_app.callback_hook("www")
 def handle_www_paths(actor: ActorInterface, name: str, data: Dict[str, Any]) -> Union[Dict[str, Any], bool]:
     """Handle custom www paths."""
     path = data.get("path", "")
@@ -248,9 +246,9 @@ def handle_www_paths(actor: ActorInterface, name: str, data: Dict[str, Any]) -> 
         return {
             "template": "demo.html",
             "data": {
-                "actor_id": actor.id, 
-                "creator": actor.creator, 
-                "properties": actor.properties.to_dict() if actor.properties is not None else {}
+                "actor_id": actor.id,
+                "creator": actor.creator,
+                "properties": actor.properties.to_dict() if actor.properties is not None else {},
             },
         }
 
@@ -258,14 +256,14 @@ def handle_www_paths(actor: ActorInterface, name: str, data: Dict[str, Any]) -> 
 
 
 # Method hooks for RPC-style function calls
-@app.method_hook("calculate")
+@aw_app.method_hook("calculate")
 def handle_calculate_method(actor: ActorInterface, method_name: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """Handle calculate method with JSON-RPC support."""
     try:
         a = data.get("a", 0)
         b = data.get("b", 0)
         operation = data.get("operation", "add")
-        
+
         if operation == "add":
             result = a + b
         elif operation == "subtract":
@@ -278,126 +276,118 @@ def handle_calculate_method(actor: ActorInterface, method_name: str, data: Dict[
             result = a / b
         else:
             return None  # Unsupported operation
-            
+
         return {"result": result, "operation": operation}
     except (TypeError, ValueError):
         return None
 
 
-@app.method_hook("greet")
+@aw_app.method_hook("greet")
 def handle_greet_method(actor: ActorInterface, method_name: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """Handle greet method with personalized greeting."""
     name = data.get("name", "World")
     actor_id = actor.id if actor else "unknown"
-    
-    return {
-        "greeting": f"Hello, {name}! This is actor {actor_id}.",
-        "timestamp": datetime.now().isoformat()
-    }
+
+    return {"greeting": f"Hello, {name}! This is actor {actor_id}.", "timestamp": datetime.now().isoformat()}
 
 
-@app.method_hook("get_status")
+@aw_app.method_hook("get_status")
 def handle_get_status_method(actor: ActorInterface, method_name: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """Handle get_status method to return actor status."""
     if not actor:
         return None
-        
+
     return {
         "actor_id": actor.id,
         "creator": actor.creator,
         "status": "active",
         "properties_count": len(actor.properties.to_dict()) if actor.properties is not None else 0,
         "trust_relationships": len(actor.trust.relationships),
-        "subscriptions": len(actor.subscriptions.all_subscriptions)
+        "subscriptions": len(actor.subscriptions.all_subscriptions),
     }
 
 
 # Action hooks for trigger-based functionality
-@app.action_hook("log_message")
-def handle_log_message_action(actor: ActorInterface, action_name: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+@aw_app.action_hook("log_message")
+def handle_log_message_action(
+    actor: ActorInterface, action_name: str, data: Dict[str, Any]
+) -> Optional[Dict[str, Any]]:
     """Handle log_message action to log a message."""
     message = data.get("message", "")
     level = data.get("level", "info").upper()
-    
+
     if level == "ERROR":
         LOG.error(f"Actor {actor.id if actor else 'unknown'}: {message}")
     elif level == "WARNING":
         LOG.warning(f"Actor {actor.id if actor else 'unknown'}: {message}")
     else:
         LOG.info(f"Actor {actor.id if actor else 'unknown'}: {message}")
-    
-    return {
-        "status": "logged",
-        "message": message,
-        "level": level,
-        "timestamp": datetime.now().isoformat()
-    }
+
+    return {"status": "logged", "message": message, "level": level, "timestamp": datetime.now().isoformat()}
 
 
-@app.action_hook("update_status")
-def handle_update_status_action(actor: ActorInterface, action_name: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+@aw_app.action_hook("update_status")
+def handle_update_status_action(
+    actor: ActorInterface, action_name: str, data: Dict[str, Any]
+) -> Optional[Dict[str, Any]]:
     """Handle update_status action to update actor status."""
     if not actor:
         return None
-        
+
     status = data.get("status", "active")
     timestamp = datetime.now().isoformat()
-    
+
     # Update actor properties
     if actor.properties is not None:
         actor.properties.status = status
         actor.properties.last_update = timestamp
-    
-    return {
-        "status": "updated",
-        "new_status": status,
-        "timestamp": timestamp,
-        "actor_id": actor.id
-    }
+
+    return {"status": "updated", "new_status": status, "timestamp": timestamp, "actor_id": actor.id}
 
 
-@app.action_hook("send_notification")
-def handle_send_notification_action(actor: ActorInterface, action_name: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+@aw_app.action_hook("send_notification")
+def handle_send_notification_action(
+    actor: ActorInterface, action_name: str, data: Dict[str, Any]
+) -> Optional[Dict[str, Any]]:
     """Handle send_notification action (simulated)."""
     recipient = data.get("recipient", "")
     message = data.get("message", "")
     notification_type = data.get("type", "email")
-    
+
     # Simulate sending notification
     success = bool(recipient and message)
-    
+
     # Log the notification
     LOG.info(f"Sending {notification_type} notification to {recipient}: {message}")
-    
+
     return {
         "status": "sent" if success else "failed",
         "recipient": recipient,
         "message": message,
         "type": notification_type,
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     }
 
 
-# Integrate with Flask
-integration = app.integrate_flask(flask_app)
-
-# For serverless deployment, export the Flask app
-app = flask_app
-
+# Create Flask app
+app = Flask(__name__, static_url_path="/static")
 
 # Custom error handlers
-@flask_app.errorhandler(404)
+@app.errorhandler(404)
 def not_found(error):
     return {"error": "Not found"}, 404
 
 
-@flask_app.errorhandler(500)
+@app.errorhandler(500)
 def internal_error(error):
     return {"error": "Internal server error"}, 500
 
 
+# Integrate with Flask
+integration = aw_app.integrate_flask(app)
+
 if __name__ == "__main__":
-    LOG.info("Starting ActingWeb Demo with modern interface...")
+    LOG.info("Starting ActingWeb Demo...")
 
     # Run in development mode
-    flask_app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
