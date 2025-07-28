@@ -166,6 +166,23 @@ def handle_status_callback(actor: ActorInterface, name: str, data: Dict[str, Any
     return False
 
 
+@aw_app.callback_hook("subscription")
+def handle_subscription_callback_hook(actor: ActorInterface, name: str, data: Dict[str, Any]) -> bool:
+    """Handle subscription callbacks."""
+    LOG.info(f"Subscription callback for actor {actor.id}: {data}")
+    
+    # Extract subscription info from the data
+    subscription = data.get("subscription", {})
+    peerid = data.get("peerid", "")
+    
+    # Process the subscription callback directly
+    LOG.debug(f"Processing subscription callback from peer {peerid}: {data}")
+    
+    # Here you would implement the actual subscription callback logic
+    # For now, just log and return success
+    return True
+
+
 # Subscription hooks
 @aw_app.subscription_hook
 def handle_subscription_callback(
