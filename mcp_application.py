@@ -111,169 +111,453 @@ def create_actor(creator: str, **kwargs) -> ActorInterface:
 
 
 # =============================================================================
-# MCP-EXPOSED ACTIONS (Tools)
+# MCP-EXPOSED ACTIONS (Tools) - Simplified to Search and Fetch per OpenAI docs
 # =============================================================================
 
-@app.action_hook("send_notification")
+@app.action_hook("search")
 @mcp_tool(
-    description="Send a notification message to the user with priority level",
+    description="Search through stored data including notes, reminders, and other user information",
     input_schema={
         "type": "object",
         "properties": {
-            "message": {
+            "query": {
                 "type": "string",
-                "description": "The notification message to send"
+                "description": "Search query to match against titles, content, tags, or other text fields"
+            },
+            "type": {
+                "type": "string",
+                "enum": ["all", "notes", "reminders", "properties"],
+                "description": "Type of data to search through",
+                "default": "all"
+            },
+            "limit": {
+                "type": "integer",
+                "description": "Maximum number of results to return",
+                "default": 10,
+                "minimum": 1,
+                "maximum": 50
+            }
+        },
+        "required": ["query"]
+    }
+)
+def handle_search(actor: ActorInterface, action_name: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    """Search through all stored data - primary search functionality for MCP clients."""
+    query = data.get("query", "").strip().lower()
+    search_type = data.get("type", "all")
+    limit = min(data.get("limit", 10), 50)
+    
+    if not query:
+        return {"error": "Search query cannot be empty"}
+    
+    # Increment MCP usage counter
+    actor.properties.mcp_usage_count = actor.properties.get("mcp_usage_count", 0) + 1
+    
+    results = []
+    
+    # Search notes
+    if search_type in ["all", "notes"]:
+        notes = actor.properties.get("notes", [])
+        for note in notes:
+            # Check if query matches title, content, or tags
+            title_match = query in note.get("title", "").lower()
+            content_match = query in note.get("content", "").lower()
+            tag_match = any(query in tag.lower() for tag in note.get("tags", []))
+            
+            if title_match or content_match or tag_match:
+                results.append({
+                    "type": "note",
+                    "id": note.get("id"),
+                    "title": note.get("title"),
+                    "content": note.get("content")[:200] + "..." if len(note.get("content", "")) > 200 else note.get("content"),
+                    "tags": note.get("tags", []),
+                    "priority": note.get("priority"),
+                    "created_at": note.get("created_at")
+                })
+    
+    # Search reminders
+    if search_type in ["all", "reminders"]:
+        reminders = actor.properties.get("reminders", [])
+        for reminder in reminders:
+            # Check if query matches title or description
+            title_match = query in reminder.get("title", "").lower()
+            desc_match = query in reminder.get("description", "").lower()
+            
+            if title_match or desc_match:
+                results.append({
+                    "type": "reminder",
+                    "id": reminder.get("id"),
+                    "title": reminder.get("title"),
+                    "description": reminder.get("description"),
+                    "due_date": reminder.get("due_date"),
+                    "priority": reminder.get("priority"),
+                    "category": reminder.get("category"),
+                    "completed": reminder.get("completed", False),
+                    "created_at": reminder.get("created_at")
+                })
+    
+    # Search other properties
+    if search_type in ["all", "properties"]:
+        # Search through other stored properties for matches
+        for key, value in actor.properties.get("custom_data", {}).items():
+            if isinstance(value, str) and query in value.lower():
+                results.append({
+                    "type": "property",
+                    "key": key,
+                    "value": value[:200] + "..." if len(str(value)) > 200 else str(value)
+                })
+    
+    # Limit results
+    results = results[:limit]
+    
+    logger.info(f"MCP Tool: Found {len(results)} items matching '{query}' in {search_type}")
+    
+    return {
+        "status": "success",
+        "query": query,
+        "search_type": search_type,
+        "results": results,
+        "total_found": len(results)
+    }
+
+
+@app.action_hook("fetch")
+@mcp_tool(
+    description="Fetch specific items by ID or retrieve collections of data",
+    input_schema={
+        "type": "object",
+        "properties": {
+            "type": {
+                "type": "string",
+                "enum": ["note", "reminder", "notes_all", "reminders_all", "stats", "recent"],
+                "description": "Type of data to fetch"
+            },
+            "id": {
+                "type": "integer",
+                "description": "Specific ID to fetch (required for 'note' and 'reminder' types)"
+            },
+            "limit": {
+                "type": "integer",
+                "description": "Maximum number of items to return for collection fetches",
+                "default": 20,
+                "minimum": 1,
+                "maximum": 100
+            },
+            "filter": {
+                "type": "object",
+                "description": "Optional filters for collection fetches",
+                "properties": {
+                    "completed": {"type": "boolean", "description": "Filter reminders by completion status"},
+                    "priority": {"type": "string", "enum": ["low", "medium", "high", "urgent"], "description": "Filter by priority"},
+                    "tag": {"type": "string", "description": "Filter notes by specific tag"}
+                }
+            }
+        },
+        "required": ["type"]
+    }
+)
+def handle_fetch(actor: ActorInterface, action_name: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    """Fetch specific data items or collections - primary data retrieval for MCP clients."""
+    fetch_type = data.get("type")
+    item_id = data.get("id")
+    limit = min(data.get("limit", 20), 100)
+    filters = data.get("filter", {})
+    
+    # Increment MCP usage counter
+    actor.properties.mcp_usage_count = actor.properties.get("mcp_usage_count", 0) + 1
+    
+    # Fetch specific note
+    if fetch_type == "note":
+        if not item_id:
+            return {"error": "ID is required for fetching specific note"}
+        
+        notes = actor.properties.get("notes", [])
+        note = next((n for n in notes if n.get("id") == item_id), None)
+        
+        if not note:
+            return {"error": f"Note with ID {item_id} not found"}
+        
+        logger.info(f"MCP Tool: Fetched note {item_id}")
+        return {
+            "status": "success",
+            "type": "note",
+            "data": note
+        }
+    
+    # Fetch specific reminder
+    elif fetch_type == "reminder":
+        if not item_id:
+            return {"error": "ID is required for fetching specific reminder"}
+        
+        reminders = actor.properties.get("reminders", [])
+        reminder = next((r for r in reminders if r.get("id") == item_id), None)
+        
+        if not reminder:
+            return {"error": f"Reminder with ID {item_id} not found"}
+        
+        logger.info(f"MCP Tool: Fetched reminder {item_id}")
+        return {
+            "status": "success",
+            "type": "reminder",
+            "data": reminder
+        }
+    
+    # Fetch all notes
+    elif fetch_type == "notes_all":
+        notes = actor.properties.get("notes", [])
+        
+        # Apply tag filter if specified
+        if filters.get("tag"):
+            tag_filter = filters["tag"].lower()
+            notes = [n for n in notes if tag_filter in [t.lower() for t in n.get("tags", [])]]
+        
+        # Apply priority filter if specified
+        if filters.get("priority"):
+            notes = [n for n in notes if n.get("priority") == filters["priority"]]
+        
+        # Limit results
+        notes = notes[:limit]
+        
+        logger.info(f"MCP Tool: Fetched {len(notes)} notes")
+        return {
+            "status": "success",
+            "type": "notes_collection",
+            "data": notes,
+            "total_count": len(notes)
+        }
+    
+    # Fetch all reminders
+    elif fetch_type == "reminders_all":
+        reminders = actor.properties.get("reminders", [])
+        
+        # Apply completion filter if specified
+        if "completed" in filters:
+            reminders = [r for r in reminders if r.get("completed", False) == filters["completed"]]
+        
+        # Apply priority filter if specified
+        if filters.get("priority"):
+            reminders = [r for r in reminders if r.get("priority") == filters["priority"]]
+        
+        # Limit results
+        reminders = reminders[:limit]
+        
+        logger.info(f"MCP Tool: Fetched {len(reminders)} reminders")
+        return {
+            "status": "success",
+            "type": "reminders_collection",
+            "data": reminders,
+            "total_count": len(reminders)
+        }
+    
+    # Fetch usage statistics
+    elif fetch_type == "stats":
+        notes = actor.properties.get("notes", [])
+        reminders = actor.properties.get("reminders", [])
+        mcp_usage = actor.properties.get("mcp_usage_count", 0)
+        
+        # Calculate tag usage
+        tag_counts: Dict[str, int] = {}
+        for note in notes:
+            for tag in note.get("tags", []):
+                tag_counts[tag] = tag_counts.get(tag, 0) + 1
+        
+        stats = {
+            "mcp_usage_count": mcp_usage,
+            "total_notes": len(notes),
+            "total_reminders": len(reminders),
+            "pending_reminders": len([r for r in reminders if not r.get("completed", False)]),
+            "completed_reminders": len([r for r in reminders if r.get("completed", False)]),
+            "most_used_tags": dict(sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)[:10]),
+            "actor_id": actor.id,
+            "created_at": actor.properties.get("created_at", "unknown")
+        }
+        
+        logger.info(f"MCP Tool: Fetched usage statistics")
+        return {
+            "status": "success",
+            "type": "statistics",
+            "data": stats
+        }
+    
+    # Fetch recent items
+    elif fetch_type == "recent":
+        notes = actor.properties.get("notes", [])
+        reminders = actor.properties.get("reminders", [])
+        
+        # Get recent notes (last 5)
+        recent_notes = sorted(notes, key=lambda x: x.get("created_at", ""), reverse=True)[:5]
+        
+        # Get recent reminders (last 5)
+        recent_reminders = sorted(reminders, key=lambda x: x.get("created_at", ""), reverse=True)[:5]
+        
+        logger.info(f"MCP Tool: Fetched recent items")
+        return {
+            "status": "success",
+            "type": "recent_items",
+            "data": {
+                "recent_notes": recent_notes,
+                "recent_reminders": recent_reminders
+            }
+        }
+    
+    else:
+        return {"error": f"Unknown fetch type: {fetch_type}"}
+
+
+@app.action_hook("create_note")
+@mcp_tool(
+    description="Create and store a note with optional tags and priority",
+    input_schema={
+        "type": "object",
+        "properties": {
+            "title": {
+                "type": "string",
+                "description": "The title of the note"
+            },
+            "content": {
+                "type": "string",
+                "description": "The content/body of the note"
+            },
+            "tags": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "Optional tags for categorizing the note",
+                "default": []
             },
             "priority": {
                 "type": "string",
                 "enum": ["low", "medium", "high"],
-                "description": "Priority level of the notification",
+                "description": "Priority level of the note",
+                "default": "medium"
+            }
+        },
+        "required": ["title", "content"]
+    }
+)
+def handle_create_note(actor: ActorInterface, action_name: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    """Create and store a note - useful for ChatGPT to help users capture information."""
+    title = data.get("title", "").strip()
+    content = data.get("content", "").strip()
+    tags = data.get("tags", [])
+    priority = data.get("priority", "medium")
+    
+    if not title or not content:
+        return {"error": "Both title and content are required"}
+    
+    # Increment MCP usage counter
+    actor.properties.mcp_usage_count = actor.properties.get("mcp_usage_count", 0) + 1
+    
+    # Store note in actor properties
+    notes = actor.properties.get("notes", [])
+    note = {
+        "id": len(notes) + 1,
+        "title": title,
+        "content": content,
+        "tags": tags,
+        "priority": priority,
+        "created_at": datetime.now().isoformat(),
+        "updated_at": datetime.now().isoformat()
+    }
+    notes.append(note)
+    actor.properties.notes = notes
+    
+    logger.info(f"MCP Tool: Created note '{title}' with {len(tags)} tags")
+    
+    return {
+        "status": "created",
+        "note_id": note["id"],
+        "title": title,
+        "tags": tags,
+        "priority": priority,
+        "total_notes": len(notes)
+    }
+
+
+@app.action_hook("create_reminder")
+@mcp_tool(
+    description="Create a time-based reminder or task with due date",
+    input_schema={
+        "type": "object",
+        "properties": {
+            "title": {
+                "type": "string",
+                "description": "Title of the reminder or task"
+            },
+            "description": {
+                "type": "string",
+                "description": "Detailed description of what needs to be done"
+            },
+            "due_date": {
+                "type": "string",
+                "description": "Due date in ISO format (YYYY-MM-DD) or natural language"
+            },
+            "priority": {
+                "type": "string",
+                "enum": ["low", "medium", "high", "urgent"],
+                "description": "Priority level of the reminder",
                 "default": "medium"
             },
             "category": {
                 "type": "string",
-                "description": "Category of notification (e.g., 'system', 'user', 'alert')",
-                "default": "user"
+                "description": "Category for organizing reminders (e.g., 'work', 'personal', 'health')",
+                "default": "general"
             }
         },
-        "required": ["message"]
+        "required": ["title", "due_date"]
     }
 )
-def handle_notification(actor: ActorInterface, action_name: str, data: Dict[str, Any]) -> Dict[str, Any]:
-    """Send a notification - exposed as MCP tool."""
-    message = data.get("message", "")
+def handle_create_reminder(actor: ActorInterface, action_name: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    """Create a time-based reminder - useful for ChatGPT to help users manage tasks."""
+    title = data.get("title", "").strip()
+    description = data.get("description", "").strip()
+    due_date = data.get("due_date", "").strip()
     priority = data.get("priority", "medium")
-    category = data.get("category", "user")
+    category = data.get("category", "general")
     
-    # Validate message
-    if not message.strip():
-        return {"error": "Message cannot be empty"}
+    if not title or not due_date:
+        return {"error": "Both title and due_date are required"}
     
     # Increment MCP usage counter
     actor.properties.mcp_usage_count = actor.properties.get("mcp_usage_count", 0) + 1
     
-    # Store notification in actor properties
-    notifications = actor.properties.get("notifications", [])
-    notification = {
-        "id": len(notifications) + 1,
-        "message": message,
+    # Parse due date (simplified - in real app would use dateutil)
+    try:
+        from datetime import datetime
+        # Try to parse ISO format first
+        if due_date.count('-') == 2 and len(due_date) >= 10:
+            parsed_date = datetime.fromisoformat(due_date[:10])
+        else:
+            # For natural language, store as-is for now
+            parsed_date = None
+    except:
+        parsed_date = None
+    
+    # Store reminder in actor properties
+    reminders = actor.properties.get("reminders", [])
+    reminder = {
+        "id": len(reminders) + 1,
+        "title": title,
+        "description": description,
+        "due_date": due_date,
+        "parsed_date": parsed_date.isoformat() if parsed_date else None,
         "priority": priority,
         "category": category,
-        "timestamp": datetime.now().isoformat(),
-        "read": False
+        "completed": False,
+        "created_at": datetime.now().isoformat()
     }
-    notifications.append(notification)
-    actor.properties.notifications = notifications
+    reminders.append(reminder)
+    actor.properties.reminders = reminders
     
-    logger.info(f"MCP Tool: Sent {priority} priority notification: {message}")
+    logger.info(f"MCP Tool: Created {priority} priority reminder '{title}' due {due_date}")
     
     return {
-        "status": "sent",
-        "notification_id": notification["id"],
-        "message": message,
+        "status": "created",
+        "reminder_id": reminder["id"],
+        "title": title,
+        "due_date": due_date,
         "priority": priority,
         "category": category,
-        "total_notifications": len(notifications)
-    }
-
-
-@app.action_hook("set_preference")
-@mcp_tool(
-    description="Set a user preference setting",
-    input_schema={
-        "type": "object",
-        "properties": {
-            "key": {
-                "type": "string",
-                "description": "The preference key"
-            },
-            "value": {
-                "type": "string",
-                "description": "The preference value"
-            },
-            "description": {
-                "type": "string",
-                "description": "Optional description of what this preference does"
-            }
-        },
-        "required": ["key", "value"]
-    }
-)
-def handle_set_preference(actor: ActorInterface, action_name: str, data: Dict[str, Any]) -> Dict[str, Any]:
-    """Set user preference - exposed as MCP tool."""
-    key = data.get("key", "").strip()
-    value = data.get("value", "").strip()
-    description = data.get("description", "")
-    
-    if not key:
-        return {"error": "Preference key cannot be empty"}
-    
-    if not value:
-        return {"error": "Preference value cannot be empty"}
-    
-    # Increment MCP usage counter
-    actor.properties.mcp_usage_count = actor.properties.get("mcp_usage_count", 0) + 1
-    
-    # Store preference in actor properties
-    preferences = actor.properties.get("preferences", {})
-    preferences[key] = {
-        "value": value,
-        "description": description,
-        "updated_at": datetime.now().isoformat()
-    }
-    actor.properties.preferences = preferences
-    
-    logger.info(f"MCP Tool: Set preference {key} = {value}")
-    
-    return {
-        "status": "success",
-        "key": key,
-        "value": value,
-        "description": description,
-        "total_preferences": len(preferences)
-    }
-
-
-@app.action_hook("clear_notifications")
-@mcp_tool(
-    description="Clear all notifications or notifications of a specific priority",
-    input_schema={
-        "type": "object",
-        "properties": {
-            "priority": {
-                "type": "string",
-                "enum": ["low", "medium", "high", "all"],
-                "description": "Priority level to clear, or 'all' for all notifications",
-                "default": "all"
-            }
-        }
-    }
-)
-def handle_clear_notifications(actor: ActorInterface, action_name: str, data: Dict[str, Any]) -> Dict[str, Any]:
-    """Clear notifications - exposed as MCP tool."""
-    priority_filter = data.get("priority", "all")
-    
-    # Increment MCP usage counter
-    actor.properties.mcp_usage_count = actor.properties.get("mcp_usage_count", 0) + 1
-    
-    notifications = actor.properties.get("notifications", [])
-    original_count = len(notifications)
-    
-    if priority_filter == "all":
-        actor.properties.notifications = []
-        cleared_count = original_count
-    else:
-        filtered_notifications = [n for n in notifications if n.get("priority") != priority_filter]
-        actor.properties.notifications = filtered_notifications
-        cleared_count = original_count - len(filtered_notifications)
-    
-    logger.info(f"MCP Tool: Cleared {cleared_count} notifications (filter: {priority_filter})")
-    
-    return {
-        "status": "success",
-        "cleared_count": cleared_count,
-        "remaining_count": len(actor.properties.get("notifications", [])),
-        "priority_filter": priority_filter
+        "total_reminders": len(reminders)
     }
 
 
@@ -281,163 +565,240 @@ def handle_clear_notifications(actor: ActorInterface, action_name: str, data: Di
 # MCP-EXPOSED METHODS (Prompts)
 # =============================================================================
 
-@app.method_hook("generate_greeting")
+@app.method_hook("analyze_notes")
 @mcp_prompt(
-    description="Generate a personalized greeting message",
+    description="Generate an analysis prompt based on stored notes to help find patterns and insights",
     arguments=[
         {
-            "name": "name",
-            "description": "The person's name to greet",
+            "name": "analysis_type",
+            "description": "Type of analysis (summary, trends, actionable_items, priorities)",
             "required": True
         },
         {
-            "name": "style",
-            "description": "Style of greeting (formal, casual, friendly, professional)",
+            "name": "tag_filter",
+            "description": "Optional tag to filter notes for analysis",
             "required": False
         },
         {
-            "name": "time_of_day",
-            "description": "Time of day for context (morning, afternoon, evening)",
+            "name": "time_period",
+            "description": "Time period to analyze (last_week, last_month, all_time)",
             "required": False
         }
     ]
 )
-def handle_greeting_prompt(actor: ActorInterface, method_name: str, data: Dict[str, Any]) -> str:
-    """Generate greeting prompt - exposed as MCP prompt."""
-    name = data.get("name", "there")
-    style = data.get("style", "friendly")
-    time_of_day = data.get("time_of_day", "")
+def handle_analyze_notes_prompt(actor: ActorInterface, method_name: str, data: Dict[str, Any]) -> str:
+    """Generate analysis prompt for stored notes - helps ChatGPT provide insights."""
+    analysis_type = data.get("analysis_type", "summary")
+    tag_filter = data.get("tag_filter", "")
+    time_period = data.get("time_period", "all_time")
     
     # Increment MCP usage counter
     actor.properties.mcp_usage_count = actor.properties.get("mcp_usage_count", 0) + 1
     
-    # Generate time-based greeting if time_of_day is provided
-    time_greeting = ""
-    if time_of_day:
-        time_greetings = {
-            "morning": "Good morning",
-            "afternoon": "Good afternoon", 
-            "evening": "Good evening"
-        }
-        time_greeting = time_greetings.get(time_of_day.lower(), "Hello")
+    # Get notes data for context
+    notes = actor.properties.get("notes", [])
+    note_count = len(notes)
+    
+    # Filter by tag if specified
+    if tag_filter:
+        notes = [n for n in notes if tag_filter.lower() in [tag.lower() for tag in n.get("tags", [])]]
+    
+    # Generate analysis prompt based on type
+    if analysis_type == "summary":
+        prompt = f"Please analyze and summarize the following {len(notes)} notes"
+        if tag_filter:
+            prompt += f" tagged with '{tag_filter}'"
+        prompt += f" from {time_period.replace('_', ' ')}. Provide key themes, main topics discussed, and overall patterns you observe.\n\n"
+    
+    elif analysis_type == "trends":
+        prompt = f"Analyze the following {len(notes)} notes for trends and patterns"
+        if tag_filter:
+            prompt += f" in the '{tag_filter}' category"
+        prompt += f". Look for recurring themes, evolving ideas, and progression of thoughts over time.\n\n"
+    
+    elif analysis_type == "actionable_items":
+        prompt = f"Review the following {len(notes)} notes and extract actionable items, tasks, and next steps that should be prioritized. Format as a prioritized list with explanations.\n\n"
+    
+    elif analysis_type == "priorities":
+        prompt = f"Analyze the following {len(notes)} notes to identify the most important and urgent items. Help prioritize what should be focused on first.\n\n"
+    
     else:
-        time_greeting = "Hello"
+        prompt = f"Please analyze the following {len(notes)} notes and provide insights:\n\n"
     
-    # Generate style-based greeting
-    if style == "formal":
-        greeting = f"{time_greeting}, {name}. I hope you are well today."
-    elif style == "casual":
-        greeting = f"Hey {name}! What's up?"
-    elif style == "professional":
-        greeting = f"{time_greeting}, {name}. Thank you for connecting with us."
-    else:  # friendly (default)
-        greeting = f"{time_greeting} {name}! Nice to meet you!"
+    # Add note data to prompt
+    for i, note in enumerate(notes[:10], 1):  # Limit to 10 notes to avoid too long prompts
+        prompt += f"Note {i}:\n"
+        prompt += f"Title: {note.get('title', 'Untitled')}\n"
+        prompt += f"Content: {note.get('content', '')}\n"
+        prompt += f"Tags: {', '.join(note.get('tags', []))}\n"
+        prompt += f"Priority: {note.get('priority', 'medium')}\n\n"
     
-    logger.info(f"MCP Prompt: Generated {style} greeting for {name}")
+    if len(notes) > 10:
+        prompt += f"... and {len(notes) - 10} more notes with similar content patterns.\n\n"
     
-    return greeting
-
-
-@app.method_hook("create_task_list")
-@mcp_prompt(
-    description="Create a task list prompt based on project requirements",
-    arguments=[
-        {
-            "name": "project_name", 
-            "description": "Name of the project",
-            "required": True
-        },
-        {
-            "name": "task_count",
-            "description": "Number of tasks to generate (1-20)",
-            "required": False
-        },
-        {
-            "name": "priority_level",
-            "description": "Priority level for tasks (low, medium, high)",
-            "required": False
-        },
-        {
-            "name": "deadline",
-            "description": "Project deadline for context",
-            "required": False
-        }
-    ]
-)
-def handle_task_list_prompt(actor: ActorInterface, method_name: str, data: Dict[str, Any]) -> str:
-    """Generate task list prompt - exposed as MCP prompt."""
-    project_name = data.get("project_name", "Unnamed Project")
-    task_count = min(max(int(data.get("task_count", 5)), 1), 20)  # Limit 1-20
-    priority_level = data.get("priority_level", "medium")
-    deadline = data.get("deadline", "")
+    prompt += f"Based on this data, please provide a {analysis_type} analysis with specific insights and recommendations."
     
-    # Increment MCP usage counter
-    actor.properties.mcp_usage_count = actor.properties.get("mcp_usage_count", 0) + 1
-    
-    prompt = f"Create a comprehensive task list for the project '{project_name}' with {task_count} tasks. "
-    prompt += f"Each task should be {priority_level} priority, specific, actionable, and have a clear outcome. "
-    
-    if deadline:
-        prompt += f"Consider the project deadline of {deadline} when structuring tasks. "
-    
-    prompt += "Format the tasks as a numbered list with brief descriptions and estimated time requirements. "
-    prompt += "Include any dependencies between tasks and suggest a logical order of execution."
-    
-    logger.info(f"MCP Prompt: Generated task list prompt for {project_name}")
+    logger.info(f"MCP Prompt: Generated {analysis_type} analysis for {len(notes)} notes")
     
     return prompt
 
 
-@app.method_hook("generate_status_report")
+@app.method_hook("create_learning_prompt")
 @mcp_prompt(
-    description="Generate a status report prompt based on actor state",
+    description="Generate a learning-focused prompt to help understand or research a topic",
     arguments=[
         {
-            "name": "report_type",
-            "description": "Type of report (daily, weekly, project, system)",
+            "name": "topic", 
+            "description": "The topic or subject to learn about",
+            "required": True
+        },
+        {
+            "name": "learning_style",
+            "description": "Preferred learning approach (beginner, intermediate, advanced, practical, theoretical)",
             "required": False
         },
         {
-            "name": "include_metrics",
-            "description": "Whether to include usage metrics",
+            "name": "focus_area",
+            "description": "Specific aspect to focus on (overview, implementation, best_practices, troubleshooting)",
+            "required": False
+        },
+        {
+            "name": "format",
+            "description": "Preferred response format (explanation, tutorial, examples, comparison)",
             "required": False
         }
     ]
 )
-def handle_status_report_prompt(actor: ActorInterface, method_name: str, data: Dict[str, Any]) -> str:
-    """Generate status report prompt - exposed as MCP prompt."""
-    report_type = data.get("report_type", "daily")
-    include_metrics = data.get("include_metrics", "true").lower() == "true"
+def handle_learning_prompt(actor: ActorInterface, method_name: str, data: Dict[str, Any]) -> str:
+    """Generate learning-focused prompt - helps ChatGPT provide educational content."""
+    topic = data.get("topic", "").strip()
+    learning_style = data.get("learning_style", "beginner")
+    focus_area = data.get("focus_area", "overview")
+    format_type = data.get("format", "explanation")
+    
+    if not topic:
+        return "Please provide a topic to learn about."
     
     # Increment MCP usage counter
     actor.properties.mcp_usage_count = actor.properties.get("mcp_usage_count", 0) + 1
     
-    # Gather actor statistics
-    notifications = actor.properties.get("notifications", [])
-    preferences = actor.properties.get("preferences", {})
-    mcp_usage = actor.properties.get("mcp_usage_count", 0)
-    created_at = actor.properties.get("created_at", "unknown")
+    # Build learning prompt based on parameters
+    prompt = f"I want to learn about {topic} at a {learning_style} level"
     
-    prompt = f"Generate a {report_type} status report for actor {actor.id}. "
-    prompt += f"The actor was created at {created_at} and has {len(notifications)} notifications "
-    prompt += f"and {len(preferences)} user preferences configured. "
+    if focus_area == "overview":
+        prompt += f". Please provide a comprehensive overview covering the key concepts, fundamentals, and why this topic is important."
+    elif focus_area == "implementation":
+        prompt += f". Focus on practical implementation details, step-by-step processes, and hands-on aspects."
+    elif focus_area == "best_practices":
+        prompt += f". Emphasize best practices, common patterns, and recommendations from experts in the field."
+    elif focus_area == "troubleshooting":
+        prompt += f". Focus on common problems, debugging techniques, and solutions to typical challenges."
+    else:
+        prompt += f" with a focus on {focus_area}."
     
-    if include_metrics:
-        prompt += f"MCP usage count is {mcp_usage}. "
-        
-        # Add notification breakdown
-        if notifications:
-            priority_counts: Dict[str, int] = {}
-            for notif in notifications:
-                priority = notif.get("priority", "unknown")
-                priority_counts[priority] = priority_counts.get(priority, 0) + 1
-            
-            prompt += f"Notification breakdown: {dict(priority_counts)}. "
+    if format_type == "tutorial":
+        prompt += " Present this as a step-by-step tutorial with clear instructions."
+    elif format_type == "examples":
+        prompt += " Include plenty of concrete examples and code samples where applicable."
+    elif format_type == "comparison":
+        prompt += " Compare different approaches, tools, or methods related to this topic."
+    else:
+        prompt += f" Present this as a clear {format_type} with practical insights."
     
-    prompt += "Format as a professional report with sections for Overview, Current Status, "
-    prompt += "Key Metrics (if requested), and Recommendations for improvement."
+    prompt += f" Please structure your response to be educational and actionable for someone at the {learning_style} level."
     
-    logger.info(f"MCP Prompt: Generated {report_type} status report prompt")
+    logger.info(f"MCP Prompt: Generated {learning_style} learning prompt for '{topic}'")
+    
+    return prompt
+
+
+@app.method_hook("create_meeting_prep")
+@mcp_prompt(
+    description="Generate a meeting preparation prompt based on agenda and participant info",
+    arguments=[
+        {
+            "name": "meeting_title",
+            "description": "Title or subject of the meeting",
+            "required": True
+        },
+        {
+            "name": "meeting_type",
+            "description": "Type of meeting (standup, review, planning, brainstorm, presentation)",
+            "required": False
+        },
+        {
+            "name": "participants",
+            "description": "List of participants or roles involved",
+            "required": False
+        },
+        {
+            "name": "duration",
+            "description": "Expected meeting duration (e.g., '30 minutes', '1 hour')",
+            "required": False
+        },
+        {
+            "name": "key_topics",
+            "description": "Main topics or agenda items to cover",
+            "required": False
+        }
+    ]
+)
+def handle_meeting_prep_prompt(actor: ActorInterface, method_name: str, data: Dict[str, Any]) -> str:
+    """Generate meeting preparation prompt - helps ChatGPT create meeting agendas and prep materials."""
+    meeting_title = data.get("meeting_title", "").strip()
+    meeting_type = data.get("meeting_type", "general")
+    participants = data.get("participants", "").strip()
+    duration = data.get("duration", "1 hour")
+    key_topics = data.get("key_topics", "").strip()
+    
+    if not meeting_title:
+        return "Please provide a meeting title to generate preparation materials."
+    
+    # Increment MCP usage counter
+    actor.properties.mcp_usage_count = actor.properties.get("mcp_usage_count", 0) + 1
+    
+    # Get relevant notes and reminders for context
+    notes = actor.properties.get("notes", [])
+    reminders = actor.properties.get("reminders", [])
+    
+    # Build meeting prep prompt
+    prompt = f"Help me prepare for a {meeting_type} meeting titled '{meeting_title}'"
+    
+    if duration:
+        prompt += f" scheduled for {duration}"
+    
+    if participants:
+        prompt += f" with participants: {participants}"
+    
+    prompt += ". Please provide:\n\n"
+    
+    prompt += "1. **Suggested Agenda Structure**: Create a time-based agenda appropriate for a {meeting_type} meeting\n"
+    prompt += "2. **Key Discussion Points**: Important topics that should be covered\n"
+    prompt += "3. **Preparation Checklist**: What should be prepared beforehand\n"
+    prompt += "4. **Success Criteria**: How to measure if the meeting was successful\n"
+    
+    if key_topics:
+        prompt += f"\nSpecific topics to include: {key_topics}\n"
+    
+    # Add context from stored information
+    if notes:
+        relevant_notes = [n for n in notes[-5:] if any(word in n.get('content', '').lower() 
+                                                     for word in meeting_title.lower().split())]
+        if relevant_notes:
+            prompt += f"\nRelevant context from recent notes:\n"
+            for note in relevant_notes:
+                prompt += f"- {note.get('title', 'Untitled')}: {note.get('content', '')[:100]}...\n"
+    
+    if reminders:
+        relevant_reminders = [r for r in reminders if not r.get('completed', False)]
+        if relevant_reminders:
+            prompt += f"\nOpen reminders that might be relevant:\n"
+            for reminder in relevant_reminders[-3:]:
+                prompt += f"- {reminder.get('title', '')}: {reminder.get('due_date', '')}\n"
+    
+    prompt += f"\nPlease tailor the meeting preparation specifically for a {meeting_type} format with {duration} duration."
+    
+    logger.info(f"MCP Prompt: Generated meeting prep for '{meeting_title}' ({meeting_type})")
     
     return prompt
 
@@ -607,8 +968,8 @@ async def mcp_info():
             "token_url": "https://oauth2.googleapis.com/token"
         },
         "supported_features": ["tools", "prompts"],
-        "tools_count": 3,  # send_notification, set_preference, clear_notifications
-        "prompts_count": 3,  # generate_greeting, create_task_list, generate_status_report
+        "tools_count": 4,  # search, fetch, create_note, create_reminder
+        "prompts_count": 3,  # analyze_notes, create_learning_prompt, create_meeting_prep
         "actor_lookup": "email_based",
         "description": "ActingWeb MCP Demo - AI can interact with actors through MCP protocol using Google OAuth2"
     }
