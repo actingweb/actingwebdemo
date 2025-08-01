@@ -14,6 +14,16 @@ from flask import Flask
 from actingweb.interface import ActingWebApp, ActorInterface
 from typing import Any, Dict, Optional, List, Union
 
+# Add shared functionality to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "shared_mcp"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "shared_hooks"))
+
+# MCP integration imports
+from shared_mcp import register_all_common_mcp_functionality
+
+# Shared hooks imports
+from shared_hooks import register_all_shared_hooks
+
 # Configure logging
 logging.basicConfig(stream=sys.stderr, level=os.getenv("LOG_LEVEL", "INFO"))
 LOG = logging.getLogger()
@@ -27,14 +37,18 @@ aw_app = (
         fqdn=os.getenv("APP_HOST_FQDN", "greger.ngrok.io"),
         proto=os.getenv("APP_HOST_PROTOCOL", "https://"),
     )
-    # OAuth disabled for testing - uncomment to enable:
-    # .with_oauth(
-    #     client_id=os.getenv("APP_OAUTH_ID", ""),
-    #     client_secret=os.getenv("APP_OAUTH_KEY", ""),
-    #     scope="",
-    #     auth_uri="https://api.actingweb.net/v1/authorize",
-    #     token_uri="https://api.actingweb.net/v1/access_token",
-    # )
+    # OAuth2 configuration - supports Google and GitHub providers via the new authentication system
+    .with_oauth(
+        client_id=os.getenv(
+            "OAUTH_CLIENT_ID",
+            os.getenv("APP_OAUTH_ID", ""),
+        ),
+        client_secret=os.getenv("OAUTH_CLIENT_SECRET", os.getenv("APP_OAUTH_KEY", "")),
+        scope=os.getenv("OAUTH_SCOPE", "openid email profile"),  # Default to Google scopes
+        auth_uri=os.getenv("OAUTH_AUTH_URI", "https://accounts.google.com/o/oauth2/v2/auth"),
+        token_uri=os.getenv("OAUTH_TOKEN_URI", "https://oauth2.googleapis.com/token"),
+        redirect_uri=f"{os.getenv('APP_HOST_PROTOCOL', 'https://')}{os.getenv('APP_HOST_FQDN', 'greger.ngrok.io')}/oauth/callback",
+    )
     .with_web_ui(enable=True)
     .with_devtest(enable=True)  # Set to False in production
     .with_bot(
@@ -43,14 +57,20 @@ aw_app = (
         secret=os.getenv("APP_BOT_SECRET", ""),
         admin_room=os.getenv("APP_BOT_ADMIN_ROOM", ""),
     )
-    .with_unique_creator(enable=False)
-    .with_email_as_creator(enable=False)
+    .with_unique_creator(enable=True)
+    .with_email_as_creator(enable=True)
     .add_actor_type(
         name="myself",
         factory=f"{os.getenv('APP_HOST_PROTOCOL', 'https://')}{os.getenv('APP_HOST_FQDN', 'greger.ngrok.io')}/",
         relationship="friend",
     )
 )
+
+# Configure OAuth2 provider for the new authentication system
+oauth_provider = os.getenv("OAUTH_PROVIDER", "google")  # "google" or "github"
+if aw_app._oauth_config:  # Only set if OAuth is enabled
+    aw_app.get_config().oauth2_provider = oauth_provider
+    LOG.info(f"OAuth2 provider set to: {oauth_provider}")
 
 # Properties that should be hidden from external access
 PROP_HIDE = ["email"]
@@ -67,327 +87,32 @@ def create_actor(creator: str, **kwargs) -> ActorInterface:
     if actor.properties is not None:
         actor.properties.email = creator
         actor.properties.created_at = str(datetime.now())
-        actor.properties.version = "2.3"
+        actor.properties.version = "2.3-mcp"
+        actor.properties.created_via = "flask-mcp"
+        actor.properties.mcp_enabled = True
+        actor.properties.notifications = []
+        actor.properties.preferences = {}
+        actor.properties.mcp_usage_count = 0
 
     return actor
 
 
-# Property hooks for access control and validation
-@aw_app.property_hook("email")
-def handle_email_property(actor: ActorInterface, operation: str, value: Any, path: List[str]) -> Optional[Any]:
-    """Handle email property with access control."""
-    if operation == "get":
-        # Hide email from external access
-        return None
-    elif operation == "put":
-        # Validate email format
-        if isinstance(value, str) and "@" in value:
-            return value.lower()
-        return None
-    elif operation == "post":
-        # Same validation for POST
-        if isinstance(value, str) and "@" in value:
-            return value.lower()
-        return None
-    elif operation == "delete":
-        # Protect email from deletion
-        return None
-    return value
+# Register MCP functionality
+register_all_common_mcp_functionality(aw_app)
 
-
-@aw_app.property_hook("*")
-def handle_all_properties(actor: ActorInterface, operation: str, value: Any, path: List[str]) -> Optional[Any]:
-    """Handle all properties with general validation."""
-    if not path:
-        return value
-
-    property_name = path[0] if path else ""
-
-    # Apply protection rules
-    if property_name in PROP_PROTECT:
-        if operation == "delete":
-            return None
-        elif operation == "put" and property_name in PROP_HIDE:
-            return None
-        elif operation == "post" and property_name in PROP_HIDE:
-            return None
-
-    # Handle JSON string conversion
-    import json
-
-    if operation in ["put", "post"]:
-        if isinstance(value, str):
-            try:
-                return json.loads(value)
-            except (json.JSONDecodeError, TypeError):
-                return value
-        elif not isinstance(value, dict):
-            return None
-
-    return value
-
-
-# Application-level callback hooks (no actor context)
-@aw_app.app_callback_hook("bot")
-def handle_bot_callback(data: Dict[str, Any]) -> bool:
-    """Handle bot callbacks (application-level, no actor context)."""
-    if data.get("method") == "POST":
-        # Safety valve - make sure bot is configured
-        config = aw_app.get_config()
-        if not config or not config.bot or not config.bot.get("token") or len(config.bot.get("token", "")) == 0:
-            return False
-
-        # Process bot request
-        LOG.debug("Bot callback received")
-        return True
-    return False
-
-
-@aw_app.callback_hook("ping")
-def handle_ping_callback(actor: ActorInterface, name: str, data: Dict[str, Any]) -> Union[Dict[str, Any], bool]:
-    """Handle ping callback for health checks."""
-    if data.get("method") == "GET":
-        return {"status": "pong", "actor_id": actor.id, "timestamp": str(datetime.now())}
-    return False
-
-
-@aw_app.callback_hook("status")
-def handle_status_callback(actor: ActorInterface, name: str, data: Dict[str, Any]) -> Union[Dict[str, Any], bool]:
-    """Handle status callback."""
-    if data.get("method") == "GET":
-        return {
-            "status": "active",
-            "actor_id": actor.id,
-            "creator": actor.creator,
-            "properties": len(actor.properties.to_dict()) if actor.properties is not None else 0,
-            "trust_relationships": len(actor.trust.relationships),
-            "subscriptions": len(actor.subscriptions.all_subscriptions),
-        }
-    return False
-
-
-@aw_app.callback_hook("subscription")
-def handle_subscription_callback_hook(actor: ActorInterface, name: str, data: Dict[str, Any]) -> bool:
-    """Handle subscription callbacks."""
-    LOG.info(f"Subscription callback for actor {actor.id}: {data}")
-    
-    # Extract subscription info from the data
-    subscription = data.get("subscription", {})
-    peerid = data.get("peerid", "")
-    
-    # Process the subscription callback directly
-    LOG.debug(f"Processing subscription callback from peer {peerid}: {data}")
-    
-    # Here you would implement the actual subscription callback logic
-    # For now, just log and return success
-    return True
-
-
-# Subscription hooks
-@aw_app.subscription_hook
-def handle_subscription_callback(
-    actor: ActorInterface, subscription: Dict[str, Any], peer_id: str, data: Dict[str, Any]
-) -> bool:
-    """Handle subscription callbacks from other actors."""
-    LOG.debug(
-        f"Got callback and processed {subscription.get('subscriptionid', 'unknown')} "
-        f"subscription from peer {peer_id} with json blob: {data}"
-    )
-
-    # Process subscription data
-    if subscription.get("target") == "properties":
-        # Handle property changes from peer
-        if isinstance(data, dict) and actor.properties is not None:
-            for key, value in data.items():
-                # Store peer property updates
-                actor.properties[f"peer_{peer_id}_{key}"] = value
-
-    return True
-
-
-# Lifecycle hooks
-@aw_app.lifecycle_hook("actor_created")
-def on_actor_created(actor: ActorInterface, **kwargs: Any) -> None:
-    """Handle actor creation."""
-    LOG.info(f"New actor created: {actor.id} for {actor.creator}")
-
-    # Set initial properties
-    if actor.properties is not None:
-        actor.properties.demo_version = "2.3"
-        actor.properties.interface_version = "modern"
-
-
-@aw_app.lifecycle_hook("actor_deleted")
-def on_actor_deleted(actor: ActorInterface, **kwargs: Any) -> None:
-    """Handle actor deletion."""
-    LOG.info(f"Actor {actor.id} is being deleted")
-
-    # Custom cleanup could be performed here
-    # The framework handles standard cleanup automatically
-
-
-@aw_app.lifecycle_hook("oauth_success")
-def on_oauth_success(actor: ActorInterface, **kwargs: Any) -> bool:
-    """Handle OAuth success."""
-    LOG.info(f"OAuth successful for actor {actor.id}")
-
-    # Store OAuth success timestamp
-    if actor.properties is not None:
-        actor.properties.oauth_success_at = str(datetime.now())
-
-    return True
-
-
-# Resource hooks (custom endpoints)
-@aw_app.callback_hook("resource_demo")
-def handle_demo_resource(actor: ActorInterface, name: str, data: Dict[str, Any]) -> Union[Dict[str, Any], bool]:
-    """Handle demo resource endpoint."""
-    method = data.get("method", "GET")
-
-    if method == "GET":
-        return {"message": "This is a demo resource", "actor_id": actor.id, "timestamp": str(datetime.now())}
-    elif method == "POST":
-        body = data.get("body", {})
-        return {"message": "Demo resource updated", "received_data": body, "actor_id": actor.id}
-
-    return {}
-
-
-# WWW path hooks
-@aw_app.callback_hook("www")
-def handle_www_paths(actor: ActorInterface, name: str, data: Dict[str, Any]) -> Union[Dict[str, Any], bool]:
-    """Handle custom www paths."""
-    path = data.get("path", "")
-
-    if path == "demo":
-        return {
-            "template": "demo.html",
-            "data": {
-                "actor_id": actor.id,
-                "creator": actor.creator,
-                "properties": actor.properties.to_dict() if actor.properties is not None else {},
-            },
-        }
-
-    return False
-
-
-# Method hooks for RPC-style function calls
-@aw_app.method_hook("calculate")
-def handle_calculate_method(actor: ActorInterface, method_name: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-    """Handle calculate method with JSON-RPC support."""
-    try:
-        a = data.get("a", 0)
-        b = data.get("b", 0)
-        operation = data.get("operation", "add")
-
-        if operation == "add":
-            result = a + b
-        elif operation == "subtract":
-            result = a - b
-        elif operation == "multiply":
-            result = a * b
-        elif operation == "divide":
-            if b == 0:
-                return None  # Division by zero
-            result = a / b
-        else:
-            return None  # Unsupported operation
-
-        return {"result": result, "operation": operation}
-    except (TypeError, ValueError):
-        return None
-
-
-@aw_app.method_hook("greet")
-def handle_greet_method(actor: ActorInterface, method_name: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-    """Handle greet method with personalized greeting."""
-    name = data.get("name", "World")
-    actor_id = actor.id if actor else "unknown"
-
-    return {"greeting": f"Hello, {name}! This is actor {actor_id}.", "timestamp": datetime.now().isoformat()}
-
-
-@aw_app.method_hook("get_status")
-def handle_get_status_method(actor: ActorInterface, method_name: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-    """Handle get_status method to return actor status."""
-    if not actor:
-        return None
-
-    return {
-        "actor_id": actor.id,
-        "creator": actor.creator,
-        "status": "active",
-        "properties_count": len(actor.properties.to_dict()) if actor.properties is not None else 0,
-        "trust_relationships": len(actor.trust.relationships),
-        "subscriptions": len(actor.subscriptions.all_subscriptions),
-    }
-
-
-# Action hooks for trigger-based functionality
-@aw_app.action_hook("log_message")
-def handle_log_message_action(
-    actor: ActorInterface, action_name: str, data: Dict[str, Any]
-) -> Optional[Dict[str, Any]]:
-    """Handle log_message action to log a message."""
-    message = data.get("message", "")
-    level = data.get("level", "info").upper()
-
-    if level == "ERROR":
-        LOG.error(f"Actor {actor.id if actor else 'unknown'}: {message}")
-    elif level == "WARNING":
-        LOG.warning(f"Actor {actor.id if actor else 'unknown'}: {message}")
-    else:
-        LOG.info(f"Actor {actor.id if actor else 'unknown'}: {message}")
-
-    return {"status": "logged", "message": message, "level": level, "timestamp": datetime.now().isoformat()}
-
-
-@aw_app.action_hook("update_status")
-def handle_update_status_action(
-    actor: ActorInterface, action_name: str, data: Dict[str, Any]
-) -> Optional[Dict[str, Any]]:
-    """Handle update_status action to update actor status."""
-    if not actor:
-        return None
-
-    status = data.get("status", "active")
-    timestamp = datetime.now().isoformat()
-
-    # Update actor properties
-    if actor.properties is not None:
-        actor.properties.status = status
-        actor.properties.last_update = timestamp
-
-    return {"status": "updated", "new_status": status, "timestamp": timestamp, "actor_id": actor.id}
-
-
-@aw_app.action_hook("send_notification")
-def handle_send_notification_action(
-    actor: ActorInterface, action_name: str, data: Dict[str, Any]
-) -> Optional[Dict[str, Any]]:
-    """Handle send_notification action (simulated)."""
-    recipient = data.get("recipient", "")
-    message = data.get("message", "")
-    notification_type = data.get("type", "email")
-
-    # Simulate sending notification
-    success = bool(recipient and message)
-
-    # Log the notification
-    LOG.info(f"Sending {notification_type} notification to {recipient}: {message}")
-
-    return {
-        "status": "sent" if success else "failed",
-        "recipient": recipient,
-        "message": message,
-        "type": notification_type,
-        "timestamp": datetime.now().isoformat(),
-    }
-
+# Register all shared hooks
+register_all_shared_hooks(aw_app)
 
 # Create Flask app
 app = Flask(__name__, static_url_path="/static")
+
+
+# Health check endpoint for monitoring
+@app.route("/health")
+def health_check():
+    """Health check endpoint for monitoring."""
+    return {"status": "healthy", "integration": "flask", "mcp_enabled": True, "version": "1.0.0-mcp"}
+
 
 # Custom error handlers
 @app.errorhandler(404)

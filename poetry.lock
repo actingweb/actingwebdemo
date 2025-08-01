@@ -5,23 +5,24 @@ name = "actingweb"
 version = "3.1"
 description = "The official ActingWeb library"
 optional = false
-python-versions = ">=3.11,<4.0"
+python-versions = "^3.11"
 groups = ["main"]
-files = [
-    {file = "actingweb-3.1-py3-none-any.whl", hash = "sha256:3791e9f7af7fbc8b18cd46d6e528ac0aa77482b35fcd42c53c1bee3b3afbae3e"},
-    {file = "actingweb-3.1.tar.gz", hash = "sha256:577c965303ef00899ce8cfc36d2ab2573972186fba269a94ff13bcf985f619ff"},
-]
+files = []
+develop = true
 
 [package.dependencies]
-boto3 = ">=1.26.0,<2.0.0"
-pynamodb = ">=6.0.0,<7.0.0"
-typing-extensions = ">=4.0.0,<5.0.0"
-urlfetch = ">=1.0.2,<2.0.0"
+boto3 = "^1.26.0"
+oauthlib = "^3.2.0"
+pynamodb = "^6.0.0"
+typing-extensions = "^4.0.0"
+urlfetch = "^1.0.2"
+
+[package.extras]
+mcp = ["mcp (>=1.0.0,<2.0.0)"]
 
 [package.source]
-type = "legacy"
-url = "https://test.pypi.org/simple"
-reference = "testpypi"
+type = "directory"
+url = "../actingweb"
 
 [[package]]
 name = "blinker"
@@ -37,18 +38,18 @@ files = [
 
 [[package]]
 name = "boto3"
-version = "1.39.14"
+version = "1.40.0"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "boto3-1.39.14-py3-none-any.whl", hash = "sha256:82c6868cad18c3bd4170915e9525f9af5f83e9779c528417f8863629558fc2d0"},
-    {file = "boto3-1.39.14.tar.gz", hash = "sha256:fabb16360a93b449d5241006485bcc761c26694e75ac01009f4459f114acc06e"},
+    {file = "boto3-1.40.0-py3-none-any.whl", hash = "sha256:959443055d2af676c336cc6033b3f870a8a924384b70d0b2905081d649378179"},
+    {file = "boto3-1.40.0.tar.gz", hash = "sha256:fc1b3ca3baf3d8820c6faddf47cbba8ad3cd16f8e8d7e2f76d304bf995932eb7"},
 ]
 
 [package.dependencies]
-botocore = ">=1.39.14,<1.40.0"
+botocore = ">=1.40.0,<1.41.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.13.0,<0.14.0"
 
@@ -57,14 +58,14 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.39.14"
+version = "1.40.0"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "botocore-1.39.14-py3-none-any.whl", hash = "sha256:4ed551c77194167b7e8063f33059bc2f9b2ead0ed4ee33dc7857273648ed4349"},
-    {file = "botocore-1.39.14.tar.gz", hash = "sha256:7fc44d4ad13b524e5d8a6296785776ef5898ac026ff74df9b35313831d507926"},
+    {file = "botocore-1.40.0-py3-none-any.whl", hash = "sha256:2063e6d035a6a382b2ae37e40f5144044e55d4e091910d0c9f1be3121ad3e4e6"},
+    {file = "botocore-1.40.0.tar.gz", hash = "sha256:850242560dc8e74d542045a81eb6cc15f1b730b4ba55ba5b30e6d686548dfcaf"},
 ]
 
 [package.dependencies]
@@ -241,14 +242,31 @@ files = [
 ]
 
 [[package]]
+name = "oauthlib"
+version = "3.3.1"
+description = "A generic, spec-compliant, thorough implementation of the OAuth request-signing logic"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "oauthlib-3.3.1-py3-none-any.whl", hash = "sha256:88119c938d2b8fb88561af5f6ee0eec8cc8d552b7bb1f712743136eb7523b7a1"},
+    {file = "oauthlib-3.3.1.tar.gz", hash = "sha256:0f0f8aa759826a193cf66c12ea1af1637f87b9b4622d46e866952bb022e538c9"},
+]
+
+[package.extras]
+rsa = ["cryptography (>=3.0.0)"]
+signals = ["blinker (>=1.4.0)"]
+signedtoken = ["cryptography (>=3.0.0)", "pyjwt (>=2.0.0,<3)"]
+
+[[package]]
 name = "pydevd-pycharm"
-version = "252.23892.194"
+version = "252.23892.364"
 description = "PyCharm Debugger (used in PyCharm and PyDev)"
 optional = false
 python-versions = "*"
 groups = ["dev"]
 files = [
-    {file = "pydevd_pycharm-252.23892.194.tar.gz", hash = "sha256:81c643de4892a1b0566b6efacd6178b0c6d8d7268cfb991334eb034ff02ff85b"},
+    {file = "pydevd_pycharm-252.23892.364.tar.gz", hash = "sha256:fde8d5e98581fd7bae9de74f644f85e75db9218ee5ceff6fdb73e22b3f7637ca"},
 ]
 
 [[package]]
@@ -387,4 +405,4 @@ watchdog = ["watchdog (>=2.3)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "bbb7187ab55a952c0408270006efdf7a03936678e7e95fb71550f1c78d8552b2"
+content-hash = "0edc7370d74cef7f78332c0c8f5e05166b9269c785181ee93268cc5ce8f9a1e1"
