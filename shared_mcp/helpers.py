@@ -279,9 +279,15 @@ def register_all_common_mcp_functionality(app) -> None:
     Register all common MCP tools and prompts with an ActingWeb application.
     
     This is a convenience function that registers both tools and prompts.
+    Only registers MCP functionality if MCP is enabled in the app configuration.
     
     Args:
         app: ActingWeb application instance to register functionality with
     """
+    # Check if MCP is enabled before registering functionality
+    if hasattr(app, 'is_mcp_enabled') and not app.is_mcp_enabled():
+        print("MCP functionality disabled - skipping MCP registration")
+        return
+        
     register_common_mcp_tools(app)
     register_common_mcp_prompts(app)

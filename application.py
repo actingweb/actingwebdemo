@@ -12,14 +12,9 @@ import logging
 from datetime import datetime
 from flask import Flask
 from actingweb.interface import ActingWebApp, ActorInterface
-from typing import Any, Dict, Optional, List, Union
 
 # Add shared functionality to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "shared_mcp"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "shared_hooks"))
-
-# MCP integration imports
-from shared_mcp import register_all_common_mcp_functionality
 
 # Shared hooks imports
 from shared_hooks import register_all_shared_hooks
@@ -38,17 +33,17 @@ aw_app = (
         proto=os.getenv("APP_HOST_PROTOCOL", "https://"),
     )
     # OAuth2 configuration - supports Google and GitHub providers via the new authentication system
-    .with_oauth(
-        client_id=os.getenv(
-            "OAUTH_CLIENT_ID",
-            os.getenv("APP_OAUTH_ID", ""),
-        ),
-        client_secret=os.getenv("OAUTH_CLIENT_SECRET", os.getenv("APP_OAUTH_KEY", "")),
-        scope=os.getenv("OAUTH_SCOPE", "openid email profile"),  # Default to Google scopes
-        auth_uri=os.getenv("OAUTH_AUTH_URI", "https://accounts.google.com/o/oauth2/v2/auth"),
-        token_uri=os.getenv("OAUTH_TOKEN_URI", "https://oauth2.googleapis.com/token"),
-        redirect_uri=f"{os.getenv('APP_HOST_PROTOCOL', 'https://')}{os.getenv('APP_HOST_FQDN', 'greger.ngrok.io')}/oauth/callback",
-    )
+    # .with_oauth(
+    #     client_id=os.getenv(
+    #         "OAUTH_CLIENT_ID",
+    #         os.getenv("APP_OAUTH_ID", ""),
+    #     ),
+    #     client_secret=os.getenv("OAUTH_CLIENT_SECRET", os.getenv("APP_OAUTH_KEY", "")),
+    #     scope=os.getenv("OAUTH_SCOPE", "openid email profile"),  # Default to Google scopes
+    #     auth_uri=os.getenv("OAUTH_AUTH_URI", "https://accounts.google.com/o/oauth2/v2/auth"),
+    #     token_uri=os.getenv("OAUTH_TOKEN_URI", "https://oauth2.googleapis.com/token"),
+    #     redirect_uri=f"{os.getenv('APP_HOST_PROTOCOL', 'https://')}{os.getenv('APP_HOST_FQDN', 'greger.ngrok.io')}/oauth/callback",
+    # )
     .with_web_ui(enable=True)
     .with_devtest(enable=True)  # Set to False in production
     .with_bot(
@@ -57,20 +52,14 @@ aw_app = (
         secret=os.getenv("APP_BOT_SECRET", ""),
         admin_room=os.getenv("APP_BOT_ADMIN_ROOM", ""),
     )
-    .with_unique_creator(enable=True)
-    .with_email_as_creator(enable=True)
+    .with_unique_creator(enable=False)
+    .with_email_as_creator(enable=False)
     .add_actor_type(
         name="myself",
         factory=f"{os.getenv('APP_HOST_PROTOCOL', 'https://')}{os.getenv('APP_HOST_FQDN', 'greger.ngrok.io')}/",
         relationship="friend",
     )
 )
-
-# Configure OAuth2 provider for the new authentication system
-oauth_provider = os.getenv("OAUTH_PROVIDER", "google")  # "google" or "github"
-if aw_app._oauth_config:  # Only set if OAuth is enabled
-    aw_app.get_config().oauth2_provider = oauth_provider
-    LOG.info(f"OAuth2 provider set to: {oauth_provider}")
 
 # Properties that should be hidden from external access
 PROP_HIDE = ["email"]
@@ -87,8 +76,8 @@ def create_actor(creator: str, **kwargs) -> ActorInterface:
     if actor.properties is not None:
         actor.properties.email = creator
         actor.properties.created_at = str(datetime.now())
-        actor.properties.version = "2.3-mcp"
-        actor.properties.created_via = "flask-mcp"
+        actor.properties.version = "2.3"
+        actor.properties.created_via = "flask"
         actor.properties.mcp_enabled = True
         actor.properties.notifications = []
         actor.properties.preferences = {}
@@ -96,9 +85,6 @@ def create_actor(creator: str, **kwargs) -> ActorInterface:
 
     return actor
 
-
-# Register MCP functionality
-register_all_common_mcp_functionality(aw_app)
 
 # Register all shared hooks
 register_all_shared_hooks(aw_app)
@@ -111,7 +97,7 @@ app = Flask(__name__, static_url_path="/static")
 @app.route("/health")
 def health_check():
     """Health check endpoint for monitoring."""
-    return {"status": "healthy", "integration": "flask", "mcp_enabled": True, "version": "1.0.0-mcp"}
+    return {"status": "healthy", "integration": "flask", "mcp_enabled": False, "version": "1.0.0-mcp"}
 
 
 # Custom error handlers
