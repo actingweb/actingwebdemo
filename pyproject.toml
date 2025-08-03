@@ -18,6 +18,9 @@ flask = ">=2.3.0,<4.0.0"
 uwsgi = ">=2.0.23"
 #actingweb = ">=3.1"
 actingweb = { path = "../actingweb", develop = true }
+fastapi = "^0.116.1"
+uvicorn = "^0.35.0"
+mcp = "^1.12.3"
 
 [tool.poetry.group.dev.dependencies]
 pydevd-pycharm = "*"

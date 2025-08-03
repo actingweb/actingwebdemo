@@ -27,7 +27,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../actingweb"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "shared_mcp"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "shared_hooks"))
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 
@@ -72,7 +72,8 @@ app = (
         proto=os.getenv("APP_HOST_PROTOCOL", "https://"),
     )
     .with_web_ui(enable=True)
-    .with_devtest(enable=True)
+    .with_devtest(enable=True)  # Set to False in production
+    .with_mcp(enable=True)  # Enable MCP OAuth2 server functionality
     .with_unique_creator(enable=True)
     .with_email_as_creator(enable=True)
     .add_actor_type(
@@ -153,6 +154,64 @@ register_all_shared_hooks(app)
 # Mount static files for web UI
 if os.path.exists("static"):
     fastapi_app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Handle favicon requests to avoid 302 redirects
+@fastapi_app.get("/favicon.ico")
+@fastapi_app.get("/favicon.png") 
+@fastapi_app.get("/favicon.svg")
+async def favicon(request: Request):
+    """Return favicon or 404 if not found."""
+    from fastapi import HTTPException
+    from fastapi.responses import FileResponse
+    import os
+    
+    # Get the requested favicon type from the path
+    requested_path = request.url.path
+    favicon_name = requested_path.lstrip('/')
+    
+    # Try to find the specific favicon first, then fallback to others
+    search_order = [favicon_name]
+    if favicon_name not in ["favicon.ico", "favicon.png", "favicon.svg"]:
+        search_order.extend(["favicon.png", "favicon.ico", "favicon.svg"])
+    else:
+        # Add other formats as fallbacks
+        other_formats = ["favicon.png", "favicon.ico", "favicon.svg"]
+        for fmt in other_formats:
+            if fmt != favicon_name:
+                search_order.append(fmt)
+    
+    # Search in static directory first, then others
+    for directory in ["static", "templates", "."]:
+        for fname in search_order:
+            favicon_path = os.path.join(directory, fname)
+            if os.path.exists(favicon_path):
+                return FileResponse(favicon_path, media_type="image/x-icon" if fname.endswith('.ico') else None)
+    
+    # If no favicon found, return 404 instead of redirect
+    raise HTTPException(status_code=404, detail="Favicon not found")
+
+# Handle robots.txt to avoid 302 redirects
+@fastapi_app.get("/robots.txt")
+async def robots_txt():
+    """Return robots.txt or default robots.txt."""
+    from fastapi.responses import PlainTextResponse
+    import os
+    
+    # Try to find robots.txt in static directory or root
+    for directory in ["static", "."]:
+        robots_path = os.path.join(directory, "robots.txt")
+        if os.path.exists(robots_path):
+            with open(robots_path, 'r') as f:
+                return PlainTextResponse(f.read())
+    
+    # Return default robots.txt
+    return PlainTextResponse("""User-agent: *
+Disallow: /oauth/
+Disallow: /_
+Allow: /docs
+Allow: /health
+Allow: /static/
+""", media_type="text/plain")
 
 # Integrate ActingWeb with FastAPI
 templates_dir = "templates" if os.path.exists("templates") else None

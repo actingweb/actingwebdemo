@@ -27,62 +27,127 @@ def register_common_mcp_tools(app) -> None:
     
     @app.action_hook("search")
     @mcp_tool(
-        description="Search through stored data including notes, reminders, and other user information",
+        description="Search through stored data and return relevant results",
         input_schema={
             "type": "object",
             "properties": {
                 "query": {
                     "type": "string",
-                    "description": "Search query to match against titles, content, tags, or other text fields",
-                },
-                "type": {
-                    "type": "string",
-                    "enum": ["all", "notes", "reminders", "properties"],
-                    "description": "Type of data to search through",
-                    "default": "all",
-                },
-                "limit": {
-                    "type": "integer",
-                    "description": "Maximum number of results to return",
-                    "default": 10,
-                    "minimum": 1,
-                    "maximum": 50,
-                },
+                    "description": "Search query string to match against stored data",
+                }
             },
             "required": ["query"],
         },
     )
-    def handle_search(actor, action_name: str, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Search through all stored data - primary search functionality for MCP clients."""
+    def handle_search(actor, action_name: str, data: Dict[str, Any]) -> list:
+        """Search through all stored data - follows OpenAI MCP specification for search tool."""
         query = data.get("query", "").strip()
-        search_type = data.get("type", "all")
-        limit = min(data.get("limit", 10), 50)
         
-        return search_actor_data(actor, query, search_type, limit)
-    
-    
+        if not query:
+            return []
+        
+        # Use the existing search function with default settings
+        result = search_actor_data(actor, query, "all", 20)
+        
+        if result.get("status") != "success" or not result.get("results"):
+            return []
+        
+        # Convert to OpenAI MCP format
+        search_results = []
+        for item in result["results"]:
+            item_type = item.get("type", "unknown")
+            item_id = item.get("id")
+            
+            # Create fetch ID for this item
+            fetch_id = f"{item_type}:{item_id}" if item_id else f"{item_type}:unknown"
+            
+            # Format according to OpenAI MCP specification
+            search_result = {
+                "id": fetch_id,
+                "title": item.get("title", f"{item_type.capitalize()} {item_id}"),
+                "text": _create_search_snippet(item, query),
+                "url": f"#{item_type}-{item_id}" if item_id else f"#{item_type}"
+            }
+            search_results.append(search_result)
+        
+        return search_results
+
     @app.action_hook("fetch")
     @mcp_tool(
-        description="Fetch specific items by ID or retrieve collections of data",
+        description="Retrieve the full contents of a search result document or item by ID",
+        input_schema={
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string", 
+                    "description": "A unique identifier for the search document (format: 'type:id' e.g., 'note:1' or 'reminder:2')"
+                }
+            },
+            "required": ["id"],
+        },
+    )
+    def handle_fetch(actor, action_name: str, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Fetch specific data items - follows OpenAI MCP specification for fetch tool."""
+        fetch_id = data.get("id", "")
+        
+        if not fetch_id:
+            return {"error": "ID is required"}
+        
+        # Parse the ID format "type:id" (e.g., "note:1", "reminder:2")
+        if ":" not in fetch_id:
+            return {"error": "Invalid ID format. Expected format: 'type:id' (e.g., 'note:1' or 'reminder:2')"}
+        
+        try:
+            fetch_type, item_id_str = fetch_id.split(":", 1)
+            item_id = int(item_id_str)
+        except (ValueError, TypeError):
+            return {"error": f"Invalid ID format: {fetch_id}. Expected format: 'type:id' with numeric ID"}
+        
+        # Fetch the specific item
+        result = fetch_actor_data(actor, fetch_type, item_id, 1, {})
+        
+        if result.get("status") == "success" and "data" in result:
+            item = result["data"]
+            # Format according to OpenAI MCP specification
+            return {
+                "id": fetch_id,
+                "title": item.get("title", f"{fetch_type.capitalize()} {item_id}"),
+                "text": f"{item.get('content', item.get('description', ''))}",
+                "url": f"#{fetch_type}-{item_id}",  # Internal reference
+                "metadata": {
+                    "type": fetch_type,
+                    "item_id": item_id,
+                    "created_at": item.get("created_at"),
+                    "priority": item.get("priority"),
+                    "tags": item.get("tags", []) if fetch_type == "note" else None,
+                    "due_date": item.get("due_date") if fetch_type == "reminder" else None,
+                    "completed": item.get("completed") if fetch_type == "reminder" else None
+                }
+            }
+        else:
+            return {"error": result.get("error", f"Item not found: {fetch_id}")}
+
+    @app.action_hook("list")
+    @mcp_tool(
+        description="List collections of data (notes, reminders, stats, recent items)",
         input_schema={
             "type": "object",
             "properties": {
                 "type": {
                     "type": "string",
-                    "enum": ["note", "reminder", "notes_all", "reminders_all", "stats", "recent"],
-                    "description": "Type of data to fetch",
+                    "enum": ["notes", "reminders", "stats", "recent"],
+                    "description": "Type of data collection to list",
                 },
-                "id": {"type": "integer", "description": "Specific ID to fetch (required for 'note' and 'reminder' types)"},
                 "limit": {
                     "type": "integer",
-                    "description": "Maximum number of items to return for collection fetches",
+                    "description": "Maximum number of items to return",
                     "default": 20,
                     "minimum": 1,
                     "maximum": 100,
                 },
                 "filter": {
                     "type": "object",
-                    "description": "Optional filters for collection fetches",
+                    "description": "Optional filters for the collection",
                     "properties": {
                         "completed": {"type": "boolean", "description": "Filter reminders by completion status"},
                         "priority": {
@@ -97,16 +162,39 @@ def register_common_mcp_tools(app) -> None:
             "required": ["type"],
         },
     )
-    def handle_fetch(actor, action_name: str, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Fetch specific data items or collections - primary data retrieval for MCP clients."""
-        fetch_type = data.get("type")
-        item_id = data.get("id")
+    def handle_list(actor, action_name: str, data: Dict[str, Any]) -> Dict[str, Any]:
+        """List collections of data - provides browsable lists for MCP clients."""
+        list_type = data.get("type")
         limit = min(data.get("limit", 20), 100)
         filters = data.get("filter", {})
         
-        return fetch_actor_data(actor, fetch_type, item_id, limit, filters)
-    
-    
+        # Map list types to fetch types
+        fetch_type_map = {
+            "notes": "notes_all",
+            "reminders": "reminders_all",
+            "stats": "stats",
+            "recent": "recent"
+        }
+        
+        fetch_type = fetch_type_map.get(list_type)
+        if not fetch_type:
+            return {"error": f"Unknown list type: {list_type}"}
+        
+        result = fetch_actor_data(actor, fetch_type, None, limit, filters)
+        
+        # For list operations, include IDs in a format suitable for fetch tool
+        if result.get("status") == "success" and "data" in result:
+            if list_type in ["notes", "reminders"]:
+                # Add fetch IDs to each item
+                items = result["data"]
+                if isinstance(items, list):
+                    for item in items:
+                        item_id = item.get("id")
+                        if item_id:
+                            item["fetch_id"] = f"{list_type[:-1]}:{item_id}"  # "notes" -> "note:1"
+        
+        return result
+
     @app.action_hook("create_note")
     @mcp_tool(
         description="Create and store a note with optional tags and priority",
@@ -139,8 +227,7 @@ def register_common_mcp_tools(app) -> None:
         priority = data.get("priority", "medium")
         
         return create_note(actor, title, content, tags, priority)
-    
-    
+
     @app.action_hook("create_reminder")
     @mcp_tool(
         description="Create a time-based reminder or task with due date",
@@ -174,6 +261,39 @@ def register_common_mcp_tools(app) -> None:
         category = data.get("category", "general")
         
         return create_reminder(actor, title, due_date, description, priority, category)
+
+
+def _create_search_snippet(item: Dict[str, Any], query: str) -> str:
+    """Create a relevant text snippet for search results."""
+    content = item.get("content", item.get("description", ""))
+    title = item.get("title", "")
+    
+    # If content is short, return it as-is
+    if len(content) <= 150:
+        return content
+    
+    # Try to find the query in the content for context
+    query_lower = query.lower()
+    content_lower = content.lower()
+    
+    # Find query position and extract surrounding context
+    query_pos = content_lower.find(query_lower)
+    if query_pos != -1:
+        # Extract ~75 chars before and after the query
+        start = max(0, query_pos - 75)
+        end = min(len(content), query_pos + len(query) + 75)
+        snippet = content[start:end]
+        
+        # Add ellipsis if truncated
+        if start > 0:
+            snippet = "..." + snippet
+        if end < len(content):
+            snippet = snippet + "..."
+            
+        return snippet
+    
+    # If query not found, return first 150 chars
+    return content[:150] + ("..." if len(content) > 150 else "")
 
 
 def register_common_mcp_prompts(app) -> None:
@@ -211,7 +331,6 @@ def register_common_mcp_prompts(app) -> None:
         
         return generate_notes_analysis_prompt(actor, analysis_type, tag_filter, time_period)
     
-    
     @app.method_hook("create_learning_prompt")
     @mcp_prompt(
         description="Generate a learning-focused prompt to help understand or research a topic",
@@ -242,7 +361,6 @@ def register_common_mcp_prompts(app) -> None:
         format_type = data.get("format", "explanation")
         
         return generate_learning_prompt(actor, topic, learning_style, focus_area, format_type)
-    
     
     @app.method_hook("create_meeting_prep")
     @mcp_prompt(
