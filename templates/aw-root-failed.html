@@ -1,5 +1,60 @@
 <html>
+  <head>
+    <title>ActingWeb Demo - Account Creation Failed</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+      .container { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+      h1 { color: #d93025; margin-bottom: 20px; }
+      .error { color: #d93025; margin-bottom: 20px; padding: 15px; background-color: #fce8e6; border-radius: 4px; }
+      .description { margin-bottom: 25px; color: #666; line-height: 1.5; }
+      .actions { margin-top: 25px; }
+      .btn { display: inline-block; background-color: #4285f4; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-right: 10px; }
+      .btn:hover { background-color: #3367d6; }
+      .btn-secondary { background-color: #666; }
+      .btn-secondary:hover { background-color: #555; }
+    </style>
+  </head>
   <body>
-  <h1>Account creation failed</h1>
+    <div class="container">
+      <h1>Account Creation Failed</h1>
+      
+      {% if error %}
+        <div class="error">
+          <strong>Error:</strong> {{ error }}
+        </div>
+      {% endif %}
+      
+      <div class="description">
+        {% if "email" in (error or "") and "match" in (error or "") %}
+          <p><strong>Email Mismatch Detected</strong></p>
+          <p>The email address you authenticated with doesn't match the email you entered in the form. This is a security measure to prevent account creation with the wrong identity.</p>
+          <p><strong>What happened:</strong></p>
+          <ul>
+            <li>You entered one email address in the form</li>
+            <li>You authenticated with a different email address via OAuth2</li>
+          </ul>
+          <p><strong>To fix this:</strong></p>
+          <ul>
+            <li>Make sure you enter the correct email address in the form</li>
+            <li>Authenticate with the same email address you entered</li>
+            <li>Or use a different email address consistently for both steps</li>
+          </ul>
+        {% else %}
+          <p>We encountered an error while creating your ActingWeb actor. This could be due to:</p>
+          <ul>
+            <li>A temporary network issue</li>
+            <li>Authentication problems with your OAuth2 provider</li>
+            <li>Invalid or expired credentials</li>
+          </ul>
+        {% endif %}
+      </div>
+      
+      <div class="actions">
+        <a href="/" class="btn">Try Again</a>
+        <a href="/docs" class="btn btn-secondary">View Documentation</a>
+      </div>
+    </div>
   </body>
 </html>

@@ -2,6 +2,26 @@
 CHANGELOG
 =========
 
+Aug 5, 2025
+-----------
+
+**MCP Server Integration**
+
+- **MCP Server Support**: Added complete Model Context Protocol (MCP) server implementation for AI language model integration
+- **FastAPI Application**: Created new fastapi_application.py with modern async/await support and automatic OpenAPI documentation
+- **Dual Framework Support**: Now supports both Flask (application.py) and FastAPI (fastapi_application.py) implementations
+- **AI Tool Integration**:
+  - Added MCP tools for actor management, property operations, and trust relationship handling
+  - Implemented search functionality across actor data
+  - Created shared MCP modules in shared_mcp/ directory for reusable functionality
+- **Configuration**: Added mcp-config.json for MCP server configuration and client integration
+- **Modular Architecture**:
+  - Created shared_hooks/ directory for reusable hook implementations
+  - Separated MCP-specific logic into shared_mcp/ modules (tools.py, prompts.py, helpers.py)
+  - Maintained compatibility with existing Flask-based implementation
+- **ActingWeb Library**: Updated to actingweb v3.2 for latest features and improvements
+- **Development Tools**: Enhanced development workflow with dual framework support and MCP integration
+
 Jul 14, 2025
 ------------
 
