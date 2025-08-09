@@ -5,11 +5,17 @@ service: actingwebdemo
 plugins:
   - serverless-python-requirements
   - serverless-wsgi
-  # Add this plugin to deploy to a sub-domain 
-  #- serverless-domain-manager
+  - serverless-domain-manager
   # If you want to use pseudo parameters, add this plugin
   #- serverless-pseudo-parameters
 custom:
+  customDomain:
+    domainName: 'demo.actingweb.io'
+    basePath: ""
+    certificateArn: "arn:aws:acm:us-west-1:473852420549:certificate/1035b2fa-35c1-42ac-b70e-250f12b46800"
+    endpointType: "regional"
+    createRoute53Record: false
+    autoDomain: false
   wsgi:
     app: application.app
     packRequirements: false
