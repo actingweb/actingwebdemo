@@ -65,27 +65,6 @@ aw_app = (
 PROP_HIDE = ["email"]
 PROP_PROTECT = PROP_HIDE + []
 
-
-# Actor factory
-@aw_app.actor_factory
-def create_actor(creator: str, **kwargs) -> ActorInterface:
-    """Create a new actor instance with default properties."""
-    actor = ActorInterface.create(creator=creator, config=aw_app.get_config())
-
-    # Initialize actor properties
-    if actor.properties is not None:
-        actor.properties.email = creator
-        actor.properties.created_at = str(datetime.now())
-        actor.properties.version = "2.3"
-        actor.properties.created_via = "flask"
-        actor.properties.mcp_enabled = True
-        actor.properties.notifications = []
-        actor.properties.preferences = {}
-        actor.properties.mcp_usage_count = 0
-
-    return actor
-
-
 # Register all shared hooks
 register_all_shared_hooks(aw_app)
 

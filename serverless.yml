@@ -25,6 +25,7 @@ custom:
     poetryWithoutHashes: true
 
 provider:
+  profile: default # use the credentials in ~/.aws/credentials
   name: aws
   runtime: python3.11
   memorySize: 128
