@@ -14,44 +14,53 @@ logger = logging.getLogger(__name__)
 
 def register_callback_hooks(app):
     """Register all callback hooks with the ActingWeb application."""
-    
+
     @app.callback_hook("ping")
-    def handle_ping_callback(actor: ActorInterface, name: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def handle_ping_callback(
+        actor: ActorInterface, name: str, data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """Handle ping callbacks for health checks."""
         logger.info(f"Ping callback for actor {actor.id}: {data}")
         return {
-            "status": "pong", 
-            "timestamp": data.get("timestamp"), 
-            "actor_id": actor.id
+            "status": "pong",
+            "timestamp": data.get("timestamp"),
+            "actor_id": actor.id,
         }
 
     @app.callback_hook("echo")
-    def handle_echo_callback(actor: ActorInterface, name: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def handle_echo_callback(
+        actor: ActorInterface, name: str, data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """Handle echo callbacks."""
         logger.info(f"Echo callback for actor {actor.id}: {data}")
         return {"echo": data}
 
     @app.callback_hook("status")
-    def handle_status_callback(actor: ActorInterface, name: str, data: Dict[str, Any]) -> Union[Dict[str, Any], bool]:
+    def handle_status_callback(
+        actor: ActorInterface, name: str, data: Dict[str, Any]
+    ) -> Union[Dict[str, Any], bool]:
         """Handle status callback."""
         if data.get("method") == "GET":
             return {
                 "status": "active",
                 "actor_id": actor.id,
                 "creator": actor.creator,
-                "properties": len(actor.properties.to_dict()) if actor.properties is not None else 0,
+                "properties": len(actor.properties.to_dict())
+                if actor.properties is not None
+                else 0,
                 "trust_relationships": len(actor.trust.relationships),
                 "subscriptions": len(actor.subscriptions.all_subscriptions),
             }
         return False
 
     @app.callback_hook("subscription")
-    def handle_subscription_callback_hook(actor: ActorInterface, name: str, data: Dict[str, Any]) -> bool:
+    def handle_subscription_callback_hook(
+        actor: ActorInterface, name: str, data: Dict[str, Any]
+    ) -> bool:
         """Handle subscription callbacks."""
         logger.info(f"Subscription callback for actor {actor.id}: {data}")
 
         # Extract subscription info from the data
-        subscription = data.get("subscription", {})
         peerid = data.get("peerid", "")
 
         # Process the subscription callback directly
@@ -62,28 +71,32 @@ def register_callback_hooks(app):
         return True
 
     @app.callback_hook("resource_demo")
-    def handle_demo_resource(actor: ActorInterface, name: str, data: Dict[str, Any]) -> Union[Dict[str, Any], bool]:
+    def handle_demo_resource(
+        actor: ActorInterface, name: str, data: Dict[str, Any]
+    ) -> Union[Dict[str, Any], bool]:
         """Handle demo resource endpoint."""
         method = data.get("method", "GET")
 
         if method == "GET":
             return {
-                "message": "This is a demo resource", 
-                "actor_id": actor.id, 
-                "timestamp": str(datetime.now())
+                "message": "This is a demo resource",
+                "actor_id": actor.id,
+                "timestamp": str(datetime.now()),
             }
         elif method == "POST":
             body = data.get("body", {})
             return {
-                "message": "Demo resource updated", 
-                "received_data": body, 
-                "actor_id": actor.id
+                "message": "Demo resource updated",
+                "received_data": body,
+                "actor_id": actor.id,
             }
 
         return {}
 
     @app.callback_hook("www")
-    def handle_www_paths(actor: ActorInterface, name: str, data: Dict[str, Any]) -> Union[Dict[str, Any], bool]:
+    def handle_www_paths(
+        actor: ActorInterface, name: str, data: Dict[str, Any]
+    ) -> Union[Dict[str, Any], bool]:
         """Handle custom www paths."""
         path = data.get("path", "")
 
@@ -93,7 +106,9 @@ def register_callback_hooks(app):
                 "data": {
                     "actor_id": actor.id,
                     "creator": actor.creator,
-                    "properties": actor.properties.to_dict() if actor.properties is not None else {},
+                    "properties": actor.properties.to_dict()
+                    if actor.properties is not None
+                    else {},
                 },
             }
 
@@ -106,7 +121,12 @@ def register_callback_hooks(app):
         if data.get("method") == "POST":
             # Safety valve - make sure bot is configured
             config = app.get_config()
-            if not config or not config.bot or not config.bot.get("token") or len(config.bot.get("token", "")) == 0:
+            if (
+                not config
+                or not config.bot
+                or not config.bot.get("token")
+                or len(config.bot.get("token", "")) == 0
+            ):
                 return False
 
             # Process bot request
@@ -117,7 +137,10 @@ def register_callback_hooks(app):
     # Subscription hooks
     @app.subscription_hook
     def handle_subscription_callback(
-        actor: ActorInterface, subscription: Dict[str, Any], peer_id: str, data: Dict[str, Any]
+        actor: ActorInterface,
+        subscription: Dict[str, Any],
+        peer_id: str,
+        data: Dict[str, Any],
     ) -> bool:
         """Handle subscription callbacks from other actors."""
         logger.debug(

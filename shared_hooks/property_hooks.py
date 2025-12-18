@@ -18,9 +18,11 @@ PROP_PROTECT = PROP_HIDE + ["created_at", "actor_type"]
 
 def register_property_hooks(app):
     """Register all property hooks with the ActingWeb application."""
-    
+
     @app.property_hook("email")
-    def handle_email_property(actor: ActorInterface, operation: str, value: Any, path: List[str]) -> Optional[Any]:
+    def handle_email_property(
+        actor: ActorInterface, operation: str, value: Any, path: List[str]
+    ) -> Optional[Any]:
         """Handle email property with access control."""
         if operation == "get":
             # Hide email from external access
@@ -37,7 +39,9 @@ def register_property_hooks(app):
         return value
 
     @app.property_hook("*")
-    def handle_all_properties(actor: ActorInterface, operation: str, value: Any, path: List[str]) -> Optional[Any]:
+    def handle_all_properties(
+        actor: ActorInterface, operation: str, value: Any, path: List[str]
+    ) -> Optional[Any]:
         """Handle all properties with general validation."""
         if not path:
             return value

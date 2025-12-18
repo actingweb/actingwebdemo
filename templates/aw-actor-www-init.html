@@ -1,14 +1,73 @@
-<html>
-  <body>
-  <h1>To initialize this actor ({{ id }} with properties, please fill out the form below.</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ActingWeb Demo - Add Property</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="page-container">
+        <div class="page-card animate-fade-in">
+            <div class="page-header">
+                <div class="page-icon page-icon-accent">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                </div>
+                <h1>Add Property</h1>
+                <p class="text-muted">Add a new property to your actor</p>
+            </div>
 
-    <form action="/{{ id }}/properties/" method="post">
-      <div>Property name:
-          <input type="text" name="property" maxlength="100"/></div>
-      <div>Value
-          <input type="text" name="value" maxlength="100"/></div>
-      <div><input type="submit" value="Set property"></div>
-    </form>
+            <div class="alert alert-info mb-lg">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 0.5rem;">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 16v-4"/>
+                    <path d="M12 8h.01"/>
+                </svg>
+                Properties are key-value pairs that store data for your actor. They can be accessed via the REST API.
+            </div>
 
-  </body>
+            <form action="/{{ id }}/properties/" method="post">
+                <div class="form-group">
+                    <label for="property">Property Name</label>
+                    <input type="text" name="property" id="property" maxlength="100" required
+                           placeholder="e.g., status, name, config" />
+                    <p class="text-xs text-muted mt-xs">Use lowercase letters, numbers, and underscores</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="value">Value</label>
+                    <input type="text" name="value" id="value" maxlength="100" required
+                           placeholder="Enter the property value" />
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary flex-1">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        Set Property
+                    </button>
+                    <a href="{{ url }}/properties" class="btn btn-secondary flex-1">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                        Cancel
+                    </a>
+                </div>
+            </form>
+
+            <div class="mt-lg text-center text-xs text-muted">
+                Powered by <a href="https://github.com/actingweb/actingweb">ActingWeb</a>
+            </div>
+        </div>
+    </div>
+</body>
 </html>

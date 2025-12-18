@@ -9,15 +9,20 @@ and decorator-based hooks instead of the old OnAWBase system.
 import os
 import sys
 import logging
-from datetime import datetime
+
+from dotenv import load_dotenv
 from flask import Flask
-from actingweb.interface import ActingWebApp, ActorInterface
+from werkzeug.middleware.proxy_fix import ProxyFix
+
+from actingweb.interface import ActingWebApp
+
+# Load environment variables from .env file before any config is read
+load_dotenv()
 
 # Add shared functionality to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "shared_hooks"))
 
-# Shared hooks imports
-from shared_hooks import register_all_shared_hooks
+from shared_hooks import register_all_shared_hooks  # noqa: E402
 
 # Configure logging
 logging.basicConfig(stream=sys.stderr, level=os.getenv("LOG_LEVEL", "INFO"))
@@ -33,17 +38,21 @@ aw_app = (
         proto=os.getenv("APP_HOST_PROTOCOL", "https://"),
     )
     # OAuth2 configuration - supports Google and GitHub providers via the new authentication system
-    # .with_oauth(
-    #     client_id=os.getenv(
-    #         "OAUTH_CLIENT_ID",
-    #         os.getenv("APP_OAUTH_ID", ""),
-    #     ),
-    #     client_secret=os.getenv("OAUTH_CLIENT_SECRET", os.getenv("APP_OAUTH_KEY", "")),
-    #     scope=os.getenv("OAUTH_SCOPE", "openid email profile"),  # Default to Google scopes
-    #     auth_uri=os.getenv("OAUTH_AUTH_URI", "https://accounts.google.com/o/oauth2/v2/auth"),
-    #     token_uri=os.getenv("OAUTH_TOKEN_URI", "https://oauth2.googleapis.com/token"),
-    #     redirect_uri=f"{os.getenv('APP_HOST_PROTOCOL', 'https://')}{os.getenv('APP_HOST_FQDN', 'greger.ngrok.io')}/oauth/callback",
-    # )
+    .with_oauth(
+        client_id=os.getenv(
+            "OAUTH_CLIENT_ID",
+            os.getenv("APP_OAUTH_ID", ""),
+        ),
+        client_secret=os.getenv("OAUTH_CLIENT_SECRET", os.getenv("APP_OAUTH_KEY", "")),
+        scope=os.getenv(
+            "OAUTH_SCOPE", "openid email profile"
+        ),  # Default to Google scopes
+        auth_uri=os.getenv(
+            "OAUTH_AUTH_URI", "https://accounts.google.com/o/oauth2/v2/auth"
+        ),
+        token_uri=os.getenv("OAUTH_TOKEN_URI", "https://oauth2.googleapis.com/token"),
+        redirect_uri=f"{os.getenv('APP_HOST_PROTOCOL', 'https://')}{os.getenv('APP_HOST_FQDN', 'greger.ngrok.io')}/oauth/callback",
+    )
     .with_web_ui(enable=True)
     .with_devtest(enable=True)  # Set to False in production
     .with_bot(
@@ -52,14 +61,35 @@ aw_app = (
         secret=os.getenv("APP_BOT_SECRET", ""),
         admin_room=os.getenv("APP_BOT_ADMIN_ROOM", ""),
     )
-    .with_unique_creator(enable=False)
-    .with_email_as_creator(enable=False)
+    .with_unique_creator(enable=True)  # Each user gets one actor
+    .with_email_as_creator(enable=True)  # Use email from OAuth as creator
     .add_actor_type(
         name="myself",
         factory=f"{os.getenv('APP_HOST_PROTOCOL', 'https://')}{os.getenv('APP_HOST_FQDN', 'greger.ngrok.io')}/",
         relationship="friend",
     )
 )
+
+# Configure OAuth2 provider for the authentication system
+# This is required for the OAuth callback to work correctly
+oauth_provider = os.getenv("OAUTH_PROVIDER", "google")  # "google" or "github"
+try:
+    config_obj = aw_app.get_config()
+    config_obj.oauth2_provider = oauth_provider
+    LOG.info(f"OAuth2 provider configured: {oauth_provider}")
+except Exception as e:
+    LOG.error(f"Failed to configure OAuth2 provider: {e}")
+
+# Initialize OAuth2 state manager at startup (for MCP OAuth flows)
+# This ensures the encryption key is created before any OAuth flows begin
+try:
+    from actingweb.oauth2_server.state_manager import get_oauth2_state_manager
+
+    state_manager = get_oauth2_state_manager(aw_app.get_config())
+    LOG.info("OAuth2 state manager initialized successfully")
+except Exception as e:
+    LOG.warning(f"OAuth2 state manager initialization skipped: {e}")
+    # Continue anyway - non-MCP OAuth flows will still work
 
 # Properties that should be hidden from external access
 PROP_HIDE = ["email"]
@@ -71,12 +101,21 @@ register_all_shared_hooks(aw_app)
 # Create Flask app
 app = Flask(__name__, static_url_path="/static")
 
+# Trust proxy headers (X-Forwarded-Proto, X-Forwarded-Host, etc.) from ngrok/reverse proxies
+# This ensures request.url uses https:// when behind a proxy that terminates SSL
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)  # type: ignore[assignment]
+
 
 # Health check endpoint for monitoring
 @app.route("/health")
 def health_check():
     """Health check endpoint for monitoring."""
-    return {"status": "healthy", "integration": "flask", "mcp_enabled": False, "version": "1.0.0-mcp"}
+    return {
+        "status": "healthy",
+        "integration": "flask",
+        "mcp_enabled": False,
+        "version": "1.0.0-mcp",
+    }
 
 
 # Custom error handlers

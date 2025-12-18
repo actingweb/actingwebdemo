@@ -13,7 +13,7 @@ from .action_hooks import register_action_hooks
 
 __all__ = [
     "register_property_hooks",
-    "register_callback_hooks", 
+    "register_callback_hooks",
     "register_lifecycle_hooks",
     "register_method_hooks",
     "register_action_hooks",
@@ -24,7 +24,7 @@ __all__ = [
 def register_all_shared_hooks(app):
     """
     Register all shared hooks with an ActingWeb application.
-    
+
     Args:
         app: ActingWebApp instance to register hooks with
     """

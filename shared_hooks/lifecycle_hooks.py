@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 def register_lifecycle_hooks(app):
     """Register all lifecycle hooks with the ActingWeb application."""
-    
+
     @app.lifecycle_hook("actor_created")
     def on_actor_created(actor: ActorInterface, **kwargs: Any) -> None:
         """Handle actor creation."""

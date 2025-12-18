@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 def register_action_hooks(app):
     """Register all action hooks with the ActingWeb application."""
-    
+
     @app.action_hook("log_message")
     def handle_log_message_action(
         actor: ActorInterface, action_name: str, data: Dict[str, Any]
@@ -31,10 +31,10 @@ def register_action_hooks(app):
             logger.info(f"Actor {actor.id if actor else 'unknown'}: {message}")
 
         return {
-            "status": "logged", 
-            "message": message, 
-            "level": level, 
-            "timestamp": datetime.now().isoformat()
+            "status": "logged",
+            "message": message,
+            "level": level,
+            "timestamp": datetime.now().isoformat(),
         }
 
     @app.action_hook("update_status")
@@ -54,10 +54,10 @@ def register_action_hooks(app):
             actor.properties.last_update = timestamp
 
         return {
-            "status": "updated", 
-            "new_status": status, 
-            "timestamp": timestamp, 
-            "actor_id": actor.id
+            "status": "updated",
+            "new_status": status,
+            "timestamp": timestamp,
+            "actor_id": actor.id,
         }
 
     @app.action_hook("send_notification")
@@ -73,7 +73,9 @@ def register_action_hooks(app):
         success = bool(recipient and message)
 
         # Log the notification
-        logger.info(f"Sending {notification_type} notification to {recipient}: {message}")
+        logger.info(
+            f"Sending {notification_type} notification to {recipient}: {message}"
+        )
 
         return {
             "status": "sent" if success else "failed",
@@ -84,18 +86,22 @@ def register_action_hooks(app):
         }
 
     @app.action_hook("notify")
-    def handle_notify_action(actor: ActorInterface, name: str, data: Dict[str, Any]) -> bool:
+    def handle_notify_action(
+        actor: ActorInterface, name: str, data: Dict[str, Any]
+    ) -> bool:
         """Handle notify action triggers."""
         message = data.get("message", "No message provided")
         logger.info(f"Notify action for actor {actor.id}: {message}")
 
         # Store notification in properties
         notifications = actor.properties.get("notifications", [])
-        notifications.append({
-            "message": message, 
-            "timestamp": datetime.now().isoformat(), 
-            "actor_id": actor.id
-        })
+        notifications.append(
+            {
+                "message": message,
+                "timestamp": datetime.now().isoformat(),
+                "actor_id": actor.id,
+            }
+        )
         actor.properties.notifications = notifications
 
         return True
