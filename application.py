@@ -4,6 +4,8 @@ ActingWeb Demo Application using the modern interface.
 
 This demonstrates the new ActingWeb interface with clean, fluent configuration
 and decorator-based hooks instead of the old OnAWBase system.
+
+Includes MCP (Model Context Protocol) support for AI language model integration.
 """
 
 import os
@@ -15,6 +17,7 @@ from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from actingweb.interface import ActingWebApp
+from actingweb.permission_integration import AccessControlConfig
 
 # Load environment variables from .env file before any config is read
 load_dotenv()
@@ -29,10 +32,13 @@ logging.basicConfig(stream=sys.stderr, level=os.getenv("LOG_LEVEL", "INFO"))
 LOG = logging.getLogger()
 LOG.setLevel(os.getenv("LOG_LEVEL", "INFO"))
 
+# Suppress noisy urllib3 connection pool debug logs
+logging.getLogger("urllib3.connectionpool").setLevel(logging.WARNING)
+
 # Create ActingWeb app with fluent configuration
 aw_app = (
     ActingWebApp(
-        aw_type="urn:actingweb:actingweb.org:actingwebdemo",
+        aw_type="urn:actingweb:actingweb.io:actingwebdemo",
         database="dynamodb",
         fqdn=os.getenv("APP_HOST_FQDN", "greger.ngrok.io"),
         proto=os.getenv("APP_HOST_PROTOCOL", "https://"),
@@ -63,6 +69,7 @@ aw_app = (
     )
     .with_unique_creator(enable=True)  # Each user gets one actor
     .with_email_as_creator(enable=True)  # Use email from OAuth as creator
+    .with_mcp(enable=True)  # Enable MCP server support for AI assistants
     .add_actor_type(
         name="myself",
         factory=f"{os.getenv('APP_HOST_PROTOCOL', 'https://')}{os.getenv('APP_HOST_FQDN', 'greger.ngrok.io')}/",
@@ -95,6 +102,47 @@ except Exception as e:
 PROP_HIDE = ["email"]
 PROP_PROTECT = PROP_HIDE + []
 
+# Configure unified access control with MCP trust types
+# This controls what AI assistants can access via the MCP protocol
+try:
+    access_control = AccessControlConfig(aw_app.get_config())
+
+    # MCP client trust type: read-only access excluding sensitive properties
+    access_control.add_trust_type(
+        name="mcp_client",
+        display_name="AI Assistant",
+        description="AI assistant with read-only access to search actor properties. Sensitive data like tokens and email are excluded.",
+        permissions={
+            "properties": {
+                "patterns": ["*"],  # Allow access to all properties
+                "operations": ["read"],  # Read-only access
+                "excluded_patterns": [
+                    "email",
+                    "auth_token",
+                    "oauth_token",
+                    "access_token",
+                    "refresh_token",
+                    "_*",  # Internal properties
+                ],
+            },
+            "methods": ["get_*", "list_*", "search_*"],  # Read operations only
+            "tools": ["search"],  # Only the search MCP tool
+            "resources": [],  # No resource access
+            "prompts": ["*"],  # All prompts available
+        },
+        oauth_scope="mcp",
+    )
+
+    # Configure OAuth2 trust type selection for MCP clients
+    access_control.configure_oauth2_trust_types(
+        allowed_trust_types=["mcp_client"],
+        default_trust_type="mcp_client",
+    )
+
+    LOG.info("MCP access control configured with mcp_client trust type")
+except Exception as e:
+    LOG.warning(f"MCP access control configuration skipped: {e}")
+
 # Register all shared hooks
 register_all_shared_hooks(aw_app)
 
@@ -113,7 +161,8 @@ def health_check():
     return {
         "status": "healthy",
         "integration": "flask",
-        "mcp_enabled": False,
+        "mcp_enabled": True,
+        "mcp_tools": ["search"],
         "version": "1.0.0-mcp",
     }
 

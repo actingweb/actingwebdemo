@@ -84,9 +84,65 @@
   --color-skeleton-highlight: rgb(15 23 42 / 0.12);
 }
 
-/* Dark mode - activated via prefers-color-scheme */
+/* Dark mode - activated via data-theme attribute or prefers-color-scheme */
+[data-theme="dark"] {
+    --color-bg-primary: #0b1220;
+    --color-bg-secondary: #0f172a;
+    --color-bg-tertiary: #172036;
+    --color-bg-hover: #1f2a44;
+
+    --color-text-primary: #f8fafc;
+    --color-text-secondary: #cbd5e1;
+    --color-text-muted: #94a3b8;
+
+    --color-border: #22304a;
+    --color-border-light: #172036;
+    --color-border-hover: #334a72;
+
+    --color-accent: #60a5fa;
+    --color-accent-hover: #3b82f6;
+    --color-accent-dark: var(--color-accent-hover);
+    --color-accent-light: rgba(96, 165, 250, 0.18);
+    --color-accent-border: rgba(96, 165, 250, 0.35);
+    --color-accent-contrast: #0b1220;
+    --color-accent-rgb: 96 165 250;
+    --color-accent-contrast-rgb: 11 18 32;
+
+    --color-success: #4ade80;
+    --color-success-light: rgba(74, 222, 128, 0.16);
+    --color-success-border: rgba(74, 222, 128, 0.32);
+    --color-success-contrast: #0b1220;
+    --color-success-rgb: 74 222 128;
+    --color-warning: #fbbf24;
+    --color-warning-light: rgba(251, 191, 36, 0.16);
+    --color-warning-border: rgba(251, 191, 36, 0.32);
+    --color-warning-contrast: #0b1220;
+    --color-warning-rgb: 251 191 36;
+    --color-danger: #f87171;
+    --color-danger-light: rgba(248, 113, 113, 0.16);
+    --color-danger-border: rgba(248, 113, 113, 0.32);
+    --color-danger-contrast: #0b1220;
+    --color-danger-rgb: 248 113 113;
+
+    /* Legacy aliases */
+    --color-primary: var(--color-accent);
+    --color-primary-light: var(--color-accent-light);
+    --color-primary-dark: var(--color-accent-hover);
+
+    /* Shadows for dark mode */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+
+    /* Surfaces */
+    --color-overlay: rgb(0 0 0 / 0.6);
+    --color-skeleton: rgb(248 250 252 / 0.08);
+    --color-skeleton-highlight: rgb(248 250 252 / 0.12);
+}
+
+/* Dark mode fallback via prefers-color-scheme (when no data-theme is set) */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]) {
     --color-bg-primary: #0b1220;
     --color-bg-secondary: #0f172a;
     --color-bg-tertiary: #172036;
@@ -819,3 +875,34 @@ pre code {
   background-color: var(--color-accent-light);
   color: var(--color-accent);
 }
+
+/* Theme toggle button group */
+.theme-toggle {
+  display: flex;
+  gap: 2px;
+  background-color: var(--color-bg-tertiary);
+  border-radius: var(--radius-md);
+  padding: 2px;
+}
+
+.theme-toggle .btn {
+  background: transparent;
+  border: none;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  color: var(--color-text-muted);
+  min-width: 32px;
+}
+
+.theme-toggle .btn:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-hover);
+}
+
+.theme-toggle .btn.active {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Flex utilities */
+.flex-1 { flex: 1; }
