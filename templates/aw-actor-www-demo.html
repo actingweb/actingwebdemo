@@ -129,13 +129,16 @@
                 <p class="text-muted">Test ActingWeb hooks and endpoints interactively</p>
             </div>
 
-            <div class="alert alert-info mb-lg">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 0.5rem;">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="M12 16v-4"/>
-                    <path d="M12 8h.01"/>
-                </svg>
-                Actor ID: <code>{{ id }}</code> | Use these forms to test the various ActingWeb hook endpoints.
+            <div class="alert alert-info mb-lg" style="text-align: center;">
+                <div style="margin-bottom: 0.5rem;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 0.5rem;">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 16v-4"/>
+                        <path d="M12 8h.01"/>
+                    </svg>
+                    Use these forms to test the various ActingWeb hook endpoints.
+                </div>
+                <code id="baseUrl" style="font-size: 0.75rem; word-break: break-all;">{{ url }}</code>
             </div>
 
             <h2 class="section-title">Methods (Read-Only Operations)</h2>
@@ -144,7 +147,7 @@
             <div class="demo-grid">
                 <!-- Calculate Method -->
                 <div class="demo-card">
-                    <h3><span class="badge-method post">POST</span> calculate</h3>
+                    <h3><span class="badge-method post">POST</span> /methods/calculate</h3>
                     <p>Perform arithmetic operations</p>
                     <form class="demo-form" onsubmit="callEndpoint(event, '/{{ id }}/methods/calculate', this)">
                         <div class="inline-inputs">
@@ -173,7 +176,7 @@
 
                 <!-- Greet Method -->
                 <div class="demo-card">
-                    <h3><span class="badge-method post">POST</span> greet</h3>
+                    <h3><span class="badge-method post">POST</span> /methods/greet</h3>
                     <p>Get a personalized greeting</p>
                     <form class="demo-form" onsubmit="callEndpoint(event, '/{{ id }}/methods/greet', this)">
                         <div class="form-group">
@@ -187,7 +190,7 @@
 
                 <!-- Get Status Method -->
                 <div class="demo-card">
-                    <h3><span class="badge-method post">POST</span> get_status</h3>
+                    <h3><span class="badge-method post">POST</span> /methods/get_status</h3>
                     <p>Get actor status summary</p>
                     <form class="demo-form" onsubmit="callEndpoint(event, '/{{ id }}/methods/get_status', this)">
                         <button type="submit" class="btn btn-primary btn-sm">Get Status</button>
@@ -197,7 +200,7 @@
 
                 <!-- Echo Method -->
                 <div class="demo-card">
-                    <h3><span class="badge-method post">POST</span> echo</h3>
+                    <h3><span class="badge-method post">POST</span> /methods/echo</h3>
                     <p>Echo back any data (for testing)</p>
                     <form class="demo-form" onsubmit="callEndpoint(event, '/{{ id }}/methods/echo', this)">
                         <div class="form-group">
@@ -216,7 +219,7 @@
             <div class="demo-grid">
                 <!-- Log Message Action -->
                 <div class="demo-card">
-                    <h3><span class="badge-method post">POST</span> log_message</h3>
+                    <h3><span class="badge-method post">POST</span> /actions/log_message</h3>
                     <p>Log a message at specified level</p>
                     <form class="demo-form" onsubmit="callEndpoint(event, '/{{ id }}/actions/log_message', this)">
                         <div class="form-group">
@@ -238,7 +241,7 @@
 
                 <!-- Update Status Action -->
                 <div class="demo-card">
-                    <h3><span class="badge-method post">POST</span> update_status</h3>
+                    <h3><span class="badge-method post">POST</span> /actions/update_status</h3>
                     <p>Update actor status property</p>
                     <form class="demo-form" onsubmit="callEndpoint(event, '/{{ id }}/actions/update_status', this)">
                         <div class="form-group">
@@ -252,7 +255,7 @@
 
                 <!-- Send Notification Action -->
                 <div class="demo-card">
-                    <h3><span class="badge-method post">POST</span> send_notification</h3>
+                    <h3><span class="badge-method post">POST</span> /actions/send_notification</h3>
                     <p>Simulate sending a notification</p>
                     <form class="demo-form" onsubmit="callEndpoint(event, '/{{ id }}/actions/send_notification', this)">
                         <div class="form-group">
@@ -278,7 +281,7 @@
 
                 <!-- Search Action (MCP Tool) -->
                 <div class="demo-card">
-                    <h3><span class="badge-method post">POST</span> search <span class="badge badge-accent">MCP</span></h3>
+                    <h3><span class="badge-method post">POST</span> /actions/search <span class="badge badge-accent">MCP</span></h3>
                     <p>Search actor properties (also available as MCP tool)</p>
                     <form class="demo-form" onsubmit="callEndpoint(event, '/{{ id }}/actions/search', this)">
                         <div class="form-group">
@@ -301,7 +304,7 @@
             <div class="demo-grid">
                 <!-- Ping Callback -->
                 <div class="demo-card">
-                    <h3><span class="badge-method post">POST</span> ping</h3>
+                    <h3><span class="badge-method post">POST</span> /callbacks/ping</h3>
                     <p>Health check - returns "pong"</p>
                     <form class="demo-form" onsubmit="callEndpoint(event, '/{{ id }}/callbacks/ping', this)">
                         <button type="submit" class="btn btn-primary btn-sm">Ping</button>
@@ -311,7 +314,7 @@
 
                 <!-- Echo Callback -->
                 <div class="demo-card">
-                    <h3><span class="badge-method post">POST</span> echo</h3>
+                    <h3><span class="badge-method post">POST</span> /callbacks/echo</h3>
                     <p>Echo back received data</p>
                     <form class="demo-form" onsubmit="callEndpoint(event, '/{{ id }}/callbacks/echo', this)">
                         <div class="form-group">
@@ -348,6 +351,10 @@
     </div>
 
     <script>
+        // Set full base URL on page load (strip /www and everything after from current path)
+        const actorPath = window.location.pathname.replace(/\/www.*$/, '');
+        document.getElementById('baseUrl').textContent = window.location.origin + actorPath;
+
         async function callEndpoint(event, endpoint, form) {
             event.preventDefault();
 

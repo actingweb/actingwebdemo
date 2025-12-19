@@ -5,32 +5,30 @@ name = "actingweb"
 version = "3.7.3"
 description = "The official ActingWeb library"
 optional = false
-python-versions = "^3.11"
+python-versions = "<4.0,>=3.11"
 groups = ["main"]
-files = []
-develop = true
+files = [
+    {file = "actingweb-3.7.3-py3-none-any.whl", hash = "sha256:57360efc17cc30a98aadc7f7932f6bd9ea86a73b70e4ea976143cacea859d4ba"},
+    {file = "actingweb-3.7.3.tar.gz", hash = "sha256:adffb749d6e723eaf3ae4a8c31dfc0b4b103747edf138a43436a1933033c601c"},
+]
 
 [package.dependencies]
-boto3 = "^1.40.6"
-cryptography = "^46.0.3"
-flask = {version = "^3.1.1", optional = true}
-httpx = "^0.28.0"
-jinja2 = {version = "^3.0.0", optional = true}
-oauthlib = "^3.2.0"
-pynamodb = "^6.0.0"
-requests = "^2.31.0"
-typing-extensions = "^4.0.0"
-werkzeug = {version = "^3.1.3", optional = true}
+boto3 = ">=1.40.6,<2.0.0"
+cryptography = ">=46.0.3,<47.0.0"
+flask = {version = ">=3.1.1,<4.0.0", optional = true, markers = "extra == \"flask\" or extra == \"all\""}
+httpx = ">=0.28.0,<0.29.0"
+jinja2 = {version = ">=3.0.0,<4.0.0", optional = true, markers = "extra == \"flask\" or extra == \"fastapi\" or extra == \"all\""}
+oauthlib = ">=3.2.0,<4.0.0"
+pynamodb = ">=6.0.0,<7.0.0"
+requests = ">=2.31.0,<3.0.0"
+typing-extensions = ">=4.0.0,<5.0.0"
+werkzeug = {version = ">=3.1.3,<4.0.0", optional = true, markers = "extra == \"flask\" or extra == \"all\""}
 
 [package.extras]
 all = ["fastapi (>=0.123.5,<0.124.0)", "flask (>=3.1.1,<4.0.0)", "jinja2 (>=3.0.0,<4.0.0)", "mcp (>=1.23.0,<2.0.0)", "pydantic (>=2.0.0,<3.0.0)", "uvicorn (>=0.38.0,<0.39.0)", "werkzeug (>=3.1.3,<4.0.0)"]
 fastapi = ["fastapi (>=0.123.5,<0.124.0)", "jinja2 (>=3.0.0,<4.0.0)", "pydantic (>=2.0.0,<3.0.0)", "uvicorn (>=0.38.0,<0.39.0)"]
 flask = ["flask (>=3.1.1,<4.0.0)", "jinja2 (>=3.0.0,<4.0.0)", "werkzeug (>=3.1.3,<4.0.0)"]
 mcp = ["mcp (>=1.23.0,<2.0.0)"]
-
-[package.source]
-type = "directory"
-url = "../actingweb"
 
 [[package]]
 name = "anyio"
@@ -945,4 +943,4 @@ watchdog = ["watchdog (>=2.3)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "3126d11482b7613491af4becbe249294a8d78128e776295e7face4cedf9329b0"
+content-hash = "79fe31574b8a7ed6325979e604f8f2696c224e176f0ce7d087872389811bbb10"

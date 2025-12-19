@@ -40,7 +40,7 @@ aw_app = (
     ActingWebApp(
         aw_type="urn:actingweb:actingweb.io:actingwebdemo",
         database="dynamodb",
-        fqdn=os.getenv("APP_HOST_FQDN", "greger.ngrok.io"),
+        fqdn=os.getenv("APP_HOST_FQDN", "localhost:5000"),
         proto=os.getenv("APP_HOST_PROTOCOL", "https://"),
     )
     # OAuth2 configuration - supports Google and GitHub providers via the new authentication system
@@ -57,7 +57,7 @@ aw_app = (
             "OAUTH_AUTH_URI", "https://accounts.google.com/o/oauth2/v2/auth"
         ),
         token_uri=os.getenv("OAUTH_TOKEN_URI", "https://oauth2.googleapis.com/token"),
-        redirect_uri=f"{os.getenv('APP_HOST_PROTOCOL', 'https://')}{os.getenv('APP_HOST_FQDN', 'greger.ngrok.io')}/oauth/callback",
+        redirect_uri=f"{os.getenv('APP_HOST_PROTOCOL', 'https://')}{os.getenv('APP_HOST_FQDN', 'localhost:5000')}/oauth/callback",
     )
     .with_web_ui(enable=True)
     .with_devtest(enable=True)  # Set to False in production
@@ -72,7 +72,7 @@ aw_app = (
     .with_mcp(enable=True)  # Enable MCP server support for AI assistants
     .add_actor_type(
         name="myself",
-        factory=f"{os.getenv('APP_HOST_PROTOCOL', 'https://')}{os.getenv('APP_HOST_FQDN', 'greger.ngrok.io')}/",
+        factory=f"{os.getenv('APP_HOST_PROTOCOL', 'https://')}{os.getenv('APP_HOST_FQDN', 'localhost:5000')}/",
         relationship="friend",
     )
 )
@@ -97,10 +97,6 @@ try:
 except Exception as e:
     LOG.warning(f"OAuth2 state manager initialization skipped: {e}")
     # Continue anyway - non-MCP OAuth flows will still work
-
-# Properties that should be hidden from external access
-PROP_HIDE = ["email"]
-PROP_PROTECT = PROP_HIDE + []
 
 # Configure unified access control with MCP trust types
 # This controls what AI assistants can access via the MCP protocol
