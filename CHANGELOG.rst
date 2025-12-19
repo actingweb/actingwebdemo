@@ -2,6 +2,38 @@
 CHANGELOG
 =========
 
+[Dec 19, 2025]
+------------
+
+**Full Refactoring Update**
+
+Breaking
+~~~~~~~~
+
+- **OAuth2 Configuration Changes**: OAuth2 is now enabled by default with Google as the provider
+- **Actor Creation Policy**: Unique creator and email-as-creator are now enabled by default
+
+Added
+~~~~~
+
+- **Environment Support**: Added python-dotenv for loading .env files
+- **OAuth2 State Manager**: Pre-initialized OAuth2 state manager for MCP OAuth flows
+- **Development Tools**: Added ruff and pyright to dev dependencies for code quality
+
+Changed
+~~~~~~~
+
+- **ActingWeb Library**: Updated to v3.7.2 (includes Flask auth fix)
+- **UI Templates Redesign**: Completely modernized all HTML templates with:
+  - Modern responsive design using Inter font family
+  - Consistent card-based layout across all pages
+  - SVG icons throughout the interface
+  - Improved accessibility and mobile support
+  - New dashboard, properties, trust, and OAuth authorization views
+- **CSS Overhaul**: Major expansion of style.css with modern design system
+- **Proxy Fix Middleware**: Added Werkzeug ProxyFix for proper header handling
+- **Hook Improvements**: Refined shared hooks for better error handling
+
 Aug 5, 2025
 -----------
 
