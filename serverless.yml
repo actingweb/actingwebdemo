@@ -3,12 +3,13 @@
 service: actingwebdemo
 
 plugins:
-  - serverless-python-requirements
+  # serverless-python-requirements does not need to be loaded as it is loaded by default
   - serverless-wsgi
   - serverless-domain-manager
   # If you want to use pseudo parameters, add this plugin
   #- serverless-pseudo-parameters
 custom:
+  stage: ${opt:stage, 'prod'}
   customDomain:
     domainName: 'demo.actingweb.io'
     basePath: ""
@@ -16,27 +17,77 @@ custom:
     endpointType: "regional"
     createRoute53Record: false
     autoDomain: false
+    apiType: http  # Use HTTP API v2 instead of REST API
   wsgi:
     app: application.app
     packRequirements: false
   pythonRequirements:
-    dockerizePip: false
+    dockerizePip: true
     poetry: true
     poetryWithoutHashes: true
+    slim: true
+    slimPatterns:
+      - "**/*.py[c|o]"
+      - "**/__pycache__*"
+      - "**/*.dist-info*"
+      - "**/*.egg-info*"
+      - "**/tests/**"
+      - "**/test/**"
+      - "**/.pytest_cache/**"
+      - "**/docs/**"
+      - "**/examples/**"
+    noDeploy:
+      - boto3
+      - botocore
+      - s3transfer
+      - jmespath
+      - docutils
+      - urllib3
+      - python-dateutil
+      - six
+
+package:
+  individually: false
+  patterns:
+    - '!node_modules/**'
+    - '!.git/**'
+    - '!.venv/**'
+    - '!__pycache__/**'
+    - '!.pytest_cache/**'
+    - '!tests/**'
+    - '!.vscode/**'
+    - '!.idea/**'
+    - '!*.pyc'
+    - '!*.pyo'
+    - '!.env*'
+    - '!docker-compose.yml'
+    - '!Dockerfile'
+    - '!.dockerignore'
+    - '!.gitignore'
+    - '!README.rst'
+    - '!poetry.lock'
+    - '!pyproject.toml'
 
 provider:
   profile: default # use the credentials in ~/.aws/credentials
   name: aws
   runtime: python3.11
-  memorySize: 128
+  memorySize: 256
   timeout: 29
-  stage: prod
+  stage: ${self:custom.stage}
   region: us-west-1
-  lambdaHashingVersion: '20201221'
+  httpApi:
+    # Use HTTP API v2 instead of REST API to avoid header remapping issues
+    # HTTP API doesn't remap WWW-Authenticate header (critical for OAuth2)
+    cors: true
+    payload: '2.0'
   environment:
     APP_HOST_FQDN: 'demo.actingweb.io'
     APP_HOST_PROTOCOL: 'https://'
-    LOG_LEVEL: 'DEBUG'
+    LOG_LEVEL: 'DEBUG' # We use debug as this is a demo app
+    OAUTH_CLIENT_ID: '${env:OAUTH_CLIENT_ID}'
+    OAUTH_CLIENT_SECRET: '${env:OAUTH_CLIENT_SECRET}'
+    OAUTH_PROVIDER: '${env:OAUTH_PROVIDER, "google"}'  # "google" or "github"
   iam:
     role:   
       statements:
@@ -56,5 +107,4 @@ functions:
   app:
     handler: wsgi_handler.handler
     events:
-      - http: ANY /
-      - http: 'ANY /{proxy+}'
+      - httpApi: '*'  # Use HTTP API v2 instead of REST API to preserve WWW-Authenticate header

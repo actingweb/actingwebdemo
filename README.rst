@@ -304,15 +304,31 @@ ActingWeb endpoint.
 
 AWS Lambda
 ----------
-You can deploy the app to AWS Lamda in three simple steps. There is a serverless.yml file with the config you need.
+You can deploy the app to AWS Lambda in four steps. There is a serverless.yml file with the config you need.
 
 1. `Install Serverless <https://serverless.com/framework/docs/providers/aws/guide/installation/>`_
 
-2. Edit serverless.yml APP_HOST_FQDN to use your domain (or AWS domain, see 4.) and region if you prefer another
+2. Edit serverless.yml APP_HOST_FQDN to use your domain (or AWS domain, see 5.) and region if you prefer another
 
-3. Run `sls deploy`
+3. **Set required environment variables** before deployment::
 
-4. (if using AWS allocated domain) Use the long domain name AWS assigns the lambda and go to #2 above
+    export OAUTH_CLIENT_ID="your-oauth-client-id"
+    export OAUTH_CLIENT_SECRET="your-oauth-client-secret"
+    export OAUTH_PROVIDER="google"  # or "github"
+
+   These environment variables are referenced by serverless.yml during deployment and are passed
+   to the Lambda function. If you don't set them, deployment will succeed but OAuth functionality
+   will not work.
+
+4. Run `sls deploy` (defaults to 'prod' stage) or deploy to a specific stage::
+
+    sls deploy              # Deploys to prod stage (default)
+    sls deploy --stage dev  # Deploys to dev stage
+
+   Different stages create separate Lambda functions and resources, allowing you to maintain
+   dev, staging, and production environments independently.
+
+5. (if using AWS allocated domain) Use the long domain name AWS assigns the lambda and go to #2 above
 
 
 AWS Elastic Beanstalk

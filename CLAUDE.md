@@ -107,8 +107,8 @@ app = ActingWebApp(
     database="dynamodb",
     fqdn=os.getenv("APP_HOST_FQDN", "localhost:5000")
 ).with_oauth(
-    client_id=os.getenv("APP_OAUTH_ID", ""),
-    client_secret=os.getenv("APP_OAUTH_KEY", "")
+    client_id=os.getenv("OAUTH_CLIENT_ID", ""),
+    client_secret=os.getenv("OAUTH_CLIENT_SECRET", "")
 ).with_web_ui().with_devtest()
 ```
 
@@ -181,9 +181,22 @@ actor.subscriptions.subscribe_to_peer(
 npm install -g serverless
 
 # Edit serverless.yml to set your domain
-# Deploy to AWS Lambda
+
+# Set required environment variables before deployment
+export OAUTH_CLIENT_ID="your-oauth-client-id"
+export OAUTH_CLIENT_SECRET="your-oauth-client-secret"
+export OAUTH_PROVIDER="google"  # or "github"
+
+# Deploy to AWS Lambda (defaults to 'prod' stage)
 sls deploy
+
+# Or deploy to a specific stage (dev, staging, prod, etc.)
+sls deploy --stage dev
 ```
+
+**Important**: The serverless.yml configuration references environment variables (`${env:OAUTH_CLIENT_ID}`, etc.) from your local environment during deployment. These must be set before running `sls deploy`, otherwise OAuth functionality will not work in the deployed Lambda function.
+
+**Stages**: The deployment stage is configurable via the `--stage` flag and defaults to `prod`. Different stages create separate Lambda functions and resources, allowing you to maintain dev, staging, and production environments independently.
 
 ### AWS Elastic Beanstalk
 ```bash
@@ -204,8 +217,9 @@ The application uses Poetry for dependency management and Python 3.11 runtime. T
 Key environment variables:
 - `APP_HOST_FQDN` - The domain where the app is hosted
 - `APP_HOST_PROTOCOL` - Protocol (http:// or https://)
-- `APP_OAUTH_ID` - OAuth client ID
-- `APP_OAUTH_KEY` - OAuth client secret
+- `OAUTH_CLIENT_ID` - OAuth client ID (legacy: `APP_OAUTH_ID`)
+- `OAUTH_CLIENT_SECRET` - OAuth client secret (legacy: `APP_OAUTH_KEY`)
+- `OAUTH_PROVIDER` - OAuth provider ("google" or "github", defaults to "google")
 - `APP_BOT_TOKEN` - Bot token for bot integration
 - `APP_BOT_EMAIL` - Bot email
 - `APP_BOT_SECRET` - Bot secret
