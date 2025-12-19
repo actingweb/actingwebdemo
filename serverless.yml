@@ -3,7 +3,6 @@
 service: actingwebdemo
 
 plugins:
-  - serverless-python-requirements
   - serverless-wsgi
   - serverless-domain-manager
   # If you want to use pseudo parameters, add this plugin
@@ -16,6 +15,7 @@ custom:
     endpointType: "regional"
     createRoute53Record: false
     autoDomain: false
+    apiType: http  # Use HTTP API v2 instead of REST API
   wsgi:
     app: application.app
     packRequirements: false
@@ -74,6 +74,11 @@ provider:
   timeout: 29
   stage: prod
   region: us-west-1
+  httpApi:
+    # Use HTTP API v2 instead of REST API to avoid header remapping issues
+    # HTTP API doesn't remap WWW-Authenticate header (critical for OAuth2)
+    cors: true
+    payload: '2.0'
   environment:
     APP_HOST_FQDN: 'demo.actingweb.io'
     APP_HOST_PROTOCOL: 'https://'
@@ -97,5 +102,4 @@ functions:
   app:
     handler: wsgi_handler.handler
     events:
-      - http: ANY /
-      - http: 'ANY /{proxy+}'
+      - httpApi: '*'  # Use HTTP API v2 instead of REST API to preserve WWW-Authenticate header
