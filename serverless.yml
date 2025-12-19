@@ -83,6 +83,8 @@ provider:
     APP_HOST_FQDN: 'demo.actingweb.io'
     APP_HOST_PROTOCOL: 'https://'
     LOG_LEVEL: 'DEBUG'
+    OAUTH_CLIENT_ID: '${env:OAUTH_CLIENT_ID}'
+    OAUTH_CLIENT_SECRET: '${env:OAUTH_CLIENT_SECRET}'
   iam:
     role:   
       statements:
