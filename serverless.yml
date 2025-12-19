@@ -20,9 +20,51 @@ custom:
     app: application.app
     packRequirements: false
   pythonRequirements:
-    dockerizePip: false
+    dockerizePip: true
     poetry: true
     poetryWithoutHashes: true
+    slim: true
+    slimPatterns:
+      - "**/*.py[c|o]"
+      - "**/__pycache__*"
+      - "**/*.dist-info*"
+      - "**/*.egg-info*"
+      - "**/tests/**"
+      - "**/test/**"
+      - "**/.pytest_cache/**"
+      - "**/docs/**"
+      - "**/examples/**"
+    noDeploy:
+      - boto3
+      - botocore
+      - s3transfer
+      - jmespath
+      - docutils
+      - urllib3
+      - python-dateutil
+      - six
+
+package:
+  individually: false
+  patterns:
+    - '!node_modules/**'
+    - '!.git/**'
+    - '!.venv/**'
+    - '!__pycache__/**'
+    - '!.pytest_cache/**'
+    - '!tests/**'
+    - '!.vscode/**'
+    - '!.idea/**'
+    - '!*.pyc'
+    - '!*.pyo'
+    - '!.env*'
+    - '!docker-compose.yml'
+    - '!Dockerfile'
+    - '!.dockerignore'
+    - '!.gitignore'
+    - '!README.rst'
+    - '!poetry.lock'
+    - '!pyproject.toml'
 
 provider:
   profile: default # use the credentials in ~/.aws/credentials
@@ -32,7 +74,6 @@ provider:
   timeout: 29
   stage: prod
   region: us-west-1
-  lambdaHashingVersion: '20201221'
   environment:
     APP_HOST_FQDN: 'demo.actingweb.io'
     APP_HOST_PROTOCOL: 'https://'
