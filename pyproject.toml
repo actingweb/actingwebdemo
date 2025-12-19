@@ -16,8 +16,8 @@ python = "^3.11"
 jinja2 = ">=3.1.2"
 flask = ">=3.1.1,<4.0.0"
 uwsgi = ">=2.0.23"
-#actingweb = { version = ">=3.7.1", extras = ["flask"] }
-actingweb = { path = "../actingweb", develop = true, extras = ["flask"] }
+actingweb = { version = ">=3.7.2", extras = ["flask"] }
+#actingweb = { path = "../actingweb", develop = true, extras = ["flask"] }
 python-dotenv = "^1.2.1"
 
 [tool.poetry.group.dev.dependencies]
