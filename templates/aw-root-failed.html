@@ -1,60 +1,100 @@
-<html>
-  <head>
-    <title>ActingWeb Demo - Account Creation Failed</title>
+<!DOCTYPE html>
+<html lang="en" data-theme="">
+<head>
+    <script>
+        (function(){var t=localStorage.getItem('actingweb-theme');if(t&&t!=='system')document.documentElement.setAttribute('data-theme',t);else document.documentElement.removeAttribute('data-theme');})();
+    </script>
+    <title>ActingWeb Demo - Error</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-      body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
-      .container { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-      h1 { color: #d93025; margin-bottom: 20px; }
-      .error { color: #d93025; margin-bottom: 20px; padding: 15px; background-color: #fce8e6; border-radius: 4px; }
-      .description { margin-bottom: 25px; color: #666; line-height: 1.5; }
-      .actions { margin-top: 25px; }
-      .btn { display: inline-block; background-color: #4285f4; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-right: 10px; }
-      .btn:hover { background-color: #3367d6; }
-      .btn-secondary { background-color: #666; }
-      .btn-secondary:hover { background-color: #555; }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <h1>Account Creation Failed</h1>
-      
-      {% if error %}
-        <div class="error">
-          <strong>Error:</strong> {{ error }}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="page-container">
+        <div class="page-card animate-fade-in" style="max-width: 560px;">
+            <div class="page-header">
+                <div class="page-icon page-icon-danger">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="15" y1="9" x2="9" y2="15"/>
+                        <line x1="9" y1="9" x2="15" y2="15"/>
+                    </svg>
+                </div>
+                <h1>Something Went Wrong</h1>
+                <p class="text-muted">We couldn't complete your request</p>
+            </div>
+
+            {% if error %}
+            <div class="alert alert-danger mb-md">
+                <strong>Error:</strong> {{ error }}
+            </div>
+            {% endif %}
+
+            <div class="card mb-lg">
+                <div class="card-body">
+                    {% if "email" in (error or "") and "match" in (error or "") %}
+                    <h3 class="mb-md">Email Mismatch Detected</h3>
+                    <p class="text-sm text-muted mb-md">
+                        The email address you authenticated with doesn't match the email you entered in the form.
+                        This is a security measure to prevent account creation with the wrong identity.
+                    </p>
+
+                    <div class="mb-md">
+                        <h4 class="text-sm font-semibold mb-xs">What happened:</h4>
+                        <ul class="text-sm text-muted" style="margin-left: 1.5rem; list-style-type: disc;">
+                            <li>You entered one email address in the form</li>
+                            <li>You authenticated with a different email address via OAuth2</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 class="text-sm font-semibold mb-xs">To fix this:</h4>
+                        <ul class="text-sm text-muted" style="margin-left: 1.5rem; list-style-type: disc;">
+                            <li>Make sure you enter the correct email address in the form</li>
+                            <li>Authenticate with the same email address you entered</li>
+                            <li>Or use a different email address consistently for both steps</li>
+                        </ul>
+                    </div>
+                    {% else %}
+                    <h3 class="mb-md">Possible Causes</h3>
+                    <p class="text-sm text-muted mb-md">
+                        We encountered an error while processing your request. This could be due to:
+                    </p>
+                    <ul class="text-sm text-muted" style="margin-left: 1.5rem; list-style-type: disc;">
+                        <li>A temporary network issue</li>
+                        <li>Authentication problems with your OAuth2 provider</li>
+                        <li>Invalid or expired credentials</li>
+                        <li>The actor may already exist or was recently deleted</li>
+                    </ul>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="flex gap-sm">
+                <a href="/" class="btn btn-primary flex-1">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                        <path d="M3 3v5h5"/>
+                    </svg>
+                    Try Again
+                </a>
+                <a href="/" class="btn btn-secondary flex-1">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                    Go Home
+                </a>
+            </div>
+
+            <div class="mt-lg text-center text-xs text-muted">
+                Powered by <a href="https://github.com/actingweb/actingweb">ActingWeb</a>
+            </div>
         </div>
-      {% endif %}
-      
-      <div class="description">
-        {% if "email" in (error or "") and "match" in (error or "") %}
-          <p><strong>Email Mismatch Detected</strong></p>
-          <p>The email address you authenticated with doesn't match the email you entered in the form. This is a security measure to prevent account creation with the wrong identity.</p>
-          <p><strong>What happened:</strong></p>
-          <ul>
-            <li>You entered one email address in the form</li>
-            <li>You authenticated with a different email address via OAuth2</li>
-          </ul>
-          <p><strong>To fix this:</strong></p>
-          <ul>
-            <li>Make sure you enter the correct email address in the form</li>
-            <li>Authenticate with the same email address you entered</li>
-            <li>Or use a different email address consistently for both steps</li>
-          </ul>
-        {% else %}
-          <p>We encountered an error while creating your ActingWeb actor. This could be due to:</p>
-          <ul>
-            <li>A temporary network issue</li>
-            <li>Authentication problems with your OAuth2 provider</li>
-            <li>Invalid or expired credentials</li>
-          </ul>
-        {% endif %}
-      </div>
-      
-      <div class="actions">
-        <a href="/" class="btn">Try Again</a>
-        <a href="/docs" class="btn btn-secondary">View Documentation</a>
-      </div>
     </div>
-  </body>
+</body>
 </html>

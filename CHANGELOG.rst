@@ -2,25 +2,59 @@
 CHANGELOG
 =========
 
+[Dec 19, 2025]
+--------------
+
+**Full Refactoring Update with MCP Support**
+
+Breaking
+~~~~~~~~
+
+- **OAuth2 Configuration Changes**: OAuth2 is now enabled by default with Google as the provider
+- **Actor Creation Policy**: Unique creator and email-as-creator are now enabled by default
+
+Added
+~~~~~
+
+- **MCP Server Support**: Added Model Context Protocol server integration for AI language models
+  - New ``search`` MCP tool to search across actor properties by keyword
+  - ``mcp_client`` trust type with read-only access and sensitive data exclusion
+  - Excludes email, auth_token, oauth_token, access_token, refresh_token from MCP access
+  - Safety annotations for tool behavior (readOnlyHint, destructiveHint)
+- **API Explorer**: New web UI page at ``/{actor_id}/www/demo`` for testing hooks interactively
+  - Test methods, actions, and callbacks from the browser
+  - Real-time JSON response display
+  - Organized by hook type with input forms
+- **Comprehensive Hook Documentation**: All shared_hooks files now include detailed docstrings
+  - Endpoint paths, parameters, return values documented for each hook
+  - Module-level documentation with usage examples
+- **New Method Hooks**: Added ``echo`` method for testing
+- **Environment Support**: Added python-dotenv for loading .env files
+- **OAuth2 State Manager**: Pre-initialized OAuth2 state manager for MCP OAuth flows
+- **Development Tools**: Added ruff and pyright to dev dependencies for code quality
+
+Changed
+~~~~~~~
+
+- **ActingWeb Library**: Updated to v3.7.2 (includes Flask auth fix)
+- **MCP Enabled**: Application now has ``.with_mcp(enable=True)`` for MCP protocol support
+- **UI Templates Redesign**: Completely modernized all HTML templates with:
+  - Modern responsive design using Inter font family
+  - Consistent card-based layout across all pages
+  - SVG icons throughout the interface
+  - Improved accessibility and mobile support
+  - New dashboard, properties, trust, and OAuth authorization views
+- **CSS Overhaul**: Major expansion of style.css with modern design system
+- **Proxy Fix Middleware**: Added Werkzeug ProxyFix for proper header handling
+- **Hook Improvements**: Refined shared hooks for better error handling
+
 Aug 5, 2025
 -----------
 
-**MCP Server Integration**
+**Modular Architecture Update**
 
-- **MCP Server Support**: Added complete Model Context Protocol (MCP) server implementation for AI language model integration
-- **FastAPI Application**: Created new fastapi_application.py with modern async/await support and automatic OpenAPI documentation
-- **Dual Framework Support**: Now supports both Flask (application.py) and FastAPI (fastapi_application.py) implementations
-- **AI Tool Integration**:
-  - Added MCP tools for actor management, property operations, and trust relationship handling
-  - Implemented search functionality across actor data
-  - Created shared MCP modules in shared_mcp/ directory for reusable functionality
-- **Configuration**: Added mcp-config.json for MCP server configuration and client integration
-- **Modular Architecture**:
-  - Created shared_hooks/ directory for reusable hook implementations
-  - Separated MCP-specific logic into shared_mcp/ modules (tools.py, prompts.py, helpers.py)
-  - Maintained compatibility with existing Flask-based implementation
+- **Shared Hooks**: Created shared_hooks/ directory for reusable hook implementations
 - **ActingWeb Library**: Updated to actingweb v3.2 for latest features and improvements
-- **Development Tools**: Enhanced development workflow with dual framework support and MCP integration
 
 Jul 14, 2025
 ------------

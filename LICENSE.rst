@@ -1,7 +1,7 @@
 License
 =======
 
-Copyright 2018 Greger Teigre Wedel
+Copyright 2018-2025 Greger Teigre Wedel
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
 following conditions are met:
