@@ -174,6 +174,101 @@ def internal_error(error):
     return {"error": "Internal server error"}, 500
 
 
+# Nuke endpoint for test environment cleanup
+@app.route("/nuke", methods=["GET"])
+def nuke_all_actors():
+    """
+    Delete all actors and their data from DynamoDB.
+
+    This is a destructive operation intended for test environments only.
+    Requires a secret parameter matching the NUKE_SECRET environment variable.
+
+    Usage: GET /nuke?secret=<NUKE_SECRET>
+    """
+    import boto3
+    from flask import request
+    from actingweb import actor
+
+    # Verify secret
+    nuke_secret = os.getenv("NUKE_SECRET", "")
+    if not nuke_secret:
+        return {"error": "NUKE_SECRET not configured"}, 503
+
+    provided_secret = request.args.get("secret", "")
+    if not provided_secret or provided_secret != nuke_secret:
+        return {"error": "Invalid or missing secret"}, 403
+
+    # Get config
+    config = aw_app.get_config()
+
+    # Scan all actors using boto3
+    deleted = []
+    skipped = []
+    errors = []
+
+    try:
+        dynamodb = boto3.resource("dynamodb")
+        table = dynamodb.Table("demo_actingweb_actors")
+
+        # Scan all actors
+        response = table.scan(ProjectionExpression="id, creator")
+        all_actors = response.get("Items", [])
+
+        # Handle pagination
+        while "LastEvaluatedKey" in response:
+            response = table.scan(
+                ProjectionExpression="id, creator",
+                ExclusiveStartKey=response["LastEvaluatedKey"],
+            )
+            all_actors.extend(response.get("Items", []))
+
+        if not all_actors:
+            return {
+                "status": "complete",
+                "message": "No actors found",
+                "deleted": 0,
+                "skipped": 0,
+            }
+
+        for actor_data in all_actors:
+            actor_id = actor_data.get("id", "")
+            creator = actor_data.get("creator", "")
+
+            # Skip system actors
+            if actor_id.startswith("_actingweb_"):
+                skipped.append({"id": actor_id, "creator": creator, "reason": "system actor"})
+                continue
+
+            try:
+                # Load and delete the actor (this also cleans up properties, attributes, etc.)
+                a = actor.Actor(actor_id=actor_id, config=config)
+                if a.id:
+                    a.delete()
+                    deleted.append({"id": actor_id, "creator": creator})
+                    LOG.info(f"Nuked actor: {actor_id} ({creator})")
+                else:
+                    skipped.append({"id": actor_id, "creator": creator, "reason": "not found"})
+            except Exception as e:
+                errors.append({"id": actor_id, "creator": creator, "error": str(e)})
+                LOG.error(f"Error deleting actor {actor_id}: {e}")
+
+        return {
+            "status": "complete",
+            "deleted": len(deleted),
+            "skipped": len(skipped),
+            "errors": len(errors),
+            "details": {
+                "deleted": deleted,
+                "skipped": skipped,
+                "errors": errors,
+            },
+        }
+
+    except Exception as e:
+        LOG.error(f"Nuke operation failed: {e}")
+        return {"error": f"Nuke operation failed: {str(e)}"}, 500
+
+
 # Integrate with Flask
 integration = aw_app.integrate_flask(app)
 

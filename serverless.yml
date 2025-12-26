@@ -6,10 +6,18 @@ plugins:
   # serverless-python-requirements does not need to be loaded as it is loaded by default
   - serverless-wsgi
   - serverless-domain-manager
+  - serverless-dotenv-plugin
   # If you want to use pseudo parameters, add this plugin
   #- serverless-pseudo-parameters
 custom:
   stage: ${opt:stage, 'prod'}
+  dotenv:
+    exclude:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_DEFAULT_REGION
+      - AWS_DB_PREFIX
+      - AWS_DB_HOST
   customDomain:
     domainName: 'demo.actingweb.io'
     basePath: ""
@@ -88,6 +96,7 @@ provider:
     OAUTH_CLIENT_ID: '${env:OAUTH_CLIENT_ID}'
     OAUTH_CLIENT_SECRET: '${env:OAUTH_CLIENT_SECRET}'
     OAUTH_PROVIDER: '${env:OAUTH_PROVIDER, "google"}'  # "google" or "github"
+    NUKE_SECRET: '${env:NUKE_SECRET, ""}'  # Secret for /nuke endpoint (test cleanup)
   iam:
     role:   
       statements:

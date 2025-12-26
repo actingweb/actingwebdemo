@@ -2,6 +2,25 @@
 CHANGELOG
 =========
 
+[Dec 26, 2025]
+------------
+
+Added
+~~~~~
+
+- **Nuke Endpoint**: New ``GET /nuke?secret=<NUKE_SECRET>`` endpoint for test environment cleanup
+  - Deletes all actors and their associated data from DynamoDB
+  - Requires ``NUKE_SECRET`` environment variable for authorization
+  - Preserves system actors (``_actingweb_*``)
+  - Returns detailed JSON report of deleted/skipped/errored actors
+- **Serverless Dotenv Plugin**: Added ``serverless-dotenv-plugin`` for automatic ``.env`` loading during deployment
+
+Changed
+~~~~~~~
+
+- **Environment Configuration**: Added ``NUKE_SECRET`` environment variable to serverless.yml
+- **Dotenv Exclusions**: Configured dotenv plugin to exclude AWS reserved variables from Lambda deployment
+
 [Dec 19, 2025]
 --------------
 
