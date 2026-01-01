@@ -2,6 +2,32 @@
 CHANGELOG
 =========
 
+[Jan 1, 2026]
+------------
+
+Added
+~~~~~
+
+- **Trust Lifecycle Hooks**: Added ``trust_hooks.py`` module with lifecycle hooks for trust relationship events
+  - ``trust_approved`` hook: Triggered when both parties approve a trust relationship
+  - ``trust_deleted`` hook: Triggered before a trust relationship is deleted
+  - Provides logging and extension points for custom trust management workflows
+
+Changed
+~~~~~~~
+
+- **Trust Auto-Approval**: Enabled automatic approval for "friend" trust relationships
+  - Set ``default_relationship`` to "friend" to match configured actor types
+  - Set ``auto_accept_default_relationship`` to ``True`` for automatic approval
+  - Other relationship types (subscriber, admin, associate) require manual approval
+
+Fixed
+~~~~~
+
+- **Trust Approve Button**: Fixed parameter name mismatch preventing trust approval in web UI
+  - Changed template parameter from ``approve=true`` to ``approved=true``
+  - Approve button now correctly approves pending trust relationships
+
 [Dec 26, 2025]
 ------------
 

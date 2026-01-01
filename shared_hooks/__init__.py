@@ -10,6 +10,7 @@ from .callback_hooks import register_callback_hooks
 from .lifecycle_hooks import register_lifecycle_hooks
 from .method_hooks import register_method_hooks
 from .action_hooks import register_action_hooks
+from .trust_hooks import register_trust_hooks
 
 __all__ = [
     "register_property_hooks",
@@ -17,6 +18,7 @@ __all__ = [
     "register_lifecycle_hooks",
     "register_method_hooks",
     "register_action_hooks",
+    "register_trust_hooks",
     "register_all_shared_hooks",
 ]
 
@@ -33,3 +35,4 @@ def register_all_shared_hooks(app):
     register_lifecycle_hooks(app)
     register_method_hooks(app)
     register_action_hooks(app)
+    register_trust_hooks(app)

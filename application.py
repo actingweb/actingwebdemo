@@ -87,6 +87,22 @@ try:
 except Exception as e:
     LOG.error(f"Failed to configure OAuth2 provider: {e}")
 
+# Configure trust relationship settings
+# Set the default relationship to match our configured actor types
+# and enable auto-approval only for this relationship
+try:
+    config_obj = aw_app.get_config()
+    # Set default relationship to "friend" to match our add_actor_type configuration
+    config_obj.default_relationship = "friend"
+    # Enable auto-approval only for the configured "friend" relationship
+    config_obj.auto_accept_default_relationship = True
+    LOG.info(
+        f"Trust auto-approval enabled for relationship: {config_obj.default_relationship}"
+    )
+    LOG.info("Trust requests with other relationships will require manual approval")
+except Exception as e:
+    LOG.error(f"Failed to configure trust settings: {e}")
+
 # Initialize OAuth2 state manager at startup (for MCP OAuth flows)
 # This ensures the encryption key is created before any OAuth flows begin
 try:
