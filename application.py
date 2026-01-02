@@ -77,31 +77,20 @@ aw_app = (
     )
 )
 
-# Configure OAuth2 provider for the authentication system
-# This is required for the OAuth callback to work correctly
+# Configure OAuth2 provider and trust relationship settings
 oauth_provider = os.getenv("OAUTH_PROVIDER", "google")  # "google" or "github"
 try:
     config_obj = aw_app.get_config()
     config_obj.oauth2_provider = oauth_provider
     LOG.info(f"OAuth2 provider configured: {oauth_provider}")
-except Exception as e:
-    LOG.error(f"Failed to configure OAuth2 provider: {e}")
 
-# Configure trust relationship settings
-# Set the default relationship to match our configured actor types
-# and enable auto-approval only for this relationship
-try:
-    config_obj = aw_app.get_config()
-    # Set default relationship to "friend" to match our add_actor_type configuration
+    # Configure trust relationship settings
     config_obj.default_relationship = "friend"
-    # Enable auto-approval only for the configured "friend" relationship
     config_obj.auto_accept_default_relationship = True
-    LOG.info(
-        f"Trust auto-approval enabled for relationship: {config_obj.default_relationship}"
-    )
+    LOG.info(f"Trust auto-approval enabled for relationship: {config_obj.default_relationship}")
     LOG.info("Trust requests with other relationships will require manual approval")
 except Exception as e:
-    LOG.error(f"Failed to configure trust settings: {e}")
+    LOG.error(f"Failed to configure OAuth2/trust settings: {e}")
 
 # Initialize OAuth2 state manager at startup (for MCP OAuth flows)
 # This ensures the encryption key is created before any OAuth flows begin
@@ -181,12 +170,12 @@ def health_check():
 
 # Custom error handlers
 @app.errorhandler(404)
-def not_found(error):
+def not_found(_error):
     return {"error": "Not found"}, 404
 
 
 @app.errorhandler(500)
-def internal_error(error):
+def internal_error(_error):
     return {"error": "Internal server error"}, 500
 
 
@@ -224,7 +213,7 @@ def nuke_all_actors():
 
     try:
         dynamodb = boto3.resource("dynamodb")
-        table = dynamodb.Table("demo_actingweb_actors")
+        table = dynamodb.Table("demo_actingweb_actors")  # type: ignore[attr-defined]
 
         # Scan all actors
         response = table.scan(ProjectionExpression="id, creator")
