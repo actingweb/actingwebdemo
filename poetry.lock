@@ -2,14 +2,14 @@
 
 [[package]]
 name = "actingweb"
-version = "3.7.3"
+version = "3.8.1"
 description = "The official ActingWeb library"
 optional = false
 python-versions = "<4.0,>=3.11"
 groups = ["main"]
 files = [
-    {file = "actingweb-3.7.3-py3-none-any.whl", hash = "sha256:57360efc17cc30a98aadc7f7932f6bd9ea86a73b70e4ea976143cacea859d4ba"},
-    {file = "actingweb-3.7.3.tar.gz", hash = "sha256:adffb749d6e723eaf3ae4a8c31dfc0b4b103747edf138a43436a1933033c601c"},
+    {file = "actingweb-3.8.1-py3-none-any.whl", hash = "sha256:3d9512ad2dd9227ce277f3560cd609b8609c24489fa271e75df53c7cbe46f831"},
+    {file = "actingweb-3.8.1.tar.gz", hash = "sha256:de20b2102b424db3a1e1401b8d9f9fe0149e41ff2ec23d418b54b2c3c54d18c6"},
 ]
 
 [package.dependencies]
@@ -25,10 +25,11 @@ typing-extensions = ">=4.0.0,<5.0.0"
 werkzeug = {version = ">=3.1.3,<4.0.0", optional = true, markers = "extra == \"flask\" or extra == \"all\""}
 
 [package.extras]
-all = ["fastapi (>=0.123.5,<0.124.0)", "flask (>=3.1.1,<4.0.0)", "jinja2 (>=3.0.0,<4.0.0)", "mcp (>=1.23.0,<2.0.0)", "pydantic (>=2.0.0,<3.0.0)", "uvicorn (>=0.38.0,<0.39.0)", "werkzeug (>=3.1.3,<4.0.0)"]
+all = ["alembic (>=1.13.0,<2.0.0)", "fastapi (>=0.123.5,<0.124.0)", "flask (>=3.1.1,<4.0.0)", "jinja2 (>=3.0.0,<4.0.0)", "mcp (>=1.23.0,<2.0.0)", "psycopg[binary,pool] (>=3.1.0,<4.0.0)", "pydantic (>=2.0.0,<3.0.0)", "sqlalchemy (>=2.0.0,<3.0.0)", "uvicorn (>=0.38.0,<0.39.0)", "werkzeug (>=3.1.3,<4.0.0)"]
 fastapi = ["fastapi (>=0.123.5,<0.124.0)", "jinja2 (>=3.0.0,<4.0.0)", "pydantic (>=2.0.0,<3.0.0)", "uvicorn (>=0.38.0,<0.39.0)"]
 flask = ["flask (>=3.1.1,<4.0.0)", "jinja2 (>=3.0.0,<4.0.0)", "werkzeug (>=3.1.3,<4.0.0)"]
 mcp = ["mcp (>=1.23.0,<2.0.0)"]
+postgresql = ["alembic (>=1.13.0,<2.0.0)", "psycopg[binary,pool] (>=3.1.0,<4.0.0)", "sqlalchemy (>=2.0.0,<3.0.0)"]
 
 [[package]]
 name = "anyio"
@@ -63,18 +64,18 @@ files = [
 
 [[package]]
 name = "boto3"
-version = "1.42.13"
+version = "1.42.19"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "boto3-1.42.13-py3-none-any.whl", hash = "sha256:9d6aad3fa8b90567006bf7b32efa26489fc306fbe63946eaf57b72356a45761d"},
-    {file = "boto3-1.42.13.tar.gz", hash = "sha256:4c9a62dcb5c3f905630fe99fb4b81131da84c5c92eedcc81a89cbd924c1c524f"},
+    {file = "boto3-1.42.19-py3-none-any.whl", hash = "sha256:c55b8b303c64931272536813a476f130b90ea7041d7b79c154d89cf1c18256b4"},
+    {file = "boto3-1.42.19.tar.gz", hash = "sha256:5933696a28bf8eb62fc54e4de5583f78a0efef59c8164ee1850436aa22f53aa7"},
 ]
 
 [package.dependencies]
-botocore = ">=1.42.13,<1.43.0"
+botocore = ">=1.42.19,<1.43.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.16.0,<0.17.0"
 
@@ -83,14 +84,14 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.42.13"
+version = "1.42.19"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "botocore-1.42.13-py3-none-any.whl", hash = "sha256:b750b2de4a2478db9718a02395cb9da8698901ba02378d60037d6369ecb6bb88"},
-    {file = "botocore-1.42.13.tar.gz", hash = "sha256:7e4cf14bd5719b60600fb45d2bb3ae140feb3c182a863b93093aafce7f93cfee"},
+    {file = "botocore-1.42.19-py3-none-any.whl", hash = "sha256:30c276e0a96d822826d74e961089b9af16b274ac7ddcf7dcf6440bc90d856d88"},
+    {file = "botocore-1.42.19.tar.gz", hash = "sha256:8d38f30de983720303e95951380a2c9ac515159636ee6b5ba4227d65f14551a4"},
 ]
 
 [package.dependencies]
@@ -680,14 +681,14 @@ files = [
 
 [[package]]
 name = "nodeenv"
-version = "1.9.1"
+version = "1.10.0"
 description = "Node.js virtual environment builder"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7"
 groups = ["dev"]
 files = [
-    {file = "nodeenv-1.9.1-py2.py3-none-any.whl", hash = "sha256:ba11c9782d29c27c70ffbdda2d7415098754709be8a7056d79a737cd901155c9"},
-    {file = "nodeenv-1.9.1.tar.gz", hash = "sha256:6ec12890a2dab7946721edbfbcd91f3319c6ccc9aec47be7c7e6b7011ee6645f"},
+    {file = "nodeenv-1.10.0-py2.py3-none-any.whl", hash = "sha256:5bb13e3eed2923615535339b3c620e76779af4cb4c6a90deccc9e36b274d3827"},
+    {file = "nodeenv-1.10.0.tar.gz", hash = "sha256:996c191ad80897d076bdfba80a41994c2b47c68e224c542b48feba42ba00f8bb"},
 ]
 
 [[package]]
@@ -943,4 +944,4 @@ watchdog = ["watchdog (>=2.3)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "4621e3c007b54a2468e5c9ce624c0b6e35edf6a52a67dda7c520ac139239896e"
+content-hash = "f30cb29de8070d1e688a4758d0641bd168f6d1acf211adc8d7f3e579c8f98027"
