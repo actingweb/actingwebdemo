@@ -212,8 +212,18 @@ def nuke_all_actors():
     errors = []
 
     try:
-        dynamodb = boto3.resource("dynamodb")
-        table = dynamodb.Table("demo_actingweb_actors")  # type: ignore[attr-defined]
+        # Configure boto3 to use local DynamoDB if AWS_DB_HOST is set
+        dynamodb_config = {}
+        db_host = os.getenv("AWS_DB_HOST")
+        if db_host:
+            dynamodb_config["endpoint_url"] = db_host
+
+        dynamodb = boto3.resource("dynamodb", **dynamodb_config)
+
+        # Get table name from environment (same as ActingWeb uses)
+        table_prefix = os.getenv("AWS_DB_PREFIX", "demo_actingweb")
+        table_name = f"{table_prefix}_actors"
+        table = dynamodb.Table(table_name)  # type: ignore[attr-defined]
 
         # Scan all actors
         response = table.scan(ProjectionExpression="id, creator")
