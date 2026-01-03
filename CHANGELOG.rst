@@ -2,6 +2,22 @@
 CHANGELOG
 =========
 
+[Jan 3, 2026]
+------------
+
+Changed
+~~~~~~~
+
+- **ActingWeb Library**: Updated to v3.8.2 for latest fixes and improvements
+
+Fixed
+~~~~~
+
+- **Nuke Endpoint Environment Support**: Fixed nuke endpoint to respect AWS_DB_HOST and AWS_DB_PREFIX environment variables
+  - Now properly connects to local DynamoDB when AWS_DB_HOST is set
+  - Dynamically uses table prefix from AWS_DB_PREFIX (defaults to "demo_actingweb")
+  - Ensures consistent database configuration with ActingWeb core
+
 [Jan 2, 2026]
 ------------
 
