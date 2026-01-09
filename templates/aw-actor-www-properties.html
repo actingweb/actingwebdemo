@@ -46,15 +46,13 @@
                                 <td class="font-medium">{{ k }}</td>
                                 <td class="font-mono text-sm">{{ v }}</td>
                                 <td class="text-right">
-                                    <a href="{{ url }}/properties/{{ k }}?_method=DELETE"
-                                       class="btn btn-danger-outline btn-sm"
-                                       onclick="return confirm('Delete property {{ k }}?');">
+                                    <button class="btn btn-danger-outline btn-sm delete-property-btn" data-property-name="{{ k }}" data-actor-url="{{ url }}">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <polyline points="3 6 5 6 21 6"/>
                                             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
                                         </svg>
                                         Delete
-                                    </a>
+                                    </button>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -95,5 +93,79 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Use event delegation to handle delete button clicks
+        document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('click', function(event) {
+                const button = event.target.closest('.delete-property-btn');
+                if (!button) return;
+
+                // Prevent double-clicks
+                if (button.disabled) return;
+
+                const propertyName = button.dataset.propertyName;
+                const actorUrl = button.dataset.actorUrl;
+
+                if (!confirm(`Delete property "${propertyName}"?`)) {
+                    return;
+                }
+
+                // Disable button to prevent double-clicks
+                button.disabled = true;
+                const originalText = button.innerHTML;
+                button.innerHTML = '<span style="opacity: 0.6;">Deleting...</span>';
+
+                // Remove /www from the URL to get the actor base URL
+                // actorUrl is like "/actor_id/www" but we need "/actor_id/properties/name"
+                // Add defensive check to ensure URL ends with /www
+                let actorBaseUrl;
+                if (actorUrl.endsWith('/www')) {
+                    actorBaseUrl = actorUrl.slice(0, -4);  // Remove last 4 characters (/www)
+                } else {
+                    // Fallback: assume actorUrl is already the base URL
+                    actorBaseUrl = actorUrl;
+                }
+
+                // Encode property name for URL safety
+                const encodedPropertyName = encodeURIComponent(propertyName);
+
+                // Make DELETE request
+                // The oauth_token cookie will be sent automatically with credentials: 'same-origin'
+                fetch(`${actorBaseUrl}/properties/${encodedPropertyName}`, {
+                    method: 'DELETE',
+                    credentials: 'same-origin'
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Reload the page to show updated properties list
+                        window.location.reload();
+                    } else {
+                        // Try to read response body for detailed error message
+                        return response.text().then(text => {
+                            let errorMessage = response.statusText;
+                            try {
+                                const json = JSON.parse(text);
+                                if (json.error) errorMessage = json.error;
+                                if (json.message) errorMessage = json.message;
+                            } catch (e) {
+                                // If not JSON, use text if available
+                                if (text && text.length > 0 && text.length < 200) {
+                                    errorMessage = text;
+                                }
+                            }
+                            throw new Error(errorMessage);
+                        });
+                    }
+                })
+                .catch(error => {
+                    alert(`Error deleting property: ${error.message}`);
+                    // Re-enable button and restore original text
+                    button.disabled = false;
+                    button.innerHTML = originalText;
+                });
+            });
+        });
+    </script>
 </body>
 </html>

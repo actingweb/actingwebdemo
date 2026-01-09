@@ -81,14 +81,13 @@
             </div>
 
             <div class="mt-md">
-                <a href="{{ id }}?_method=DELETE" class="btn btn-danger-outline w-full"
-                   onclick="return confirm('Are you sure you want to delete this actor?');">
+                <button class="btn btn-danger-outline w-full delete-actor-btn" data-actor-id="{{ id }}">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="3 6 5 6 21 6"/>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
                     </svg>
                     Delete Actor
-                </a>
+                </button>
             </div>
 
             <div class="mt-lg text-center text-xs text-muted">
@@ -96,5 +95,67 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Use event delegation to handle delete actor button click
+        document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('click', function(event) {
+                const button = event.target.closest('.delete-actor-btn');
+                if (!button) return;
+
+                // Prevent double-clicks
+                if (button.disabled) return;
+
+                const actorId = button.dataset.actorId;
+
+                if (!confirm('Are you sure you want to delete this actor?')) {
+                    return;
+                }
+
+                // Disable button to prevent double-clicks
+                button.disabled = true;
+                const originalText = button.innerHTML;
+                button.innerHTML = '<span style="opacity: 0.6;">Deleting...</span>';
+
+                // Encode actor ID for URL safety
+                const encodedActorId = encodeURIComponent(actorId);
+
+                // Make DELETE request
+                // The oauth_token cookie will be sent automatically with credentials: 'same-origin'
+                fetch(`/${encodedActorId}`, {
+                    method: 'DELETE',
+                    credentials: 'same-origin'
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Redirect to home page after successful deletion
+                        window.location.href = '/';
+                    } else {
+                        // Try to read response body for detailed error message
+                        return response.text().then(text => {
+                            let errorMessage = response.statusText;
+                            try {
+                                const json = JSON.parse(text);
+                                if (json.error) errorMessage = json.error;
+                                if (json.message) errorMessage = json.message;
+                            } catch (e) {
+                                // If not JSON, use text if available
+                                if (text && text.length > 0 && text.length < 200) {
+                                    errorMessage = text;
+                                }
+                            }
+                            throw new Error(errorMessage);
+                        });
+                    }
+                })
+                .catch(error => {
+                    alert(`Error deleting actor: ${error.message}`);
+                    // Re-enable button and restore original text
+                    button.disabled = false;
+                    button.innerHTML = originalText;
+                });
+            });
+        });
+    </script>
 </body>
 </html>
