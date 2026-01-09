@@ -2,6 +2,14 @@
 CHANGELOG
 =========
 
+[Jan 9, 2026]
+------------
+
+Fixed
+~~~~~
+
+- **Property Deletion Subscription Callbacks**: Fixed subscription callbacks not being triggered when deleting properties via web UI by migrating from ``?_method=DELETE`` to proper HTTP DELETE requests with JavaScript fetch API
+
 [Jan 3, 2026]
 ------------
 
