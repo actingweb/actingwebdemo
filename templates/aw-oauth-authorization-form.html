@@ -442,6 +442,18 @@
                         Sign in securely with your account to authorize {{ client_name }}. Your email will be automatically verified.
                     </div>
 
+                    <div class="error-card" style="background: #fef3c7; border-color: #fbbf24; border-left-color: #f59e0b; color: #92400e;">
+                        <div class="error-header" style="color: #92400e;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                <line x1="12" y1="9" x2="12" y2="13"/>
+                                <line x1="12" y1="17" x2="12.01" y2="17"/>
+                            </svg>
+                            <strong>Warning</strong>
+                        </div>
+                        <div style="margin-top: 0.5rem;">Only use for exploration and testing! All data will be wiped on a daily basis and without notice.</div>
+                    </div>
+
                     {% if oauth2_trust_control_enabled and trust_types %}
                     <div class="form-group">
                         <label for="trust_type_select" class="form-label">Select Access Level</label>
@@ -504,6 +516,18 @@
                     <div class="info-card">
                         Authorize using your email address to establish a secure link between the application and your
                         ActingWeb actor instance.
+                    </div>
+
+                    <div class="error-card" style="background: #fef3c7; border-color: #fbbf24; border-left-color: #f59e0b; color: #92400e;">
+                        <div class="error-header" style="color: #92400e;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                <line x1="12" y1="9" x2="12" y2="13"/>
+                                <line x1="12" y1="17" x2="12.01" y2="17"/>
+                            </svg>
+                            <strong>Warning</strong>
+                        </div>
+                        <div style="margin-top: 0.5rem;">Only use for exploration and testing! All data will be wiped on a daily basis and without notice.</div>
                     </div>
 
                     <form action="{{ form_action }}" method="{{ form_method }}">
