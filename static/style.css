@@ -460,6 +460,12 @@ button:active:not(:disabled), .btn:active:not(:disabled) {
   background-color: var(--color-bg-secondary);
 }
 
+.card-danger {
+  border-color: var(--color-danger-border);
+  border-left: 4px solid var(--color-danger);
+  background-color: var(--color-danger-light);
+}
+
 /* Badge */
 .badge {
   display: inline-flex;

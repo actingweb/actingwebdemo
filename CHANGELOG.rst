@@ -5,9 +5,35 @@ CHANGELOG
 [Jan 9, 2026]
 ------------
 
+Added
+~~~~~
+
+- **Data Retention Warning**: Added prominent warning messages on login and OAuth authorization pages
+  - "Only use for exploration and testing! All data will be wiped on a daily basis and without notice."
+  - Warning appears on both root factory page and OAuth authorization form
+  - Styled as alert banner for high visibility
+  - Includes ``role="alert"`` and ``aria-hidden="true"`` attributes for screen reader accessibility
+- **Danger Zone Card Styling**: Added ``.card-danger`` CSS class with red border and light background for destructive action sections
+
+Changed
+~~~~~~~
+
+- **Delete Actor Button Location**: Moved delete functionality from success page to main dashboard
+  - Removed delete button from ``aw-root-created.html`` (actor creation success page)
+  - Added delete functionality to ``aw-actor-www-root.html`` (main dashboard)
+  - Placed in new "Danger Zone" section with warning text and ``.card-danger`` styling
+  - Improves UX by removing destructive action from success flow
+- **Error Message Handling**: Improved error message display in delete actor functionality
+  - Increased truncation limit from 200 to 500 characters
+  - Always shows error messages (previously hidden if over 200 chars)
+  - Adds ellipsis (...) for truncated messages
+
 Fixed
 ~~~~~
 
+- **OAuth2 Logout Cookie Bug**: Fixed ``TypeError: Response.set_cookie() got an unexpected keyword argument 'name'`` in ActingWeb Flask integration
+  - Root cause: Flask's ``set_cookie()`` expects name as positional argument, but ActingWeb was passing it as keyword argument
+  - Fixed in actingweb 3.8.3
 - **Property Deletion Subscription Callbacks**: Fixed subscription callbacks not being triggered when deleting properties via web UI by migrating from ``?_method=DELETE`` to proper HTTP DELETE requests with JavaScript fetch API
 
 [Jan 3, 2026]
