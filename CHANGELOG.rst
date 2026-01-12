@@ -2,6 +2,51 @@
 CHANGELOG
 =========
 
+[Jan 12, 2026]
+------------
+
+Breaking
+~~~~~~~~
+
+- **Hook Directory Restructure**: Reorganized shared_hooks into protocol/ and app/ subdirectories
+  - Protocol hooks (subscription, trust, lifecycle) moved to ``shared_hooks/protocol/``
+  - App hooks (methods, actions, callbacks, properties, UI) moved to ``shared_hooks/app/``
+  - Import paths unchanged - ``register_all_shared_hooks()`` still works as before
+
+Added
+~~~~~
+
+- **Method/Action Annotations**: Added actingweb 3.8.3 discovery annotations to all methods and actions
+  - ``description``, ``input_schema``, ``output_schema``, and ``annotations`` for API discovery
+  - Supports MCP-style hints: readOnlyHint, destructiveHint, idempotentHint, openWorldHint
+- **Subscription Hooks Module**: New ``subscription_hooks.py`` for ActingWeb protocol-level subscription handling
+  - Separated from app-specific callbacks for clarity
+  - Handles actor-to-actor subscription data exchange
+- **UI Hooks Module**: New ``ui_hooks.py`` for custom /www pages
+- **schedule_task Method**: New method for 1X NEO robot task scheduling
+  - Parameters: description, instructions, timestamp, context
+  - Returns unique reference_id for tracking scheduled tasks
+  - Stores tasks in actor's ``scheduled_tasks`` property
+- **App-Specific Callback Examples**: Added realistic callback examples
+  - ``email_verify``: Email verification flow with token validation
+  - ``sms_webhook``: Twilio-format SMS webhook handler
+  - ``payment_webhook``: Stripe-format payment event handler
+
+Changed
+~~~~~~~
+
+- **Callbacks Reorganized**: Callbacks now properly represent external service webhooks
+  - Removed protocol-misaligned callbacks (ping, echo, status, resource_demo)
+  - Kept bot callback for application-level webhook handling
+- **Actions Aligned with Spec**: Actions now only include operations with external effects
+  - Removed ``update_status``, ``notify``, ``search`` (not external effects per ActingWeb spec)
+  - Kept ``log_message``, ``send_notification``
+- **Search Moved to Methods**: ``search`` relocated from actions to methods (read-only operation)
+- **API Explorer Updated**: Frontend updated to reflect new hook organization
+  - Added schedule_task method form
+  - Added callback forms for email_verify, sms_webhook, payment_webhook
+  - Removed obsolete callback forms
+
 [Jan 9, 2026]
 ------------
 
