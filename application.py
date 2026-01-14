@@ -75,6 +75,10 @@ aw_app = (
         factory=f"{os.getenv('APP_HOST_PROTOCOL', 'https://')}{os.getenv('APP_HOST_FQDN', 'localhost:5000')}/",
         relationship="friend",
     )
+    # Property lookup table configuration for large property values
+    # This enables reverse lookups (find actor by property value) without the 2048-byte GSI limit
+    .with_indexed_properties(["oauthId", "email", "externalUserId"])
+    .with_legacy_property_index(enable=False)  # Use new lookup table instead of legacy GSI
 )
 
 # Configure OAuth2 provider and trust relationship settings
