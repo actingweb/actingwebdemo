@@ -29,7 +29,7 @@ def register_lifecycle_hooks(app):
     """Register all lifecycle hooks with the ActingWeb application."""
 
     @app.lifecycle_hook("actor_created")
-    def on_actor_created(actor: ActorInterface, **kwargs: Any) -> None:
+    async def on_actor_created(actor: ActorInterface, **kwargs: Any) -> None:
         """
         Handle actor creation event.
 
@@ -53,7 +53,7 @@ def register_lifecycle_hooks(app):
             actor.properties.created_at = datetime.now().isoformat()
 
     @app.lifecycle_hook("actor_deleted")
-    def on_actor_deleted(actor: ActorInterface, **kwargs: Any) -> None:
+    async def on_actor_deleted(actor: ActorInterface, **kwargs: Any) -> None:
         """
         Handle actor deletion event.
 
@@ -78,7 +78,7 @@ def register_lifecycle_hooks(app):
         # The framework handles standard cleanup automatically
 
     @app.lifecycle_hook("oauth_success")
-    def on_oauth_success(actor: ActorInterface, **kwargs: Any) -> bool:
+    async def on_oauth_success(actor: ActorInterface, **kwargs: Any) -> bool:
         """
         Handle successful OAuth authentication event.
 

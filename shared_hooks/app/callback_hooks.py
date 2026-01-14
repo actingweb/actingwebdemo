@@ -36,7 +36,7 @@ def register_callback_hooks(app):
     """Register callback hooks with the ActingWeb application."""
 
     @app.callback_hook("email_verify")
-    def handle_email_verification(
+    async def handle_email_verification(
         actor: ActorInterface, name: str, data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """
@@ -62,7 +62,6 @@ def register_callback_hooks(app):
             4. Actor's email_verified property is set to true
         """
         token = data.get("token", "")
-        method = data.get("method", "GET")
 
         logger.info(f"Email verification callback for actor {actor.id}: token={token[:8]}...")
 
@@ -92,7 +91,7 @@ def register_callback_hooks(app):
             }
 
     @app.callback_hook("sms_webhook")
-    def handle_sms_webhook(
+    async def handle_sms_webhook(
         actor: ActorInterface, name: str, data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """
@@ -143,7 +142,7 @@ def register_callback_hooks(app):
         }
 
     @app.callback_hook("payment_webhook")
-    def handle_payment_webhook(
+    async def handle_payment_webhook(
         actor: ActorInterface, name: str, data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """
@@ -164,7 +163,6 @@ def register_callback_hooks(app):
         Security note: In production, verify webhook signatures!
         """
         event_type = data.get("type", "unknown")
-        event_data = data.get("data", {})
 
         logger.info(f"Payment webhook for actor {actor.id}: type={event_type}")
 
@@ -192,7 +190,7 @@ def register_callback_hooks(app):
 
     # Application-level callback hooks (no actor context)
     @app.app_callback_hook("bot")
-    def handle_bot_callback(data: Dict[str, Any]) -> bool:
+    async def handle_bot_callback(data: Dict[str, Any]) -> bool:
         """
         Handle bot platform webhooks (application-level, no actor context).
 

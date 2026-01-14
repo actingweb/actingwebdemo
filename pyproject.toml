@@ -15,8 +15,8 @@ priority = "supplemental"
 python = "^3.11"
 jinja2 = ">=3.1.2"
 flask = ">=3.1.1,<4.0.0"
-actingweb = { version = ">=3.8.3", extras = ["flask"] }
-#actingweb = { path = "../actingweb", develop = true, extras = ["flask"] }
+#actingweb = { version = ">=3.9.0", extras = ["flask"] }
+actingweb = { path = "../actingweb", develop = true, extras = ["flask"] }
 python-dotenv = "^1.2.1"
 
 [tool.poetry.group.dev.dependencies]

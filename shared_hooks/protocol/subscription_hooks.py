@@ -26,7 +26,7 @@ def register_subscription_hooks(app):
     """Register subscription hooks with the ActingWeb application."""
 
     @app.subscription_hook
-    def handle_subscription_data(
+    async def handle_subscription_data(
         actor: ActorInterface,
         subscription: Dict[str, Any],
         peer_id: str,
