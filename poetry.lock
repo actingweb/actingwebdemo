@@ -2,25 +2,27 @@
 
 [[package]]
 name = "actingweb"
-version = "3.8.3"
+version = "3.9.0"
 description = "The official ActingWeb library"
 optional = false
-python-versions = "^3.11"
+python-versions = "<4.0,>=3.11"
 groups = ["main"]
-files = []
-develop = true
+files = [
+    {file = "actingweb-3.9.0-py3-none-any.whl", hash = "sha256:b750a2748af312b73011dd10afd39bf8c89b409e1bc3e39079164de12953dead"},
+    {file = "actingweb-3.9.0.tar.gz", hash = "sha256:1f2bbd2d379228794c7960b7eb5c1c54a1a21406bfe86547057b7bcc53b753b0"},
+]
 
 [package.dependencies]
-boto3 = "^1.40.6"
-cryptography = "^46.0.3"
-flask = {version = "^3.1.1", optional = true}
-httpx = "^0.28.0"
-jinja2 = {version = "^3.0.0", optional = true}
-oauthlib = "^3.2.0"
-pynamodb = "^6.0.0"
-requests = "^2.31.0"
-typing-extensions = "^4.0.0"
-werkzeug = {version = "^3.1.3", optional = true}
+boto3 = ">=1.40.6,<2.0.0"
+cryptography = ">=46.0.3,<47.0.0"
+flask = {version = ">=3.1.1,<4.0.0", optional = true, markers = "extra == \"flask\" or extra == \"all\""}
+httpx = ">=0.28.0,<0.29.0"
+jinja2 = {version = ">=3.0.0,<4.0.0", optional = true, markers = "extra == \"flask\" or extra == \"fastapi\" or extra == \"all\""}
+oauthlib = ">=3.2.0,<4.0.0"
+pynamodb = ">=6.0.0,<7.0.0"
+requests = ">=2.31.0,<3.0.0"
+typing-extensions = ">=4.0.0,<5.0.0"
+werkzeug = {version = ">=3.1.3,<4.0.0", optional = true, markers = "extra == \"flask\" or extra == \"all\""}
 
 [package.extras]
 all = ["alembic (>=1.13.0,<2.0.0)", "fastapi (>=0.128.0,<0.129.0)", "flask (>=3.1.1,<4.0.0)", "jinja2 (>=3.0.0,<4.0.0)", "mcp (>=1.23.0,<2.0.0)", "psycopg[binary,pool] (>=3.1.0,<4.0.0)", "pydantic (>=2.0.0,<3.0.0)", "sqlalchemy (>=2.0.0,<3.0.0)", "uvicorn (>=0.40.0,<0.41.0)", "werkzeug (>=3.1.3,<4.0.0)"]
@@ -28,10 +30,6 @@ fastapi = ["fastapi (>=0.128.0,<0.129.0)", "jinja2 (>=3.0.0,<4.0.0)", "pydantic 
 flask = ["flask (>=3.1.1,<4.0.0)", "jinja2 (>=3.0.0,<4.0.0)", "werkzeug (>=3.1.3,<4.0.0)"]
 mcp = ["mcp (>=1.23.0,<2.0.0)"]
 postgresql = ["alembic (>=1.13.0,<2.0.0)", "psycopg[binary,pool] (>=3.1.0,<4.0.0)", "sqlalchemy (>=2.0.0,<3.0.0)"]
-
-[package.source]
-type = "directory"
-url = "../actingweb"
 
 [[package]]
 name = "anyio"
@@ -66,18 +64,18 @@ files = [
 
 [[package]]
 name = "boto3"
-version = "1.42.27"
+version = "1.42.28"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "boto3-1.42.27-py3-none-any.whl", hash = "sha256:39dfec51aff3f9356e8c7331195f324cb498ec75b2601a902fc62aa127b8fd00"},
-    {file = "boto3-1.42.27.tar.gz", hash = "sha256:a8a53abb98ff1a24d9a88d9d8c0285bf02d23189666130456e8951ede2f7db98"},
+    {file = "boto3-1.42.28-py3-none-any.whl", hash = "sha256:7994bc2a094c1894f6a4221a1696c5d18af6c9c888191051866f1d05c4fba431"},
+    {file = "boto3-1.42.28.tar.gz", hash = "sha256:7d56c298b8d98f5e9b04cf5d6627f68e7792e25614533aef17f815681b5e1096"},
 ]
 
 [package.dependencies]
-botocore = ">=1.42.27,<1.43.0"
+botocore = ">=1.42.28,<1.43.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.16.0,<0.17.0"
 
@@ -86,14 +84,14 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.42.27"
+version = "1.42.28"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "botocore-1.42.27-py3-none-any.whl", hash = "sha256:d51fb3b8dd1a944c8d238d2827a0dd6e5528d6da49a3bd9eccad019c533e4c9c"},
-    {file = "botocore-1.42.27.tar.gz", hash = "sha256:c8e1e3ffb6c871622b1c8054f064d60cbc786aa5ca1f97f5f9fd5fa0a9d82d05"},
+    {file = "botocore-1.42.28-py3-none-any.whl", hash = "sha256:d26c7a0851489ce1a18279f9802fe434bd736ea861d4888cc2c7d83fb1f6af8f"},
+    {file = "botocore-1.42.28.tar.gz", hash = "sha256:0c15e78d1accf97df691083331f682e97b1bef73ef12dcdaadcf652abf9c182c"},
 ]
 
 [package.dependencies]
@@ -946,4 +944,4 @@ watchdog = ["watchdog (>=2.3)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "35941588da51f99b13d094a19ca0d5333635f697dc45cd51d93d8868eab33c62"
+content-hash = "64374c51ca76795091f89129ed51a2822b64cc95b386f691fe274888c8546246"
