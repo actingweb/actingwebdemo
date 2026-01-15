@@ -62,7 +62,6 @@ def register_callback_hooks(app):
             4. Actor's email_verified property is set to true
         """
         token = data.get("token", "")
-        method = data.get("method", "GET")
 
         logger.info(f"Email verification callback for actor {actor.id}: token={token[:8]}...")
 
@@ -164,7 +163,6 @@ def register_callback_hooks(app):
         Security note: In production, verify webhook signatures!
         """
         event_type = data.get("type", "unknown")
-        event_data = data.get("data", {})
 
         logger.info(f"Payment webhook for actor {actor.id}: type={event_type}")
 

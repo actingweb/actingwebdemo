@@ -572,7 +572,7 @@ def register_method_hooks(app):
 
         # Validate timestamp format
         try:
-            scheduled_time = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
+            _ = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
         except ValueError as e:
             return {
                 "reference_id": "",

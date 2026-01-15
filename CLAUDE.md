@@ -15,6 +15,7 @@ The application uses the new `ActingWebApp` class with automatic Flask integrati
 - **Automatic Route Generation**: No manual Flask route definitions needed
 - **Clean Architecture**: Separation of concerns with focused hook functions
 - **Type Safety**: Better IDE support and error detection
+- **Property Lookup Table**: Efficient reverse lookups for large property values (no 2KB limit)
 
 ## Development Commands
 
@@ -110,6 +111,8 @@ app = ActingWebApp(
     client_id=os.getenv("OAUTH_CLIENT_ID", ""),
     client_secret=os.getenv("OAUTH_CLIENT_SECRET", "")
 ).with_web_ui().with_devtest()
+.with_indexed_properties(["oauthId", "email", "externalUserId"])
+.with_legacy_property_index(enable=False)  # Use lookup table
 ```
 
 ### Request Flow
@@ -143,6 +146,34 @@ The demo implements property access control through hooks:
 PROP_HIDE = ["email"]  # Hidden from external access
 PROP_PROTECT = PROP_HIDE + []  # Protected from modification/deletion
 ```
+
+## Property Lookup Table
+
+The application uses the property lookup table feature for efficient reverse lookups (finding actors by property value) without the 2048-byte size limitation of DynamoDB Global Secondary Indexes.
+
+### Configuration
+
+```python
+# Specify which properties are indexed for reverse lookups
+.with_indexed_properties(["oauthId", "email", "externalUserId"])
+
+# Enable the new lookup table (instead of legacy GSI)
+.with_legacy_property_index(enable=False)
+```
+
+### How It Works
+
+- **Indexed Properties**: Only properties listed in `with_indexed_properties()` can be used with `Actor.get_from_property()` for reverse lookups
+- **Lookup Table**: A separate table stores `(property_name, value, actor_id)` tuples for efficient O(1) lookups
+- **No Size Limit**: Unlike the legacy GSI approach, property values can exceed 2048 bytes
+- **Automatic Sync**: The lookup table is automatically updated when indexed properties are created, modified, or deleted
+
+### Use Cases
+
+- Finding actors by large OAuth tokens or JWTs
+- Reverse lookup with JSON documents as property values
+- Indexing external user IDs of any size
+
 
 ## Actor Management
 
