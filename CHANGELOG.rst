@@ -2,6 +2,26 @@
 CHANGELOG
 =========
 
+[Jan 15, 2026]
+------------
+
+Added
+~~~~~
+
+- **Property Lookup Table**: Added efficient reverse lookup support for large property values
+  - New ``with_indexed_properties()`` for specifying which properties support reverse lookups
+  - New ``with_legacy_property_index(enable=False)`` to use lookup table instead of GSI
+  - No 2048-byte size limit (unlike DynamoDB GSI approach)
+  - Automatic sync when indexed properties are created, modified, or deleted
+
+Changed
+~~~~~~~
+
+- **ActingWeb Library**: Upgraded to v3.9.0
+- **Async Hooks**: Refactored all shared hooks to use async/await pattern
+  - Protocol hooks (lifecycle, subscription, trust) now async
+  - App hooks (action, callback, method, property, UI) now async
+
 [Jan 12, 2026]
 ------------
 
