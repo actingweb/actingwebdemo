@@ -36,7 +36,7 @@ def register_callback_hooks(app):
     """Register callback hooks with the ActingWeb application."""
 
     @app.callback_hook("email_verify")
-    async def handle_email_verification(
+    def handle_email_verification(
         actor: ActorInterface, name: str, data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """
@@ -91,7 +91,7 @@ def register_callback_hooks(app):
             }
 
     @app.callback_hook("sms_webhook")
-    async def handle_sms_webhook(
+    def handle_sms_webhook(
         actor: ActorInterface, name: str, data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """
@@ -142,7 +142,7 @@ def register_callback_hooks(app):
         }
 
     @app.callback_hook("payment_webhook")
-    async def handle_payment_webhook(
+    def handle_payment_webhook(
         actor: ActorInterface, name: str, data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """
@@ -190,7 +190,7 @@ def register_callback_hooks(app):
 
     # Application-level callback hooks (no actor context)
     @app.app_callback_hook("bot")
-    async def handle_bot_callback(data: Dict[str, Any]) -> bool:
+    def handle_bot_callback(data: Dict[str, Any]) -> bool:
         """
         Handle bot platform webhooks (application-level, no actor context).
 

@@ -18,9 +18,9 @@ Changed
 ~~~~~~~
 
 - **ActingWeb Library**: Upgraded to v3.9.0
-- **Async Hooks**: Refactored all shared hooks to use async/await pattern
-  - Protocol hooks (lifecycle, subscription, trust) now async
-  - App hooks (action, callback, method, property, UI) now async
+- **Sync Hooks for Flask**: All shared hooks use synchronous functions for Flask compatibility
+  - Async hooks are only supported with FastAPI integration via ``execute_*_hooks_async()`` methods
+  - Flask integration uses sync hook execution methods
 
 [Jan 12, 2026]
 ------------

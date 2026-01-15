@@ -41,7 +41,7 @@ def register_property_hooks(app):
     """Register all property hooks with the ActingWeb application."""
 
     @app.property_hook("email")
-    async def handle_email_property(
+    def handle_email_property(
         actor: ActorInterface, operation: str, value: Any, path: List[str]
     ) -> Optional[Any]:
         """
@@ -80,7 +80,7 @@ def register_property_hooks(app):
         return value
 
     @app.property_hook("*")
-    async def handle_all_properties(
+    def handle_all_properties(
         actor: ActorInterface, operation: str, value: Any, path: List[str]
     ) -> Optional[Any]:
         """

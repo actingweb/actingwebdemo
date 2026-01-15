@@ -73,7 +73,7 @@ def register_action_hooks(app):
             "openWorldHint": False,
         },
     )
-    async def handle_log_message_action(
+    def handle_log_message_action(
         actor: ActorInterface, action_name: str, data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """
@@ -146,7 +146,7 @@ def register_action_hooks(app):
             "openWorldHint": True,
         },
     )
-    async def handle_send_notification_action(
+    def handle_send_notification_action(
         actor: ActorInterface, action_name: str, data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """

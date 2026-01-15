@@ -87,7 +87,7 @@ def register_method_hooks(app):
             "openWorldHint": False,
         },
     )
-    async def handle_calculate_method(
+    def handle_calculate_method(
         actor: ActorInterface, method_name: str, data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """
@@ -159,7 +159,7 @@ def register_method_hooks(app):
             "openWorldHint": False,
         },
     )
-    async def handle_greet_method(
+    def handle_greet_method(
         actor: ActorInterface, method_name: str, data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """
@@ -217,7 +217,7 @@ def register_method_hooks(app):
             "openWorldHint": False,
         },
     )
-    async def handle_get_status_method(
+    def handle_get_status_method(
         actor: ActorInterface, method_name: str, data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """
@@ -273,7 +273,7 @@ def register_method_hooks(app):
             "openWorldHint": False,
         },
     )
-    async def handle_echo_method(
+    def handle_echo_method(
         actor: ActorInterface, method_name: str, data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """
@@ -375,7 +375,7 @@ def register_method_hooks(app):
             "openWorldHint": False,
         },
     )
-    async def handle_search_method(
+    def handle_search_method(
         actor: ActorInterface, method_name: str, data: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
@@ -511,7 +511,7 @@ def register_method_hooks(app):
             "openWorldHint": False,
         },
     )
-    async def handle_schedule_task_method(
+    def handle_schedule_task_method(
         actor: ActorInterface, method_name: str, data: Dict[str, Any]
     ) -> Dict[str, Any]:
         """

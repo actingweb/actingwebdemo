@@ -19,7 +19,7 @@ def register_ui_hooks(app):
     """Register UI hooks with the ActingWeb application."""
 
     @app.callback_hook("www")
-    async def handle_www_paths(
+    def handle_www_paths(
         actor: ActorInterface, name: str, data: Dict[str, Any]
     ) -> Union[Dict[str, Any], bool]:
         """

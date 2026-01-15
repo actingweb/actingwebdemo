@@ -26,7 +26,7 @@ def register_trust_hooks(app):
     """Register all trust hooks with the ActingWeb application."""
 
     @app.lifecycle_hook("trust_approved")
-    async def on_trust_approved(
+    def on_trust_approved(
         actor: ActorInterface,
         peer_id: str = "",
         relationship: str = "",
@@ -69,7 +69,7 @@ def register_trust_hooks(app):
         # - Notify external systems
 
     @app.lifecycle_hook("trust_deleted")
-    async def on_trust_deleted(
+    def on_trust_deleted(
         actor: ActorInterface,
         peer_id: str = "",
         relationship: str = "",
