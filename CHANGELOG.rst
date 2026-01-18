@@ -22,6 +22,11 @@ Changed
   - Async hooks are only supported with FastAPI integration via ``execute_*_hooks_async()`` methods
   - Flask integration uses sync hook execution methods
 
+Fixed
+~~~~~
+
+- **Property Table Layout**: Fixed delete button visibility with long property values by adding responsive table layout with proper column widths and text wrapping
+
 [Jan 12, 2026]
 ------------
 
