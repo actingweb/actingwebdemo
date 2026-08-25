@@ -47,7 +47,10 @@ jobs:
       - name: Install Poetry
         uses: snok/install-poetry@v1
         with:
-          version: 1.7.0
+          # Not actingweb's 1.7.0 pin: pyproject.toml's package-mode = false
+          # (this is a deployable app, not a published package) needs a
+          # Poetry that recognizes that key, which 1.7.0 doesn't.
+          version: 2.4.1
           virtualenvs-create: true
           virtualenvs-in-project: true
 
