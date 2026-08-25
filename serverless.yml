@@ -97,7 +97,13 @@ package:
     - '!vendor/actingweb/examples/demo/**/__pycache__/**'
 
 provider:
-  profile: default # use the credentials in ~/.aws/credentials
+  # No `profile:` here deliberately: setting one forces the AWS SDK to
+  # resolve credentials from a named profile in ~/.aws/credentials and
+  # skips its env-var provider entirely -- breaks CI, which has no such
+  # file and relies solely on the AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY
+  # env vars aws-actions/configure-aws-credentials exports in deploy.yml.
+  # For a manual local deploy, export those two env vars (or run
+  # `export AWS_PROFILE=your-profile-name`) before `serverless deploy`.
   name: aws
   runtime: python3.11
   memorySize: 256
