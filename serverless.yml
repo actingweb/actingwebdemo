@@ -30,19 +30,35 @@ custom:
     app: application.app
     packRequirements: false
   pythonRequirements:
-    # false deliberately: dockerizePip runs pip inside an isolated container
-    # that only mounts serverless-python-requirements' own cache dirs, not
-    # this project's checkout -- but `actingweb` is a Poetry *path*
-    # dependency (see pyproject.toml), which `poetry export` turns into
-    # `actingweb @ file:///<absolute checkout path>/vendor/actingweb`. That
-    # absolute path doesn't exist inside the container, so dockerizePip
-    # failed outright: "No such file or directory: '.../vendor/actingweb'".
-    # CI (deploy.yml) already runs on a Linux x86_64 GitHub Actions runner,
-    # the same platform Lambda's default architecture targets, so
-    # dockerizing purely to cross-compile isn't needed here -- pip just
-    # runs directly against the real checkout, where that file:// path is
-    # valid.
-    dockerizePip: false
+    # true deliberately, despite CI already running on Linux x86_64 (the
+    # same platform Lambda's default architecture targets): a plain pip
+    # install on the GitHub Actions runner picks up manylinux wheels built
+    # against *that runner's* (newer) glibc baseline, not Lambda's
+    # (older) Amazon Linux runtime. Confirmed the hard way -- disabling
+    # dockerizePip fixed packaging but broke `cryptography`'s compiled
+    # Rust extension at runtime:
+    #   /lib64/libc.so.6: version `GLIBC_2.28' not found (required by
+    #   .../cryptography/hazmat/bindings/_rust.abi3.so)
+    # which silently broke Google OAuth2 login (falls back to standard
+    # actor creation instead of erroring loudly). dockerizePip: true
+    # builds against public.ecr.aws/sam/build-python3.11, AWS's own
+    # Lambda-matching build image, which is the actual fix.
+    #
+    # That reintroduces the container-mount problem dockerizePip: false
+    # was working around: `actingweb` is a Poetry *path* dependency (see
+    # pyproject.toml), which `poetry export` turns into
+    # `actingweb @ file:///<absolute checkout path>/vendor/actingweb` --
+    # an absolute host path invisible inside the container, which only
+    # mounts serverless-python-requirements' own cache dirs by default.
+    # dockerRunCmdExtraArgs below mounts the actual checkout at the same
+    # absolute path inside the container too, so that file:// reference
+    # resolves there exactly as it does on the host. GITHUB_WORKSPACE is
+    # deploy.yml's checkout root; PWD is the fallback for a manual local
+    # deploy (must be run from the repo root, as documented in README.md).
+    dockerizePip: true
+    dockerRunCmdExtraArgs:
+      - '-v'
+      - '${env:GITHUB_WORKSPACE, env:PWD}:${env:GITHUB_WORKSPACE, env:PWD}'
     poetry: true
     poetryWithoutHashes: true
     slim: true
@@ -81,6 +97,13 @@ package:
     - '!.venv/**'
     - '!__pycache__/**'
     - '!.pytest_cache/**'
+    - '!.mypy_cache/**'
+    - '!.ruff_cache/**'
+    - '!.claude/**'
+    - '!.devcontainer/**'
+    - '!.completed_requirements'
+    - '!infra/**'
+    - '!iam_policy.json'
     - '!tests/**'
     - '!.vscode/**'
     - '!.idea/**'
@@ -146,6 +169,7 @@ provider:
             - dynamodb:PutItem
             - dynamodb:UpdateItem
             - dynamodb:DeleteItem
+            - dynamodb:BatchWriteItem
             - dynamodb:CreateTable
             - dynamodb:DescribeTable
           Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/demo_*"
