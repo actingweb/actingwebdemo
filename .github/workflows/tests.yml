@@ -22,8 +22,7 @@ jobs:
       # (see pyproject.toml and .gitmodules) -- examples/demo/ is repo-only
       # and deliberately excluded from the published wheel, so a version pin
       # from PyPI can't provide it. Checked out at the ref .gitmodules pins
-      # (currently the consolidate-demo-app branch -- TODO switch to
-      # `master` once actingweb PR #137 merges).
+      # (master).
       - name: Checkout actingwebdemo
         uses: actions/checkout@v5
 

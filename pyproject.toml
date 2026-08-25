@@ -18,10 +18,9 @@ flask = ">=3.1.1,<4.0.0"
 # Pinned to the vendor/actingweb git submodule (see .gitmodules), not
 # PyPI: examples/demo/ -- the code application.py delegates to -- is
 # deliberately excluded from the published wheel, so no version pin can
-# provide it. The submodule tracks consolidate-demo-app for now, ahead of
-# an actingweb release; deploy.yml resolves and checks out a specific,
-# PyPI-verified release tag independently of whatever this pin tracks
-# day to day.
+# provide it. The submodule tracks master for day-to-day CI; deploy.yml
+# resolves and checks out a specific, PyPI-verified release tag
+# independently of whatever this pin tracks day to day.
 # develop = false deliberately: an editable install is a .pth-style
 # reference back to vendor/actingweb, not a real copy -- Lambda packaging
 # needs an actual installed copy of the actingweb package (application.py
