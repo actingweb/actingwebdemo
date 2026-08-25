@@ -1,0 +1,89 @@
+name: Tests
+
+on:
+  pull_request:
+    branches: [master, main]
+  push:
+    branches: [master, main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      dynamodb:
+        image: amazon/dynamodb-local:latest
+        ports:
+          - 8000:8000
+
+    steps:
+      # actingweb is pinned as a Poetry path dependency (see pyproject.toml)
+      # pointing at a sibling checkout -- examples/demo/ is repo-only and
+      # deliberately excluded from the published wheel, so a version pin
+      # from PyPI can't provide it. Both repos are checked out explicitly
+      # so they land as true siblings under the runner's work directory.
+      - name: Checkout actingwebdemo
+        uses: actions/checkout@v5
+        with:
+          path: actingwebdemo
+
+      - name: Checkout actingweb
+        uses: actions/checkout@v5
+        with:
+          repository: actingweb/actingweb
+          # TODO: switch to `master` once actingweb PR #137 merges -- this
+          # workflow and examples/demo/ don't exist on master yet, so
+          # pointing here now avoids a permanently-red check in the
+          # meantime. Mirrors the same transitional note in pyproject.toml.
+          ref: consolidate-demo-app
+          path: actingweb
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.7.0
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Install dependencies
+        working-directory: actingwebdemo
+        run: poetry install --no-interaction
+
+      - name: Wait for DynamoDB
+        run: |
+          for i in $(seq 1 30); do
+            if curl -s http://localhost:8000/ > /dev/null 2>&1; then
+              echo "DynamoDB is ready"
+              exit 0
+            fi
+            echo "Attempt $i: DynamoDB not ready yet, waiting..."
+            sleep 2
+          done
+          echo "DynamoDB failed to start within 60 seconds"
+          exit 1
+
+      - name: Lint
+        working-directory: actingwebdemo
+        run: poetry run ruff check .
+
+      - name: Type check
+        working-directory: actingwebdemo
+        run: poetry run pyright application.py tests/
+
+      - name: Run tests
+        working-directory: actingwebdemo
+        env:
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_DEFAULT_REGION: us-west-1
+          AWS_DB_HOST: http://localhost:8000
+          AWS_DB_PREFIX: test
+          OAUTH_CLIENT_ID: test-client-id
+          OAUTH_CLIENT_SECRET: test-client-secret
+        run: poetry run pytest tests/ -v

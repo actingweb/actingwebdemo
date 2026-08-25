@@ -15,8 +15,11 @@ priority = "supplemental"
 python = "^3.11"
 jinja2 = ">=3.1.2"
 flask = ">=3.1.1,<4.0.0"
-actingweb = { version = ">=3.9.0", extras = ["flask"] }
-#actingweb = { path = "../actingweb", develop = true, extras = ["flask"] }
+# Pinned to the local actingweb source checkout for testing the
+# examples/demo/ consolidation (actingweb PR #137) before a PyPI release
+# exists to pin to instead. Swap back to a version pin once 3.14.1+ ships.
+actingweb = { path = "../actingweb", develop = true, extras = ["flask"] }
+#actingweb = { version = ">=3.9.0", extras = ["flask"] }
 python-dotenv = "^1.2.1"
 
 [tool.poetry.group.dev.dependencies]
@@ -24,6 +27,12 @@ uwsgi = ">=2.0.23"
 pydevd-pycharm = "*"
 ruff = "^0.14.10"
 pyright = "^1.1.407"
+pytest = "^9.0.1"
+
+[tool.pytest.ini_options]
+# application.py lives at the repo root, not under tests/, so it isn't on
+# sys.path via pytest's default "prepend" import mode.
+pythonpath = ["."]
 
 [build-system]
 requires = ["poetry-core"]
@@ -31,4 +40,4 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.urls]
 "Homepage" = "https://demo.actingweb.io"
-"Repository" = "https://github.com/gregertw/actingwebdemo"
+"Repository" = "https://github.com/actingweb/actingwebdemo"
