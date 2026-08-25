@@ -103,7 +103,6 @@ package:
     - '!.devcontainer/**'
     - '!.completed_requirements'
     - '!infra/**'
-    - '!iam_policy.json'
     - '!tests/**'
     - '!.vscode/**'
     - '!.idea/**'
