@@ -32,7 +32,7 @@ postgresql = ["alembic (>=1.13,<2.0)", "psycopg[binary,pool] (>=3.1,<4.0)", "sql
 
 [package.source]
 type = "directory"
-url = "../actingweb"
+url = "vendor/actingweb"
 
 [[package]]
 name = "anyio"
@@ -1063,4 +1063,4 @@ watchdog = ["watchdog (>=2.3)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "6740b5dcd06a74af6deba31b16d145f58e9a3bb28deea19466781805a51063b0"
+content-hash = "dd9c5b55e8ab64d4b342eab09a8f5adca00d25da37f025ca16012c905eef5f04"

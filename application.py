@@ -3,38 +3,38 @@
 WSGI entrypoint for the actingwebdemo deployment.
 
 The actual application code lives in the actingweb library repository at
-examples/demo/application.py, pinned via this project's `actingweb`
-dependency (see pyproject.toml) so the two cannot drift apart. This file
-loads that module by its file path and re-exports `app` (the WSGI
-callable), so uwsgi.ini's `mount = /=application:app` and serverless.yml's
+examples/demo/application.py. This file loads that module by its file
+path from the vendor/actingweb git submodule (see .gitmodules) and
+re-exports `app` (the WSGI callable), so uwsgi.ini's
+`mount = /=application:app` and serverless.yml's
 `custom.wsgi.app: application.app` keep working unchanged.
 
-This resolves the demo module relative to the installed `actingweb`
-package's own file location, which only works for an editable/path/git
-install where examples/ is actually present on disk (it is deliberately
-excluded from the published wheel). Local development currently pins
-`actingweb` to a path dependency on a sibling checkout for exactly this
-reason -- see pyproject.toml. Once a released version exists to pin to and
-this becomes the real deployment, replace this file with the equivalent
-resolved against a vendored git submodule instead (see actingweb's
-thoughts/plans/2026-08-22-demo-app-consolidation.md, Phase 4).
+Resolved relative to *this file's own location* (vendor/actingweb/, a
+fixed path), not via the installed `actingweb` package's file location.
+examples/ is deliberately excluded from the published wheel, so a plain
+pip/poetry-installed actingweb -- which is what a packaged Lambda
+artifact actually bundles -- never has it; only the submodule checkout
+does, and serverless.yml's package.patterns includes
+vendor/actingweb/examples/demo/ explicitly for exactly that reason.
 """
 
 import importlib.util
 import sys
 from pathlib import Path
 
-import actingweb
-
-_repo_root = Path(actingweb.__file__).resolve().parent.parent
-_demo_application_path = _repo_root / "examples" / "demo" / "application.py"
+_demo_application_path = (
+    Path(__file__).resolve().parent
+    / "vendor"
+    / "actingweb"
+    / "examples"
+    / "demo"
+    / "application.py"
+)
 
 if not _demo_application_path.exists():
     raise RuntimeError(
         f"Could not find examples/demo/application.py at {_demo_application_path}. "
-        "The actingweb dependency must be installed from a source checkout "
-        "(a path or editable git install), not a built wheel -- examples/ is "
-        "deliberately excluded from the published package."
+        "Run `git submodule update --init` to check out vendor/actingweb."
     )
 
 _spec = importlib.util.spec_from_file_location(

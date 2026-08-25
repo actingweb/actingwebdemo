@@ -408,5 +408,7 @@ dmypy.json
 .vscode/launch.json
 .vscode/settings.json
 service-account.json
-dynamodb/shared-local-instance.db
-actingweb
+/dynamodb/
+# Rooted: an old local convenience for a top-level scratch checkout.
+# Non-rooted would also match vendor/actingweb, the real submodule.
+/actingweb

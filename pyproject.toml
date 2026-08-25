@@ -15,10 +15,20 @@ priority = "supplemental"
 python = "^3.11"
 jinja2 = ">=3.1.2"
 flask = ">=3.1.1,<4.0.0"
-# Pinned to the local actingweb source checkout for testing the
-# examples/demo/ consolidation (actingweb PR #137) before a PyPI release
-# exists to pin to instead. Swap back to a version pin once 3.14.1+ ships.
-actingweb = { path = "../actingweb", develop = true, extras = ["flask"] }
+# Pinned to the vendor/actingweb git submodule (see .gitmodules), not
+# PyPI: examples/demo/ -- the code application.py delegates to -- is
+# deliberately excluded from the published wheel, so no version pin can
+# provide it. The submodule tracks consolidate-demo-app for now, ahead of
+# an actingweb release; deploy.yml resolves and checks out a specific,
+# PyPI-verified release tag independently of whatever this pin tracks
+# day to day.
+# develop = false deliberately: an editable install is a .pth-style
+# reference back to vendor/actingweb, not a real copy -- Lambda packaging
+# needs an actual installed copy of the actingweb package (application.py
+# resolves examples/demo/ separately, via a path relative to itself, so
+# it doesn't need editable mode either). Re-run `poetry install` after
+# updating the submodule to pick up changes.
+actingweb = { path = "vendor/actingweb", develop = false, extras = ["flask"] }
 #actingweb = { version = ">=3.9.0", extras = ["flask"] }
 python-dotenv = "^1.2.1"
 
