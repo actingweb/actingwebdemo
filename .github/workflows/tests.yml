@@ -21,13 +21,19 @@ jobs:
       # actingweb is pinned as a Poetry path dependency onto vendor/actingweb
       # (see pyproject.toml and .gitmodules) -- examples/demo/ is repo-only
       # and deliberately excluded from the published wheel, so a version pin
-      # from PyPI can't provide it. submodules: recursive checks it out at
-      # the ref .gitmodules pins (currently the consolidate-demo-app branch
-      # -- TODO switch to `master` once actingweb PR #137 merges).
-      - name: Checkout actingwebdemo (with submodules)
+      # from PyPI can't provide it. Checked out at the ref .gitmodules pins
+      # (currently the consolidate-demo-app branch -- TODO switch to
+      # `master` once actingweb PR #137 merges).
+      - name: Checkout actingwebdemo
         uses: actions/checkout@v5
-        with:
-          submodules: recursive
+
+      # A snapshot, not a manageable nested repo: explicit --depth 1 here
+      # rather than relying on actions/checkout's submodules: input or
+      # .gitmodules' shallow = true alone -- neither reliably shallow-fetches
+      # on every git/runner combination, verified locally by comparing their
+      # actual fetched history against this explicit form.
+      - name: Check out vendor/actingweb submodule (shallow)
+        run: git submodule update --init --depth 1
 
       - name: Set up Python
         uses: actions/setup-python@v6
