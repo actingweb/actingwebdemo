@@ -79,7 +79,10 @@ package:
     - '!Dockerfile'
     - '!.dockerignore'
     - '!.gitignore'
-    - '!README.rst'
+    - '!README.md'
+    - '!OAUTH_SETUP.md'
+    - '!LICENSE.md'
+    - '!CHANGELOG.md'
     - '!poetry.lock'
     - '!pyproject.toml'
     # vendor/actingweb/ is the whole actingweb repo (a git submodule --
