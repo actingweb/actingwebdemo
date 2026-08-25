@@ -21,6 +21,7 @@ thoughts/plans/2026-08-22-demo-app-consolidation.md, Phase 4).
 """
 
 import importlib.util
+import sys
 from pathlib import Path
 
 import actingweb
@@ -41,6 +42,14 @@ _spec = importlib.util.spec_from_file_location(
 )
 assert _spec is not None and _spec.loader is not None
 _demo = importlib.util.module_from_spec(_spec)
+# Flask(__name__, ...) inside the loaded module resolves its root_path (and
+# therefore where it looks for templates/ and static/) via
+# sys.modules.get(import_name) -- module_from_spec() does NOT register the
+# module there on its own. Without this, Flask can't find the module by
+# name, falls through to a cwd-based fallback, and silently serves the
+# library's default templates instead of this demo's overrides (found by
+# comparing this deployment's rendered pages against demo.actingweb.io's).
+sys.modules[_spec.name] = _demo
 _spec.loader.exec_module(_demo)
 
 app = _demo.app
