@@ -3,7 +3,7 @@
 service: actingwebdemo
 
 plugins:
-  # serverless-python-requirements does not need to be loaded as it is loaded by default
+  - serverless-python-requirements
   - serverless-wsgi
   - serverless-domain-manager
   - serverless-dotenv-plugin
@@ -30,7 +30,19 @@ custom:
     app: application.app
     packRequirements: false
   pythonRequirements:
-    dockerizePip: true
+    # false deliberately: dockerizePip runs pip inside an isolated container
+    # that only mounts serverless-python-requirements' own cache dirs, not
+    # this project's checkout -- but `actingweb` is a Poetry *path*
+    # dependency (see pyproject.toml), which `poetry export` turns into
+    # `actingweb @ file:///<absolute checkout path>/vendor/actingweb`. That
+    # absolute path doesn't exist inside the container, so dockerizePip
+    # failed outright: "No such file or directory: '.../vendor/actingweb'".
+    # CI (deploy.yml) already runs on a Linux x86_64 GitHub Actions runner,
+    # the same platform Lambda's default architecture targets, so
+    # dockerizing purely to cross-compile isn't needed here -- pip just
+    # runs directly against the real checkout, where that file:// path is
+    # valid.
+    dockerizePip: false
     poetry: true
     poetryWithoutHashes: true
     slim: true
