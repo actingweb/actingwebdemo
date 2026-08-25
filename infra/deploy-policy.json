@@ -13,10 +13,15 @@
         "cloudformation:DescribeStackResource",
         "cloudformation:DescribeStackResources",
         "cloudformation:ListStackResources",
-        "cloudformation:GetTemplate",
-        "cloudformation:ValidateTemplate"
+        "cloudformation:GetTemplate"
       ],
       "Resource": "arn:aws:cloudformation:us-west-1:473852420549:stack/actingwebdemo-prod*/*"
+    },
+    {
+      "Sid": "CloudFormationValidateTemplateRequiresWildcardResource",
+      "Effect": "Allow",
+      "Action": "cloudformation:ValidateTemplate",
+      "Resource": "*"
     },
     {
       "Sid": "LambdaFunction",
