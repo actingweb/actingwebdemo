@@ -1,0 +1,5 @@
+[submodule "vendor/actingweb"]
+	path = vendor/actingweb
+	url = https://github.com/actingweb/actingweb.git
+	branch = master
+	shallow = true

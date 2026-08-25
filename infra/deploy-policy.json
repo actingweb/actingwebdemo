@@ -1,0 +1,139 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CloudFormationStack",
+      "Effect": "Allow",
+      "Action": [
+        "cloudformation:CreateStack",
+        "cloudformation:UpdateStack",
+        "cloudformation:DeleteStack",
+        "cloudformation:DescribeStacks",
+        "cloudformation:DescribeStackEvents",
+        "cloudformation:DescribeStackResource",
+        "cloudformation:DescribeStackResources",
+        "cloudformation:ListStackResources",
+        "cloudformation:GetTemplate",
+        "cloudformation:ValidateTemplate"
+      ],
+      "Resource": "arn:aws:cloudformation:us-west-1:473852420549:stack/actingwebdemo-prod*/*"
+    },
+    {
+      "Sid": "LambdaFunction",
+      "Effect": "Allow",
+      "Action": [
+        "lambda:CreateFunction",
+        "lambda:UpdateFunctionCode",
+        "lambda:UpdateFunctionConfiguration",
+        "lambda:GetFunction",
+        "lambda:GetFunctionConfiguration",
+        "lambda:DeleteFunction",
+        "lambda:ListVersionsByFunction",
+        "lambda:PublishVersion",
+        "lambda:AddPermission",
+        "lambda:RemovePermission",
+        "lambda:GetPolicy",
+        "lambda:TagResource",
+        "lambda:UntagResource",
+        "lambda:ListTags"
+      ],
+      "Resource": "arn:aws:lambda:us-west-1:473852420549:function:actingwebdemo-prod-*"
+    },
+    {
+      "Sid": "LambdaExecutionRole",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateRole",
+        "iam:GetRole",
+        "iam:DeleteRole",
+        "iam:PutRolePolicy",
+        "iam:GetRolePolicy",
+        "iam:DeleteRolePolicy",
+        "iam:AttachRolePolicy",
+        "iam:DetachRolePolicy",
+        "iam:ListRolePolicies",
+        "iam:ListAttachedRolePolicies",
+        "iam:TagRole",
+        "iam:UntagRole"
+      ],
+      "Resource": "arn:aws:iam::473852420549:role/actingwebdemo-prod-*"
+    },
+    {
+      "Sid": "PassExecutionRoleToLambdaOnly",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "arn:aws:iam::473852420549:role/actingwebdemo-prod-*",
+      "Condition": {
+        "StringEquals": { "iam:PassedToService": "lambda.amazonaws.com" }
+      }
+    },
+    {
+      "Sid": "DeploymentBucket",
+      "Effect": "Allow",
+      "Action": [
+        "s3:CreateBucket",
+        "s3:PutBucketPolicy",
+        "s3:PutEncryptionConfiguration",
+        "s3:PutBucketAcl",
+        "s3:PutBucketPublicAccessBlock",
+        "s3:PutBucketVersioning",
+        "s3:GetBucketLocation",
+        "s3:ListBucket",
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::actingwebdemo-prod-*",
+        "arn:aws:s3:::actingwebdemo-prod-*/*"
+      ]
+    },
+    {
+      "Sid": "CloudWatchLogs",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:DeleteLogGroup",
+        "logs:DescribeLogGroups",
+        "logs:PutRetentionPolicy",
+        "logs:TagResource",
+        "logs:TagLogGroup"
+      ],
+      "Resource": "arn:aws:logs:us-west-1:473852420549:log-group:/aws/lambda/actingwebdemo-prod-*"
+    },
+    {
+      "Sid": "HttpApiManagement",
+      "Effect": "Allow",
+      "Action": [
+        "apigateway:GET",
+        "apigateway:POST",
+        "apigateway:PUT",
+        "apigateway:PATCH",
+        "apigateway:DELETE",
+        "apigateway:TagResource"
+      ],
+      "Resource": "arn:aws:apigateway:us-west-1::/apis*"
+    },
+    {
+      "Sid": "CustomDomainManagement",
+      "Effect": "Allow",
+      "Action": [
+        "apigateway:GET",
+        "apigateway:POST",
+        "apigateway:PUT",
+        "apigateway:PATCH",
+        "apigateway:DELETE"
+      ],
+      "Resource": "arn:aws:apigateway:us-west-1::/domainnames*"
+    },
+    {
+      "Sid": "ExistingCertificateReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "acm:DescribeCertificate",
+        "acm:ListCertificates"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

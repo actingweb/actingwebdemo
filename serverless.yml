@@ -44,6 +44,13 @@ custom:
       - "**/.pytest_cache/**"
       - "**/docs/**"
       - "**/examples/**"
+      # This trims *installed pip dependencies* only (third-party packages'
+      # bundled examples/tests/docs) -- it doesn't touch vendor/actingweb/,
+      # which is project source, not a pip dependency. The actingweb wheel
+      # this installs from never has examples/ anyway (deliberately
+      # excluded from the package build), so this line was never at odds
+      # with vendor/actingweb/examples/demo/ -- that's handled by
+      # package.patterns below instead.
     noDeploy:
       - boto3
       - botocore
@@ -72,9 +79,22 @@ package:
     - '!Dockerfile'
     - '!.dockerignore'
     - '!.gitignore'
-    - '!README.rst'
+    - '!README.md'
+    - '!OAUTH_SETUP.md'
+    - '!LICENSE.md'
+    - '!CHANGELOG.md'
     - '!poetry.lock'
     - '!pyproject.toml'
+    # vendor/actingweb/ is the whole actingweb repo (a git submodule --
+    # git can't check out a single subdirectory of one), checked out here
+    # purely so application.py can reach examples/demo/. actingweb the
+    # *package* is installed separately via pip/poetry, so its own
+    # actingweb/ subdirectory below is redundant weight; excluded along
+    # with everything else in the submodule that isn't the demo app.
+    - '!vendor/actingweb/**'
+    - 'vendor/actingweb/examples/demo/**'
+    - '!vendor/actingweb/examples/demo/__pycache__/**'
+    - '!vendor/actingweb/examples/demo/**/__pycache__/**'
 
 provider:
   profile: default # use the credentials in ~/.aws/credentials
