@@ -13,7 +13,12 @@
         "cloudformation:DescribeStackResource",
         "cloudformation:DescribeStackResources",
         "cloudformation:ListStackResources",
-        "cloudformation:GetTemplate"
+        "cloudformation:GetTemplate",
+        "cloudformation:CreateChangeSet",
+        "cloudformation:DescribeChangeSet",
+        "cloudformation:ExecuteChangeSet",
+        "cloudformation:DeleteChangeSet",
+        "cloudformation:ListChangeSets"
       ],
       "Resource": "arn:aws:cloudformation:us-west-1:473852420549:stack/actingwebdemo-prod*/*"
     },
