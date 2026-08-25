@@ -1,0 +1,150 @@
+name: Deploy to AWS Lambda
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      actingweb_ref:
+        description: >-
+          actingweb tag to deploy, e.g. v3.14.1. Leave empty to use the
+          latest version published on the selected index.
+        required: false
+        default: ''
+      pypi_index:
+        description: 'Which index to resolve/verify the version against'
+        required: true
+        default: 'pypi'
+        type: choice
+        options:
+          - pypi
+          - testpypi
+
+# Serialize deploys to the single production stack so two runs can't race
+# into a CloudFormation UPDATE_IN_PROGRESS conflict.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout actingwebdemo
+        uses: actions/checkout@v5
+
+      # The whole point of this step: never deploy actingwebdemo against an
+      # actingweb tag/version that isn't actually installable. A tag that
+      # exists in git but hasn't been released (or a typo'd version) fails
+      # here, before anything is checked out or built, rather than
+      # surfacing as a confusing failure deep in packaging or at runtime.
+      - name: Resolve and verify the actingweb release to deploy
+        id: resolve
+        env:
+          REQUESTED_REF: ${{ github.event.inputs.actingweb_ref }}
+          PYPI_INDEX: ${{ github.event.inputs.pypi_index || 'pypi' }}
+        run: |
+          set -euo pipefail
+
+          if [ "$PYPI_INDEX" = "testpypi" ]; then
+            INDEX_URL="https://test.pypi.org/pypi/actingweb"
+          else
+            INDEX_URL="https://pypi.org/pypi/actingweb"
+          fi
+
+          if [ -n "$REQUESTED_REF" ]; then
+            VERSION="${REQUESTED_REF#v}"
+            echo "Explicit ref requested: $REQUESTED_REF (version $VERSION)"
+          else
+            VERSION=$(curl -sf "$INDEX_URL/json" | python3 -c "import json,sys; print(json.load(sys.stdin)['info']['version'])")
+            echo "No actingweb_ref given -- resolved latest $PYPI_INDEX version: $VERSION"
+          fi
+
+          if ! curl -sf -o /dev/null "$INDEX_URL/$VERSION/json"; then
+            echo "::error::actingweb $VERSION is not published on $PYPI_INDEX -- refusing to deploy"
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Verified: actingweb $VERSION is published on $PYPI_INDEX"
+
+      # Independent of vendor/actingweb's default submodule pin (which
+      # tracks a development branch for CI testing, see .gitmodules) --
+      # this overwrites that checkout with the exact, PyPI-verified release
+      # tag resolved above, every deploy.
+      - name: Check out actingweb at the resolved tag
+        uses: actions/checkout@v5
+        with:
+          repository: actingweb/actingweb
+          ref: ${{ steps.resolve.outputs.tag }}
+          path: vendor/actingweb
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 2.4.1
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Set up Node.js for Serverless
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Serverless Framework and plugins
+        run: |
+          # v3, not v4: v4 requires a license key and migrating is out of
+          # scope here -- see thoughts/plans/2026-08-22-demo-app-consolidation.md
+          # (actingweb repo) under "What We're NOT Doing".
+          npm install -g serverless@3
+          npm install
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-1
+
+      - name: Deploy
+        run: serverless deploy --verbose
+        env:
+          # serverless.yml's provider.profile: default reads
+          # ~/.aws/credentials for local/manual deploys; configure-aws-
+          # credentials above exports these instead, which the AWS SDK
+          # picks up regardless of the profile setting.
+          OAUTH_CLIENT_ID: ${{ secrets.OAUTH_CLIENT_ID }}
+          OAUTH_CLIENT_SECRET: ${{ secrets.OAUTH_CLIENT_SECRET }}
+          OAUTH_PROVIDER: ${{ vars.OAUTH_PROVIDER || 'google' }}
+          NUKE_SECRET: ${{ secrets.NUKE_SECRET }}
+
+      - name: Verify deployment
+        run: |
+          echo "Waiting for API Gateway to propagate..."
+          sleep 10
+          echo "Testing health endpoint..."
+          curl -f https://demo.actingweb.io/health || {
+            echo "::error::Health check failed -- deployment may not be fully operational"
+            exit 1
+          }
+          echo "Health check passed."
+
+      - name: Deployment summary
+        if: always()
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "Deployed actingweb ${{ steps.resolve.outputs.version }} (from ${{ github.event.inputs.pypi_index || 'pypi' }}) to demo.actingweb.io"
+          else
+            echo "Deploy failed -- see the failing step above."
+          fi
