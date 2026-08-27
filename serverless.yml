@@ -157,6 +157,13 @@ provider:
     OAUTH_CLIENT_SECRET: '${env:OAUTH_CLIENT_SECRET}'
     OAUTH_PROVIDER: '${env:OAUTH_PROVIDER, "google"}'  # "google" or "github"
     NUKE_SECRET: '${env:NUKE_SECRET, ""}'  # Secret for /nuke endpoint (test cleanup)
+    # examples/demo/application.py defaults this off, because devtest exposes
+    # mutation/read endpoints plus an unauthenticated passphrase->token grant.
+    # demo.actingweb.io deliberately turns it back on: /devtest/proxy is how an
+    # actor creates its peer-trustee ("myself") twin, which is part of what this
+    # service demonstrates, and the BlazeMeter protocol suite tests that path.
+    # Do not copy this line into a real deployment.
+    ENABLE_DEVTEST: 'true'
   iam:
     role:   
       statements:
