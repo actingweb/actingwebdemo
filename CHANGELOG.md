@@ -4,6 +4,18 @@
 
 ### Changed
 
+- **A push to `master` deploys the pinned `actingweb` release, rc and beta
+  included.** The deploy used to resolve the latest version on PyPI on every
+  push, ignoring the `vendor/actingweb` pin, so a pre-release could reach
+  `demo.actingweb.io` only through a manual `workflow_dispatch`. It now
+  deploys the version the pin names, verified on TestPyPI for a pre-release
+  and on PyPI otherwise, and fails if the pin is not that release's tag
+  commit. An explicit pre-release `actingweb_ref` on a manual run is also
+  verified on TestPyPI without having to select it.
+- **actingweb pinned to 3.15.0rc1; lock refreshed.** The lock held pyjwt
+  2.13.0, below actingweb's `^2.14` floor (a pyjwt security release); it is
+  now 2.15.0.
+
 - **Application code moved to the `actingweb` library repo.** The demo app
   (`shared_hooks/`, `templates/`, `static/`, `application.py`'s actual
   logic) now lives at `examples/demo/` in the `actingweb` repository and is

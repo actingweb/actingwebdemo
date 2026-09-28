@@ -7,12 +7,13 @@ on:
     inputs:
       actingweb_ref:
         description: >-
-          actingweb tag to deploy, e.g. v3.14.1. Leave empty to use the
-          latest version published on the selected index.
+          actingweb tag to deploy, e.g. v3.14.1 or v3.15.0rc1 (a pre-release
+          is verified on TestPyPI). Leave empty to use the latest version
+          published on the selected index.
         required: false
         default: ''
       pypi_index:
-        description: 'Which index to resolve/verify the version against'
+        description: 'Index for the latest version when actingweb_ref is empty'
         required: true
         default: 'pypi'
         type: choice
@@ -35,18 +36,59 @@ jobs:
       - name: Checkout actingwebdemo
         uses: actions/checkout@v5
 
-      # The whole point of this step: never deploy actingwebdemo against an
-      # actingweb tag/version that isn't actually installable. A tag that
-      # exists in git but hasn't been released (or a typo'd version) fails
-      # here, before anything is checked out or built, rather than
-      # surfacing as a confusing failure deep in packaging or at runtime.
+      # Decide which actingweb release to deploy, and never deploy one that
+      # is not actually installable:
+      #
+      # - push to master: the version vendor/actingweb is pinned to. The
+      #   pin must be exactly that version's release tag commit, so merging
+      #   a pin bump deploys what CI tested -- an rc or beta included, which
+      #   is how actingweb pre-releases get tested on demo.actingweb.io.
+      # - workflow_dispatch with actingweb_ref: that tag.
+      # - workflow_dispatch without it: the latest version on pypi_index.
+      #
+      # A pre-release (aN, bN, rcN, .devN) is verified on TestPyPI, a final
+      # release on PyPI. A version that is not published there fails here,
+      # before anything is checked out or built.
       - name: Resolve and verify the actingweb release to deploy
         id: resolve
         env:
+          EVENT: ${{ github.event_name }}
           REQUESTED_REF: ${{ github.event.inputs.actingweb_ref }}
-          PYPI_INDEX: ${{ github.event.inputs.pypi_index || 'pypi' }}
+          DISPATCH_INDEX: ${{ github.event.inputs.pypi_index || 'pypi' }}
         run: |
           set -euo pipefail
+
+          index_for() {
+            if echo "$1" | grep -Eq '(a|b|rc)[0-9]+$|\.dev[0-9]+$'; then
+              echo testpypi
+            else
+              echo pypi
+            fi
+          }
+
+          if [ "$EVENT" = "push" ]; then
+            PIN=$(git ls-tree HEAD vendor/actingweb | awk '{print $3}')
+            if [ -z "$PIN" ]; then
+              echo "::error::vendor/actingweb is not a submodule at HEAD"
+              exit 1
+            fi
+            VERSION=$(curl -sf "https://raw.githubusercontent.com/actingweb/actingweb/$PIN/pyproject.toml" \
+              | python3 -c "import sys, tomllib; d = tomllib.loads(sys.stdin.read()); print(d.get('project', {}).get('version') or d['tool']['poetry']['version'])")
+            TAG_COMMIT=$(git ls-remote https://github.com/actingweb/actingweb.git "refs/tags/v$VERSION" "refs/tags/v$VERSION^{}" | tail -1 | awk '{print $1}')
+            if [ "$TAG_COMMIT" != "$PIN" ]; then
+              echo "::error::vendor/actingweb is pinned to $PIN, which is not the v$VERSION release tag (${TAG_COMMIT:-no such tag}). Pin a release tag, or deploy with workflow_dispatch."
+              exit 1
+            fi
+            PYPI_INDEX=$(index_for "$VERSION")
+            echo "Push: vendor/actingweb is pinned to v$VERSION ($PIN)"
+          elif [ -n "$REQUESTED_REF" ]; then
+            VERSION="${REQUESTED_REF#v}"
+            PYPI_INDEX=$(index_for "$VERSION")
+            echo "Explicit ref requested: $REQUESTED_REF (version $VERSION)"
+          else
+            PYPI_INDEX="$DISPATCH_INDEX"
+            VERSION=""
+          fi
 
           if [ "$PYPI_INDEX" = "testpypi" ]; then
             INDEX_URL="https://test.pypi.org/pypi/actingweb"
@@ -54,10 +96,7 @@ jobs:
             INDEX_URL="https://pypi.org/pypi/actingweb"
           fi
 
-          if [ -n "$REQUESTED_REF" ]; then
-            VERSION="${REQUESTED_REF#v}"
-            echo "Explicit ref requested: $REQUESTED_REF (version $VERSION)"
-          else
+          if [ -z "$VERSION" ]; then
             VERSION=$(curl -sf "$INDEX_URL/json" | python3 -c "import json,sys; print(json.load(sys.stdin)['info']['version'])")
             echo "No actingweb_ref given -- resolved latest $PYPI_INDEX version: $VERSION"
           fi
@@ -71,10 +110,8 @@ jobs:
           echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
           echo "Verified: actingweb $VERSION is published on $PYPI_INDEX"
 
-      # Independent of vendor/actingweb's default submodule pin (which
-      # tracks a development branch for CI testing, see .gitmodules) --
-      # this overwrites that checkout with the exact, PyPI-verified release
-      # tag resolved above, every deploy.
+      # Checks out the exact release tag resolved and verified above. On a
+      # push that is the pinned commit itself.
       - name: Check out actingweb at the resolved tag
         uses: actions/checkout@v5
         with:

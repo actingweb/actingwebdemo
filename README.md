@@ -141,13 +141,20 @@ handled by `.github/workflows/deploy.yml`, which runs automatically on every
 push to `master` and can also be triggered manually
 (`workflow_dispatch`).
 
-The workflow **never deploys against an unreleased `actingweb` version**: it
-resolves a version (the latest release by default, or an explicit tag via
-`workflow_dispatch`), verifies that version is actually published on PyPI
-(or TestPyPI, if selected), and only then checks out `actingweb` at that
-exact tag into `vendor/actingweb` for the build — independent of whatever
-branch the repo's own `.gitmodules` pin tracks day to day. If the requested
-version isn't published, the workflow fails before touching AWS.
+The workflow **never deploys against an unreleased `actingweb` version**:
+
+- **On a push to `master`** it deploys the version `vendor/actingweb` is
+  pinned to. The pin must be exactly that release's tag commit (bump it with
+  `git -C vendor/actingweb checkout vX.Y.Z` and `poetry lock`), so merging a
+  pin bump deploys what CI tested. This is how `actingweb` release
+  candidates and betas are tested on `demo.actingweb.io`.
+- **On `workflow_dispatch`** it deploys the tag given in `actingweb_ref`, or,
+  if that is empty, the latest version on the chosen index.
+
+A pre-release (`aN`, `bN`, `rcN`, `.devN`) is verified on TestPyPI and a
+final release on PyPI. The workflow then checks out `actingweb` at that tag
+into `vendor/actingweb` for the build. If the version isn't published, or a
+push's pin isn't a release tag, the workflow fails before touching AWS.
 
 Required repository secrets: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`,
 `OAUTH_CLIENT_ID`, `OAUTH_CLIENT_SECRET`, `NUKE_SECRET`. Optional repository
