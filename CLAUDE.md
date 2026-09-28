@@ -50,6 +50,9 @@ docker compose -f vendor/actingweb/docker-compose.test.yml up dynamodb-test
 installed copy, not an editable `.pth` reference), not a PyPI version,
 because `examples/demo/` is deliberately excluded from the published wheel.
 Re-run `poetry install` after updating the submodule pin to pick up changes.
+Bump the pin to a release tag (`git -C vendor/actingweb checkout vX.Y.Z`,
+then `poetry lock`), not to a branch head: the deploy on merge requires the
+pin to be a published release's tag commit.
 
 ## CI and deployment
 
@@ -58,11 +61,14 @@ Re-run `poetry install` after updating the submodule pin to pick up changes.
   --depth 1`) rather than relying on `.gitmodules`' `shallow = true` alone,
   which was verified locally to not reliably shallow-fetch on its own.
 - `.github/workflows/deploy.yml` — deploys to AWS Lambda via Serverless
-  Framework v3 on push to `master`, or on demand. Resolves and verifies a
-  specific `actingweb` release is actually published on PyPI/TestPyPI
-  *before* checking it out and building, independent of whatever branch
-  `vendor/actingweb`'s day-to-day CI pin tracks. Never deploys against an
-  unreleased version.
+  Framework v3 on push to `master`, or on demand. A push deploys the
+  `actingweb` release `vendor/actingweb` is pinned to; the pin must be that
+  release's tag commit, or the deploy fails. A pre-release (`aN`, `bN`,
+  `rcN`, `.devN`) is verified on TestPyPI, a final release on PyPI, before
+  anything is checked out or built, so merging a pin bump to an rc or beta
+  is how an `actingweb` pre-release gets onto `demo.actingweb.io` for
+  release testing. `workflow_dispatch` deploys an explicit tag, or the latest
+  version on the chosen index. Never deploys an unreleased version.
 
 Deployment (Elastic Beanstalk config, `on_aw.py`, Runscope tests) that used
 to exist in this repo has been removed — Serverless/Lambda is the only
