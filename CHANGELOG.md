@@ -12,10 +12,13 @@
   and on PyPI otherwise, and fails if the pin is not that release's tag
   commit. An explicit pre-release `actingweb_ref` on a manual run is also
   verified on TestPyPI without having to select it.
-- **actingweb pinned to 3.15.0.** The stable release, after testing 3.15.0rc1
-  here. When pinned to rc1, the lock was refreshed: it held pyjwt 2.13.0,
-  below actingweb's `^2.14` floor (a pyjwt security release); it is now
-  2.15.0.
+- **actingweb pinned to 3.15.1.** A security patch on 3.15.0 (tested here as
+  3.15.0rc1 first): logging out of the demo and `/oauth/revoke` now end the
+  whole refresh-token chain instead of only the access token, a token-store
+  fault answers 503 with `Retry-After` rather than a false "logged out", and
+  a `GET /oauth/logout` no longer clears the stored provider token. When
+  pinned to rc1, the lock was refreshed: it held pyjwt 2.13.0, below
+  actingweb's `^2.14` floor (a pyjwt security release); it is now 2.15.0.
 
 - **Application code moved to the `actingweb` library repo.** The demo app
   (`shared_hooks/`, `templates/`, `static/`, `application.py`'s actual
