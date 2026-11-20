@@ -4,6 +4,12 @@
 
 ### Changed
 
+- **The demo runs on Python 3.14.** Lambda's `python3.14` runtime replaces
+  `python3.11`, which gets security fixes only and reaches end of life in
+  October 2027. Packaging builds against `public.ecr.aws/sam/build-python3.14`
+  (the plugin derives it from `provider.runtime`), and CI, the deploy job and
+  the local `Dockerfile` use 3.14 too; `pyproject.toml` pins `~3.14` to match
+  the runtime. Ships with the `actingweb` 4.0.0rc1 pin.
 - **A push to `master` deploys the pinned `actingweb` release, rc and beta
   included.** The deploy used to resolve the latest version on PyPI on every
   push, ignoring the `vendor/actingweb` pin, so a pre-release could reach

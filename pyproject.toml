@@ -12,7 +12,7 @@ url = "https://test.pypi.org/simple/"
 priority = "supplemental"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "~3.14"
 jinja2 = ">=3.1.2"
 flask = ">=3.1.1,<4.0.0"
 # Pinned to the vendor/actingweb git submodule (see .gitmodules), not
@@ -34,7 +34,7 @@ python-dotenv = "^1.2.1"
 [tool.poetry.group.dev.dependencies]
 uwsgi = ">=2.0.23"
 pydevd-pycharm = "*"
-ruff = "^0.14.10"
+ruff = "^0.15"
 pyright = "^1.1.407"
 pytest = "^9.0.1"
 

@@ -41,7 +41,8 @@ custom:
     #   .../cryptography/hazmat/bindings/_rust.abi3.so)
     # which silently broke Google OAuth2 login (falls back to standard
     # actor creation instead of erroring loudly). dockerizePip: true
-    # builds against public.ecr.aws/sam/build-python3.11, AWS's own
+    # builds against public.ecr.aws/sam/build-<provider.runtime> (now
+    # build-python3.14), AWS's own
     # Lambda-matching build image, which is the actual fix.
     #
     # That reintroduces the container-mount problem dockerizePip: false
@@ -139,7 +140,7 @@ provider:
   # For a manual local deploy, export those two env vars (or run
   # `export AWS_PROFILE=your-profile-name`) before `serverless deploy`.
   name: aws
-  runtime: python3.11
+  runtime: python3.14
   memorySize: 256
   timeout: 29
   stage: ${self:custom.stage}
@@ -164,6 +165,17 @@ provider:
     # service demonstrates, and the BlazeMeter protocol suite tests that path.
     # Do not copy this line into a real deployment.
     ENABLE_DEVTEST: 'true'
+    # actingweb 4.0 closes the actor factory (POST /) by default once a
+    # sign-in provider is configured. This demo keeps it open: peers create
+    # trustees here (/devtest/proxy creates an actor's "myself" twin through
+    # the factory), the BlazeMeter protocol suite posts to /, and the form
+    # is part of what the demo shows. A real deployment leaves it unset.
+    OPEN_FACTORY: 'true'
+    # The table prefix the demo has always used (the library default),
+    # stated: 4.0's operator commands refuse to write without an explicit
+    # prefix, and an empty store enables creator uniqueness at its first
+    # start only with one.
+    AWS_DB_PREFIX: 'demo_actingweb'
   iam:
     role:   
       statements:
@@ -176,6 +188,12 @@ provider:
             - dynamodb:UpdateItem
             - dynamodb:DeleteItem
             - dynamodb:BatchWriteItem
+            # actingweb 4.0: the reverse-lookup table is read in batches
+            # (the start-up check fails without it), and creator uniqueness
+            # and conditional writes run as transactions with condition
+            # checks on actors, properties and attributes.
+            - dynamodb:BatchGetItem
+            - dynamodb:ConditionCheckItem
             - dynamodb:CreateTable
             - dynamodb:DescribeTable
           Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/demo_*"
