@@ -4,6 +4,21 @@
 
 ### Changed
 
+- **The demo runs `actingweb` 4.0.0rc1.** The function role gains
+  `dynamodb:BatchGetItem` (the reverse-lookup table, read by the start-up
+  check) and `dynamodb:ConditionCheckItem` (4.0's transactions).
+  `OPEN_FACTORY=true` keeps the actor factory open, which 4.0 closes by
+  default once a sign-in provider is configured: peers create trustees here
+  and the protocol suite posts to `/`. `AWS_DB_PREFIX` is stated
+  (`demo_actingweb`, the prefix in use). The store needs the library's
+  operator steps before the first 4.0 deploy (its migration guide, "Start
+  here").
+- **The demo runs on Python 3.14.** Lambda's `python3.14` runtime replaces
+  `python3.11`, which gets security fixes only and reaches end of life in
+  October 2027. Packaging builds against `public.ecr.aws/sam/build-python3.14`
+  (the plugin derives it from `provider.runtime`), and CI, the deploy job and
+  the local `Dockerfile` use 3.14 too; `pyproject.toml` pins `~3.14` to match
+  the runtime. Ships with the `actingweb` 4.0.0rc1 pin.
 - **A push to `master` deploys the pinned `actingweb` release, rc and beta
   included.** The deploy used to resolve the latest version on PyPI on every
   push, ignoring the `vendor/actingweb` pin, so a pre-release could reach
