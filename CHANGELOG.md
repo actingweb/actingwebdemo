@@ -4,6 +4,11 @@
 
 ### Changed
 
+- **The demo runs `actingweb` 4.0.0rc2.** The answer to a peer's trust
+  request carries its `secret` again (4.0.0rc1 dropped it, so a request
+  sent without one, as the protocol test suite's trust flow sends it, could
+  never be approved), and the request's refusals carry a JSON `error`. No
+  new permission, setting or operator step.
 - **The demo runs `actingweb` 4.0.0rc1.** The function role gains
   `dynamodb:BatchGetItem` (the reverse-lookup table, read by the start-up
   check) and `dynamodb:ConditionCheckItem` (4.0's transactions).
